@@ -2,7 +2,7 @@ import express from 'express';
 import User from '../models/User.js';
 import { authMiddleware } from '../middleware/auth.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
