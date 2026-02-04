@@ -1,0 +1,161 @@
+.container {
+	max-width: 400px;
+	margin: auto;
+	padding: 40px 20px;
+	background-color: #121212;
+	border-radius: 12px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.title {
+	font-size: 32px;
+	font-weight: bold;
+	color: #FFFFFF;
+	text-align: center;
+	margin-bottom: 30px;
+	font-family: Arial, sans-serif;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.input {
+	width: 100%;
+	padding: 14px 16px;
+	font-size: 16px;
+	background-color: #1E1E1E;
+	border: 1px solid #333333;
+	border-radius: 8px;
+	color: #fff;
+	outline: none;
+	transition: border-color 0.3s;
+	box-sizing: border-box;
+
+	&::placeholder {
+		color: #999999;
+	}
+}
+
+.input:focus {
+	border-color: #4CAF50;
+}
+
+.passwordContainer {
+	position: relative;
+	width: 100%;
+}
+
+.passwordToggle {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	color: #666666;
+	cursor: pointer;
+	font-size: 18px;
+	padding: 5px;
+	border-radius: 4px;
+	transition: color 0.3s;
+}
+
+.passwordToggle:hover {
+	color: #FFFFFF;
+}
+
+.loginButton {
+	padding: 16px;
+	font-size: 18px;
+	font-weight: 600;
+	background-color: #4CAF50;
+	color: #FFFFFF;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	margin-top: 10px;
+}
+
+.loginButton:hover {
+	background-color: #45a049;
+}
+
+.loginButton:active {
+	transform: scale(0.98);
+}
+
+.messageContainer {
+	padding: 15px;
+	border-radius: 8px;
+	text-align: center;
+	margin-top: 20px;
+	border: 1px solid;
+}
+
+.errorMessage {
+	background-color: rgba(244, 67, 54, 0.1);
+	border-color: rgba(244, 67, 54, 0.3);
+}
+
+.successMessage {
+	background-color: rgba(76, 175, 80, 0.1);
+	border-color: rgba(76, 175, 80, 0.3);
+}
+
+.messageText {
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.errorText {
+	color: #F44336;
+}
+
+.successText {
+	color: #4CAF50;
+}
+
+.divider {
+	display: flex;
+	align-items: center;
+	margin: 30px 0;
+}
+
+.dividerLine {
+	flex: 1;
+	height: 1px;
+	background-color: #333333;
+}
+
+.dividerText {
+	color: #666666;
+	padding: 0 15px;
+	font-size: 14px;
+}
+
+.googleContainer {
+	margin-top: 20px;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.registerLink {
+	background: none;
+	border: none;
+	color: #4CAF50;
+	font-size: 16px;
+	cursor: pointer;
+	text-decoration: underline;
+	margin-top: 30px;
+	padding: 12px;
+	width: 100%;
+	transition: color 0.3s;
+}
+
+.registerLink:hover {
+	color: #45a049;
+}
