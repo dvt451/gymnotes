@@ -10,6 +10,8 @@ export default function Header() {
 	const navigate = useNavigate();
 	const [showBackButton, setShowBackButton] = useState(false);
 	const [showUser, setShowUser] = useState(false);
+	const theUser = user.user || {};
+
 	useEffect(() => {
 		// Проверяем, не находимся ли мы на странице /home
 		setShowBackButton(location.pathname !== '/home');
@@ -43,8 +45,8 @@ export default function Header() {
 					/>
 				</div>
 				<div style={headerStyle.userInfo}>
-					<h1 style={headerStyle.userName}>{user.name || 'Гость'}</h1>
-					<p style={headerStyle.userWeight}>Weight - {user.weight ? `${user.weight}kg` : '—'}</p>
+					<h1 style={headerStyle.userName}>{theUser.name || 'Гость'}</h1>
+					<p style={headerStyle.userWeight}>Weight - {theUser.weight ? `${theUser.weight}kg` : '—'}</p>
 				</div>
 			</div>}
 		</header>
