@@ -40,7 +40,7 @@ export default function DateItem({ item, today, onOpen, onDelete }) {
 				style={dateItemStyles.deleteButton}
 				onClick={(e) => {
 					e.stopPropagation();
-					onDelete(item.id);
+					onDelete(item._id);
 				}}
 			>
 				<span style={dateItemStyles.deleteText}>✖</span>

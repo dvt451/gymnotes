@@ -60,8 +60,14 @@ router.post('/', async (req, res) => {
 		});
 		await user.save();
 
-		const newDate = file.dates[file.dates.length - 1];
-		res.status(201).json(newDate);
+		// Получаем обновленный файл (или используем тот же объект, так как мы его уже изменили)
+		// Но чтобы быть уверенным, что у нас самые свежие данные, можно перезагрузить пользователя?
+		// Нет, так как мы только что сохранили, и объект file уже обновлен.
+
+		// Возвращаем объект с полем dates, содержащим все даты файла
+		res.status(201).json({
+			dates: file.dates
+		});
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}

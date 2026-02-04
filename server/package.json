@@ -4,8 +4,8 @@
 	"type": "module",
 	"main": "src/index.js",
 	"scripts": {
-		"start": "node src/index.js",
-		"dev": "nodemon src/index.js",
+		"start": "node src/index-prod.js",
+		"dev": "nodemon src/index-dev.js",
 		"vercel-build": "echo 'No build needed for Express'"
 	},
 	"dependencies": {

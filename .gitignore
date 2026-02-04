@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+index-dev.js
+.env.production
 .env.development
 structure.txt
 node_modules
