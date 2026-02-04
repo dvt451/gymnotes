@@ -24,8 +24,8 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 		const normalizedInput = weightInput.replace(',', '.');
 		const weight = parseFloat(normalizedInput);
 
-		if (isNaN(weight)) {
-			alert('Некорректный ввод веса');
+		if (isNaN(weight) || weight <= 0) {
+			alert('Некорректный ввод веса (должно быть положительное число)');
 			return;
 		}
 
@@ -34,7 +34,13 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 		try {
 			const token = await getToken();
 
-			// Используем itemID вместо exerciseId
+			console.log('Adding weight with params:', {
+				trainingId,
+				date,
+				exerciseId: itemID,
+				weight
+			});
+
 			const res = await fetch(
 				`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${itemID}/weights`,
 				{
@@ -47,28 +53,33 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 				}
 			);
 
-			const data = await res.json();
-
 			if (!res.ok) {
-				// Более подробное сообщение об ошибке
-				console.error('Server error details:', data);
-				throw new Error(data.message || `Ошибка добавления веса (статус: ${res.status})`);
+				const errorText = await res.text();
+				throw new Error(errorText || `Ошибка добавления веса (статус: ${res.status})`);
 			}
+
+			const data = await res.json();
+			console.log('Weight added successfully:', data);
 
 			// Обновляем состояние упражнений
 			setExercises(prev =>
-				prev.map(ex =>
-					ex._id === itemID ? { ...ex, weights: [...(ex.weights || []), data] } : ex
-				)
+				prev.map(ex => {
+					if (ex._id === itemID) {
+						return {
+							...ex,
+							weights: [...(ex.weights || []), data]
+						};
+					}
+					return ex;
+				})
 			);
 
 			setShowPopup(false);
 			setWeightInput('');
 
 		} catch (err) {
-			console.error('Полная ошибка при добавлении веса:', err);
+			console.error('Ошибка при добавлении веса:', err);
 
-			// Более информативное сообщение
 			if (err.message.includes('404') || err.message.includes('не найдено')) {
 				alert(`Упражнение не найдено! Проверьте:\n\n1. ID упражнения: ${itemID}\n2. ID тренировки: ${trainingId}\n3. Дата: ${date}\n\nОшибка: ${err.message}`);
 			} else {
@@ -84,14 +95,6 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 			handleSubmit();
 		}
 	};
-
-	// Для отладки
-	console.log('AddWeight component props:', {
-		itemID,
-		trainingId,
-		date,
-		BASE_URL
-	});
 
 	return (
 		<>
@@ -116,7 +119,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 								<input
 									type="number"
 									step="0.1"
-									min="0"
+									min="0.1"
 									value={weightInput}
 									onChange={(e) => setWeightInput(e.target.value)}
 									onKeyPress={handleKeyPress}

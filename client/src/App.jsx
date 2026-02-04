@@ -13,8 +13,7 @@ import Profile from './components/pages/profile/Profile';
 function App() {
 	return (
 
-		<div className="wrapper" style={{
-		}}>
+		<div className="wrapper">
 			{/* <GlobalStyles /> */}
 			<BrowserRouter>
 				<AuthProvider>

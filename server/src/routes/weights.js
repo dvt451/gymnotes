@@ -10,10 +10,26 @@ router.use(authMiddleware);
 // Получить все веса для упражнения
 router.get('/', async (req, res) => {
 	try {
-		// Здесь нужно получить конкретное упражнение и вернуть его weights
-		// Пока оставляю заглушку
-		res.json({ message: 'Get weights endpoint' });
+		const user = await User.findById(req.userId);
+		const file = user.trainingfiles.id(req.params.fileId);
+
+		if (!file) {
+			return res.status(404).json({ message: 'Файл не найден' });
+		}
+
+		const dateObj = file.dates.find(d => d.date === req.params.date);
+		if (!dateObj) {
+			return res.status(404).json({ message: 'Дата не найдена' });
+		}
+
+		const exercise = dateObj.exercises.id(req.params.exerciseId);
+		if (!exercise) {
+			return res.status(404).json({ message: 'Упражнение не найдено' });
+		}
+
+		res.json(exercise.weights || []);
 	} catch (err) {
+		console.error('Error fetching weights:', err);
 		res.status(500).json({ message: err.message });
 	}
 });
@@ -22,19 +38,43 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
 	try {
 		const { weight } = req.body;
-		const { exerciseId } = req.params;
+		const { fileId, date, exerciseId } = req.params;
 
-		// Здесь логика добавления веса к упражнению
-		// Пока оставляю заглушку
+		if (!weight || weight <= 0) {
+			return res.status(400).json({ message: 'Введите корректный вес (положительное число)' });
+		}
+
+		const user = await User.findById(req.userId);
+		const file = user.trainingfiles.id(fileId);
+
+		if (!file) {
+			return res.status(404).json({ message: 'Файл не найден' });
+		}
+
+		const dateObj = file.dates.find(d => d.date === date);
+		if (!dateObj) {
+			return res.status(404).json({ message: 'Дата не найдена' });
+		}
+
+		const exercise = dateObj.exercises.id(exerciseId);
+		if (!exercise) {
+			return res.status(404).json({ message: 'Упражнение не найдено' });
+		}
+
+		// Создаем новый вес
 		const newWeight = {
 			_id: new mongoose.Types.ObjectId(),
-			weight,
+			weight: parseFloat(weight),
 			sets: [],
 		};
 
-		// Нужно найти упражнение и добавить вес
+		// Добавляем вес к упражнению
+		exercise.weights.push(newWeight);
+		await user.save();
+
 		res.status(201).json(newWeight);
 	} catch (err) {
+		console.error('Error adding weight:', err);
 		res.status(500).json({ message: err.message });
 	}
 });
@@ -43,14 +83,41 @@ router.post('/', async (req, res) => {
 router.put('/:weightId', async (req, res) => {
 	try {
 		const { weight } = req.body;
+		const { fileId, date, exerciseId, weightId } = req.params;
 
 		if (typeof weight !== 'number' || weight <= 0) {
 			return res.status(400).json({ message: 'Введите корректный вес (положительное число)' });
 		}
 
-		// Логика обновления веса
-		res.json({ weight });
+		const user = await User.findById(req.userId);
+		const file = user.trainingfiles.id(fileId);
+
+		if (!file) {
+			return res.status(404).json({ message: 'Файл не найден' });
+		}
+
+		const dateObj = file.dates.find(d => d.date === date);
+		if (!dateObj) {
+			return res.status(404).json({ message: 'Дата не найдена' });
+		}
+
+		const exercise = dateObj.exercises.id(exerciseId);
+		if (!exercise) {
+			return res.status(404).json({ message: 'Упражнение не найдено' });
+		}
+
+		const weightObj = exercise.weights.id(weightId);
+		if (!weightObj) {
+			return res.status(404).json({ message: 'Вес не найден' });
+		}
+
+		// Обновляем вес
+		weightObj.weight = weight;
+		await user.save();
+
+		res.json(weightObj);
 	} catch (err) {
+		console.error('Error updating weight:', err);
 		res.status(500).json({ message: err.message });
 	}
 });
@@ -58,9 +125,37 @@ router.put('/:weightId', async (req, res) => {
 // Удалить вес
 router.delete('/:weightId', async (req, res) => {
 	try {
-		// Логика удаления веса
+		const { fileId, date, exerciseId, weightId } = req.params;
+
+		const user = await User.findById(req.userId);
+		const file = user.trainingfiles.id(fileId);
+
+		if (!file) {
+			return res.status(404).json({ message: 'Файл не найден' });
+		}
+
+		const dateObj = file.dates.find(d => d.date === date);
+		if (!dateObj) {
+			return res.status(404).json({ message: 'Дата не найдена' });
+		}
+
+		const exercise = dateObj.exercises.id(exerciseId);
+		if (!exercise) {
+			return res.status(404).json({ message: 'Упражнение не найдено' });
+		}
+
+		const weightObj = exercise.weights.id(weightId);
+		if (!weightObj) {
+			return res.status(404).json({ message: 'Вес не найден' });
+		}
+
+		// Удаляем вес
+		exercise.weights.pull(weightId);
+		await user.save();
+
 		res.status(200).json({ message: 'Вес успешно удален' });
 	} catch (err) {
+		console.error('Error deleting weight:', err);
 		res.status(500).json({ message: err.message });
 	}
 });

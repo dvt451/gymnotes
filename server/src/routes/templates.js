@@ -9,7 +9,7 @@ router.use(authMiddleware);
 // ==================== TEMPLATES ====================
 
 // Получить все шаблоны для тренировки
-router.get('/:fileId/templates', async (req, res) => {
+router.get('/', async (req, res) => {
 	try {
 		const user = await User.findById(req.userId);
 		const file = user.trainingfiles.id(req.params.fileId);
@@ -22,7 +22,7 @@ router.get('/:fileId/templates', async (req, res) => {
 });
 
 // Добавить шаблон
-router.post('/:fileId/templates', async (req, res) => {
+router.post('/', async (req, res) => {
 	try {
 		const { name, exercises } = req.body;
 		if (!name) return res.status(400).json({ message: 'Имя шаблона обязательно' });
@@ -45,7 +45,7 @@ router.post('/:fileId/templates', async (req, res) => {
 });
 
 // Обновить шаблон
-router.put('/:fileId/templates/:templateId', async (req, res) => {
+router.put('/:templateId', async (req, res) => {
 	try {
 		const { name, exercises } = req.body;
 		if (!name) return res.status(400).json({ message: 'Имя шаблона обязательно' });
@@ -68,7 +68,7 @@ router.put('/:fileId/templates/:templateId', async (req, res) => {
 });
 
 // Удалить шаблон
-router.delete('/:fileId/templates/:templateId', async (req, res) => {
+router.delete('/:templateId', async (req, res) => {
 	try {
 		const user = await User.findById(req.userId);
 		const file = user.trainingfiles.id(req.params.fileId);

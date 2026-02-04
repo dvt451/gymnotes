@@ -6,7 +6,6 @@ import { commonStyle } from '../../../../styles/commonStyle';
 
 export default function Templates({ setExercises, trainingId, date }) {
 	const { BASE_URL } = useContext(AuthContext);
-
 	const [templates, setTemplates] = useState([]);
 	const [modalVisible, setModalVisible] = useState(false);
 	const [editModalVisible, setEditModalVisible] = useState(false);
@@ -25,13 +24,27 @@ export default function Templates({ setExercises, trainingId, date }) {
 		const fetchTemplates = async () => {
 			try {
 				const token = await getToken();
+				console.log('Fetching templates for trainingId (fileId):', trainingId);
+				// Изменяем URL на правильный
 				const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/templates`, {
+
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
 				});
-				const templates = await res.json();
-				const safeTemplates = Array.isArray(templates) ? templates : [];
+
+				if (!res.ok) {
+					if (res.status === 404) {
+						console.error(`Templates not found for trainingId (fileId): ${trainingId}`);
+						setTemplates([]);
+						return;
+					}
+					throw new Error(`HTTP error! status: ${res.status}`);
+				}
+
+				const data = await res.json();
+				console.log('Templates data:', data);
+				const safeTemplates = Array.isArray(data) ? data : [];
 				const normalized = safeTemplates.map(t => ({
 					...t,
 					exercises: Array.isArray(t.exercises) ? t.exercises : [],
@@ -42,22 +55,24 @@ export default function Templates({ setExercises, trainingId, date }) {
 				setTemplates([]);
 			}
 		};
-		fetchTemplates();
-	}, [trainingId]);
+
+		if (trainingId) {
+			fetchTemplates();
+		}
+	}, [trainingId, BASE_URL]);
 
 	// Show notification
 	const showNotificationMessage = (message) => {
 		setNotificationMessage(message);
 		setShowNotification(true);
 
-		// Hide notification after 3 seconds
 		setTimeout(() => {
 			setShowNotification(false);
 			setNotificationMessage('');
 		}, 3000);
 	};
 
-	// Apply template - add exercises with empty weights and sets
+	// Apply template
 	const applyTemplate = async (template) => {
 		if (!template.exercises || !Array.isArray(template.exercises)) {
 			console.warn('Template has no exercises:', template);
@@ -83,7 +98,6 @@ export default function Templates({ setExercises, trainingId, date }) {
 			const addedExercises = await res.json();
 			setExercises(prev => [...prev, ...addedExercises]);
 
-			// Show success notification
 			const exerciseCount = addedExercises.length;
 			const exerciseNames = addedExercises.map(ex => ex.name).join(', ');
 			showNotificationMessage(`✅ Added ${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}: ${exerciseNames}`);
@@ -94,22 +108,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 		}
 	};
 
-	// Open create template modal
-	const openCreateModal = () => {
-		setNewTemplateName('');
-		setNewTemplateExercises([]);
-		setModalVisible(true);
-	};
-
-	// Add exercise to new template
-	const addExerciseToNewTemplate = () => {
-		const trimmed = newExerciseName.trim();
-		if (trimmed && !newTemplateExercises.includes(trimmed)) {
-			setNewTemplateExercises([...newTemplateExercises, trimmed]);
-			setNewExerciseName('');
-		}
-	};
-
+	// Save new template
 	const saveNewTemplate = async () => {
 		if (!newTemplateName.trim()) {
 			alert('Enter template name');
@@ -135,6 +134,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 			if (!res.ok) {
 				const text = await res.text();
 				console.error('Server error saving template:', res.status, text);
+				showNotificationMessage(`❌ Error saving template: ${text}`);
 				return;
 			}
 
@@ -150,28 +150,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 		}
 	};
 
-	// Open edit template modal
-	const openEditModal = (template) => {
-		setEditingTemplateId(template._id);
-		setEditingTemplateName(template.name);
-		setEditingExercises(template.exercises.map(e => e.name));
-		setEditModalVisible(true);
-	};
-
-	// Remove exercise from editing template
-	const removeExerciseFromEditing = (name) => {
-		setEditingExercises((prev) => prev.filter((ex) => ex !== name));
-	};
-
-	// Add new exercise to editing template
-	const addExerciseToEditing = () => {
-		const trimmed = newExerciseName.trim();
-		if (trimmed && !editingExercises.includes(trimmed)) {
-			setEditingExercises([...editingExercises, trimmed]);
-			setNewExerciseName('');
-		}
-	};
-
+	// Save edited template
 	const saveEditedTemplate = async () => {
 		if (!editingTemplateName.trim()) {
 			alert('Enter template name');
@@ -197,6 +176,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 			if (!res.ok) {
 				const text = await res.text();
 				console.error('Server error editing template:', res.status, text);
+				showNotificationMessage(`❌ Error updating template: ${text}`);
 				return;
 			}
 
@@ -228,6 +208,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 			if (!res.ok) {
 				const text = await res.text();
 				console.error('Server error deleting template:', res.status, text);
+				showNotificationMessage(`❌ Error deleting template: ${text}`);
 				return;
 			}
 
@@ -240,7 +221,44 @@ export default function Templates({ setExercises, trainingId, date }) {
 		}
 	};
 
-	// Add styles for notification
+	// Add exercise to new template
+	const addExerciseToNewTemplate = () => {
+		const trimmed = newExerciseName.trim();
+		if (trimmed && !newTemplateExercises.includes(trimmed)) {
+			setNewTemplateExercises([...newTemplateExercises, trimmed]);
+			setNewExerciseName('');
+		}
+	};
+
+	// Open edit template modal
+	const openEditModal = (template) => {
+		setEditingTemplateId(template._id);
+		setEditingTemplateName(template.name);
+		setEditingExercises(template.exercises.map(e => e.name));
+		setEditModalVisible(true);
+	};
+
+	// Remove exercise from editing template
+	const removeExerciseFromEditing = (name) => {
+		setEditingExercises((prev) => prev.filter((ex) => ex !== name));
+	};
+
+	// Add new exercise to editing template
+	const addExerciseToEditing = () => {
+		const trimmed = newExerciseName.trim();
+		if (trimmed && !editingExercises.includes(trimmed)) {
+			setEditingExercises([...editingExercises, trimmed]);
+			setNewExerciseName('');
+		}
+	};
+
+	const openCreateModal = () => {
+		setNewTemplateName('');
+		setNewTemplateExercises([]);
+		setModalVisible(true);
+	};
+
+	// Notification styles
 	const notificationStyles = {
 		notification: {
 			position: 'fixed',
@@ -271,6 +289,9 @@ export default function Templates({ setExercises, trainingId, date }) {
 		}
 	};
 
+	// Проверяем, доступны ли шаблоны
+	const isLoading = templates === null;
+
 	return (
 		<>
 			<div style={templatesStyles.container}>
@@ -294,27 +315,31 @@ export default function Templates({ setExercises, trainingId, date }) {
 
 				{expanded && (
 					<div style={templatesStyles.templateListBlock}>
-						<div style={templatesStyles.templateList}>
-							{templates.map((item) => (
-								<div key={item._id}>
-									<button
-										style={{
-											...templatesStyles.templateItem,
-											...(editState && templatesStyles.templateItemEditing)
-										}}
-										onClick={() => editState ? openEditModal(item) : applyTemplate(item)}
-									>
-										{item.name}
-									</button>
-								</div>
-							))}
-							<button
-								style={templatesStyles.templateAddButton}
-								onClick={openCreateModal}
-							>
-								+ Add Template
-							</button>
-						</div>
+						{isLoading ? (
+							<div style={templatesStyles.loading}>Loading templates...</div>
+						) : (
+							<div style={templatesStyles.templateList}>
+								{templates.map((item) => (
+									<div key={item._id}>
+										<button
+											style={{
+												...templatesStyles.templateItem,
+												...(editState && templatesStyles.templateItemEditing)
+											}}
+											onClick={() => editState ? openEditModal(item) : applyTemplate(item)}
+										>
+											{item.name}
+										</button>
+									</div>
+								))}
+								<button
+									style={templatesStyles.templateAddButton}
+									onClick={openCreateModal}
+								>
+									+ Add Template
+								</button>
+							</div>
+						)}
 					</div>
 				)}
 
