@@ -1,68 +1,111 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 
-export function useDateListLogic(trainingId, setDatesByTraining, trainingText, trainingTitle) {
-	const [datesByTraining, setLocalDatesByTraining] = useState({});
+export function useDateListLogic(trainingId, trainingText, trainingTitle) {
+	const [datesByTraining, setDatesByTraining] = useState({});
 	const [showPicker, setShowPicker] = useState(false);
 	const [selectedDate, setSelectedDate] = useState(new Date());
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState(null);
 	const { BASE_URL } = useContext(AuthContext);
 	const navigate = useNavigate();
 
-	useEffect(() => {
+	// Функция загрузки дат
+	const fetchDates = useCallback(async () => {
 		if (!trainingId) return;
 
-		async function fetchTraining() {
-			try {
-				const token = localStorage.getItem('token');
-				const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}`, {
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				if (!res.ok) throw new Error(`Error ${res.status}`);
+		try {
+			setIsLoading(true);
+			setError(null);
 
-				const training = await res.json();
-
-				const dates = training.dates.map(dateItem => ({
-					id: dateItem._id,
-					date: dateItem.date.split('T')[0],
-				}));
-
-				setLocalDatesByTraining(prev => ({
-					...prev,
-					[trainingId]: dates,
-				}));
-
-				if (setDatesByTraining) setDatesByTraining(prev => ({ ...prev, [trainingId]: dates }));
-			} catch (err) {
-				console.error('Error loading training:', err);
+			const token = localStorage.getItem('token');
+			if (!token) {
+				setError('Требуется авторизация');
+				navigate('/login');
+				return;
 			}
-		}
 
-		fetchTraining();
-	}, [trainingId, BASE_URL, setDatesByTraining]);
+			// Загружаем тренировку и ее даты
+			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}`, {
+				headers: {
+					'Authorization': `Bearer ${token}`,
+				},
+			});
+
+			if (!res.ok) {
+				throw new Error(`Ошибка ${res.status}: Не удалось загрузить тренировку`);
+			}
+
+			const training = await res.json();
+
+			// Обрабатываем разные форматы ответа
+			let datesArray = [];
+
+			if (training && training.dates && Array.isArray(training.dates)) {
+				// Формат: { ..., dates: [...] }
+				datesArray = training.dates;
+			} else if (training && Array.isArray(training)) {
+				// Формат: [{...}, {...}] - массив дат напрямую
+				datesArray = training;
+			} else if (training && training.success && training.dates) {
+				// Формат: { success: true, dates: [...] }
+				datesArray = training.dates;
+			}
+
+			const formattedDates = datesArray.map(dateItem => ({
+				id: dateItem._id || dateItem.id,
+				_id: dateItem._id || dateItem.id,
+				date: dateItem.date ? dateItem.date.split('T')[0] : '',
+				exercises: dateItem.exercises || []
+			}));
+
+			setDatesByTraining(prev => ({
+				...prev,
+				[trainingId]: formattedDates,
+			}));
+
+		} catch (err) {
+			console.error('Error loading training:', err);
+			setError(err.message);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [trainingId, BASE_URL, navigate]);
+
+	// Загрузка дат при монтировании
+	useEffect(() => {
+		fetchDates();
+	}, [fetchDates]);
+
+	// Функция добавления даты
 	const addDate = async (dateStr) => {
 		try {
+			setIsLoading(true);
+			setError(null);
+
 			const current = datesByTraining[trainingId] || [];
 			if (current.some(d => d.date === dateStr)) {
-				return window.alert('Эта дата уже существует');
+				setError('Эта дата уже существует');
+				return;
 			}
 
 			const token = localStorage.getItem('token');
 			if (!token) {
-				return window.alert('Требуется авторизация');
+				setError('Требуется авторизация');
+				navigate('/login');
+				return;
 			}
 
-			// 1. Verify the date format
+			// 1. Форматируем дату
 			const isoDate = new Date(dateStr).toISOString();
 			console.log('Formatted date:', isoDate);
 
-			// 2. Verify the full endpoint URL
+			// 2. Формируем endpoint
 			const endpoint = `${BASE_URL}/api/trainings/${trainingId}/dates`;
 			console.log('API Endpoint:', endpoint);
 
-			// 3. Make the request with detailed logging
+			// 3. Отправляем запрос
 			const res = await fetch(endpoint, {
 				method: 'POST',
 				headers: {
@@ -83,63 +126,125 @@ export function useDateListLogic(trainingId, setDatesByTraining, trainingText, t
 				throw new Error(errorText || `HTTP error ${res.status}`);
 			}
 
-			const updatedTraining = await res.json();
-			console.log('Updated training:', updatedTraining);
+			const result = await res.json();
+			console.log('Server response:', result);
 
-			// Update state
-			const dates = updatedTraining.dates.map(d => ({
-				id: d._id,
-				date: d.date.split('T')[0]
+			// 4. Обрабатываем ответ сервера
+			let newDatesArray = [];
+
+			if (result && result.dates && Array.isArray(result.dates)) {
+				// Формат: { success: true, dates: [...] }
+				newDatesArray = result.dates;
+			} else if (result && Array.isArray(result)) {
+				// Формат: [{...}, {...}] - массив дат напрямую
+				newDatesArray = result;
+			} else if (result && result.date) {
+				// Формат: { date: ..., exercises: ..., _id: ... } - одна дата
+				// Нужно добавить к существующим датам
+				const existingDates = datesByTraining[trainingId] || [];
+				newDatesArray = [...existingDates, result];
+			}
+
+			// 5. Форматируем даты для отображения
+			const formattedDates = newDatesArray.map(dateItem => ({
+				id: dateItem._id || dateItem.id,
+				_id: dateItem._id || dateItem.id,
+				date: dateItem.date ? dateItem.date.split('T')[0] : '',
+				exercises: dateItem.exercises || []
 			}));
 
-			setLocalDatesByTraining(prev => ({
+			// 6. Обновляем состояние
+			setDatesByTraining(prev => ({
 				...prev,
-				[trainingId]: dates
+				[trainingId]: formattedDates
 			}));
 
 		} catch (err) {
 			console.error('Full error:', err);
-			window.alert(err.message.includes('Файл не найден')
+			setError(err.message.includes('Файл не найден')
 				? 'Ошибка: Неверный адрес API'
 				: `Ошибка: ${err.message}`);
-			console.log('Текущий BASE_URL:', BASE_URL);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
+	// Функция удаления даты
+	const deleteDate = async (dateId) => {
+		if (!window.confirm('Удалить эту дату? Вы уверены?')) {
+			return;
+		}
 
-	const deleteDate = async (id) => {
-		if (window.confirm('Delete? Are you sure?')) {
-			try {
-				const token = localStorage.getItem('token');
-				const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/dates/${id}`, {
-					method: 'DELETE',
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
+		try {
+			setIsLoading(true);
+			setError(null);
 
-				if (!res.ok) throw new Error(`Error ${res.status}`);
-
-				const updatedTraining = await res.json();
-				const dates = updatedTraining.dates.map(dateItem => ({
-					id: dateItem._id,
-					date: dateItem.date.split('T')[0],
-				}));
-
-				setLocalDatesByTraining(prev => ({
-					...prev,
-					[trainingId]: dates,
-				}));
-
-				if (setDatesByTraining) setDatesByTraining(prev => ({ ...prev, [trainingId]: dates }));
-			} catch (err) {
-				console.error('Error deleting date:', err);
-				window.alert('Failed to delete date');
+			const token = localStorage.getItem('token');
+			if (!token) {
+				setError('Требуется авторизация');
+				navigate('/login');
+				return;
 			}
+
+			const endpoint = `${BASE_URL}/api/trainings/${trainingId}/dates/${dateId}`;
+			console.log('Delete endpoint:', endpoint);
+
+			const res = await fetch(endpoint, {
+				method: 'DELETE',
+				headers: {
+					'Authorization': `Bearer ${token}`,
+				},
+			});
+
+			console.log('Delete response status:', res.status);
+
+			if (!res.ok) {
+				const errorText = await res.text();
+				console.error('Delete error response:', errorText);
+				throw new Error(errorText || `HTTP error ${res.status}`);
+			}
+
+			const result = await res.json();
+			console.log('Delete result:', result);
+
+			// Обрабатываем ответ сервера
+			let updatedDatesArray = [];
+
+			if (result && result.dates && Array.isArray(result.dates)) {
+				// Формат: { success: true, dates: [...] }
+				updatedDatesArray = result.dates;
+			} else if (result && Array.isArray(result)) {
+				// Формат: [{...}, {...}] - массив дат напрямую
+				updatedDatesArray = result;
+			} else {
+				// Если сервер не вернул обновленный список, перезагружаем данные
+				await fetchDates();
+				return;
+			}
+
+			// Форматируем даты для отображения
+			const formattedDates = updatedDatesArray.map(dateItem => ({
+				id: dateItem._id || dateItem.id,
+				_id: dateItem._id || dateItem.id,
+				date: dateItem.date ? dateItem.date.split('T')[0] : '',
+				exercises: dateItem.exercises || []
+			}));
+
+			// Обновляем состояние
+			setDatesByTraining(prev => ({
+				...prev,
+				[trainingId]: formattedDates,
+			}));
+
+		} catch (err) {
+			console.error('Error deleting date:', err);
+			setError('Не удалось удалить дату: ' + err.message);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
-	// В компоненте, где вызывается openDayDetails:
+	// Функция открытия деталей дня
 	const openDayDetails = (date) => {
 		navigate(`/exercises/${trainingId}/${date}`, {
 			state: {
@@ -147,10 +252,12 @@ export function useDateListLogic(trainingId, setDatesByTraining, trainingText, t
 				trainingTitle: trainingTitle
 			}
 		});
-
-
 	};
 
+	// Функция для обновления дат (принудительная перезагрузка)
+	const refreshDates = () => {
+		fetchDates();
+	};
 
 	return {
 		datesByTraining,
@@ -161,5 +268,8 @@ export function useDateListLogic(trainingId, setDatesByTraining, trainingText, t
 		addDate,
 		deleteDate,
 		openDayDetails,
+		isLoading,
+		error,
+		refreshDates
 	};
 }
