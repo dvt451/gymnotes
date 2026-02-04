@@ -7,6 +7,24 @@ const router = express.Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
+// Вспомогательная функция для нормализации даты
+const normalizeDate = (dateStr) => {
+	if (!dateStr) return null;
+
+	if (typeof dateStr === 'string' && dateStr.includes('T')) {
+		return dateStr.split('T')[0];
+	}
+
+	if (dateStr instanceof Date) {
+		const year = dateStr.getFullYear();
+		const month = String(dateStr.getMonth() + 1).padStart(2, '0');
+		const day = String(dateStr.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+
+	return dateStr;
+};
+
 // Получить все упражнения для даты
 router.get('/', async (req, res) => {
 	try {
@@ -60,6 +78,94 @@ router.post('/', async (req, res) => {
 	} catch (err) {
 		console.error('Ошибка добавления упражнения:', err);
 		res.status(500).json({ message: 'Ошибка добавления упражнения' });
+	}
+});
+
+// Применить шаблон упражнений к дате
+router.post('/apply-template', async (req, res) => {
+	try {
+		const { exercises: templateExercises } = req.body;
+		const { fileId, date: requestedDate } = req.params;
+
+		console.log('Applying template:', {
+			fileId,
+			requestedDate,
+			templateExercises
+		});
+
+		if (!templateExercises || !Array.isArray(templateExercises)) {
+			return res.status(400).json({ message: 'Неверный формат упражнений в шаблоне' });
+		}
+
+		const user = await User.findById(req.userId);
+		const file = user.trainingfiles.id(fileId);
+
+		if (!file) {
+			return res.status(404).json({ message: 'Файл не найден' });
+		}
+
+		console.log('File found:', file.name);
+		console.log('Dates in file:', file.dates.map(d => ({
+			rawDate: d.date,
+			normalizedDate: normalizeDate(d.date)
+		})));
+
+		// Ищем дату, нормализуя для сравнения
+		let dateEntry = file.dates.find(d => {
+			const normalizedDbDate = normalizeDate(d.date);
+			const normalizedRequestDate = normalizeDate(requestedDate);
+			console.log('Comparing dates:', {
+				dbDate: d.date,
+				normalizedDbDate,
+				requestedDate,
+				normalizedRequestDate,
+				match: normalizedDbDate === normalizedRequestDate
+			});
+			return normalizedDbDate === normalizedRequestDate;
+		});
+
+		// Если дата не найдена, создаем новую
+		if (!dateEntry) {
+			console.log('Date not found, creating new one');
+			dateEntry = {
+				_id: new mongoose.Types.ObjectId(),
+				date: requestedDate,
+				exercises: []
+			};
+			file.dates.push(dateEntry);
+		}
+
+		console.log('Date object:', dateEntry);
+		console.log('Template exercises to add:', templateExercises);
+
+		// Создаем новые упражнения из шаблона
+		const newExercises = templateExercises.map(exercise => ({
+			_id: new mongoose.Types.ObjectId(),
+			name: exercise.name,
+			weights: []
+		}));
+
+		console.log('New exercises to add:', newExercises);
+
+		// Добавляем упражнения к дате
+		if (!dateEntry.exercises) {
+			dateEntry.exercises = [];
+		}
+
+		dateEntry.exercises.push(...newExercises);
+		await user.save();
+
+		console.log('Template applied successfully');
+
+		// Возвращаем добавленные упражнения
+		const addedExercises = dateEntry.exercises.slice(-newExercises.length);
+		res.status(201).json(addedExercises);
+	} catch (err) {
+		console.error('Ошибка при применении шаблона:', err);
+		res.status(500).json({
+			message: err.message,
+			stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+		});
 	}
 });
 
@@ -120,6 +226,15 @@ router.delete('/:exerciseId', async (req, res) => {
 		console.error('Ошибка при удалении упражнения:', err);
 		res.status(500).json({ message: 'Ошибка на сервере при удалении упражнения' });
 	}
+});
+
+// Добавим тестовый маршрут для проверки
+router.get('/test-apply-template', (req, res) => {
+	res.json({
+		message: 'Apply template endpoint is accessible',
+		params: req.params,
+		timestamp: new Date().toISOString()
+	});
 });
 
 export default router;
