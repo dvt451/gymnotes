@@ -1,20 +1,22 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import Header from '../../widgets/Header';
+import Footer from '../../widgets/Footer';
 
 export default function Profile() {
 	const { BASE_URL, logout, setUser, user } = useContext(AuthContext);
 
-	const [newName, setNewName] = useState(user?.name || '');
-	const [newWeight, setNewWeight] = useState(user?.weight?.toString() || '');
+	const theUser = user.user || {};
+	const [newName, setNewName] = useState(theUser?.name || '');
+	const [newWeight, setNewWeight] = useState(theUser?.weight?.toString() || '');
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const toggleEdit = () => {
 		setIsEditing(!isEditing);
 		if (!isEditing) {
-			setNewName(user?.name || '');
-			setNewWeight(user?.weight?.toString() || '');
+			setNewName(theUser?.name || '');
+			setNewWeight(theUser?.weight?.toString() || '');
 		}
 	};
 
@@ -66,23 +68,23 @@ export default function Profile() {
 	};
 
 	const handleCancel = () => {
-		setNewName(user?.name || '');
-		setNewWeight(user?.weight?.toString() || '');
+		setNewName(theUser?.name || '');
+		setNewWeight(theUser?.weight?.toString() || '');
 		setIsEditing(false);
 	};
 
 	return (
 		<>
 			<Header />
-			<div style={styles.profileSection}>
+			<main style={styles.profileSection}>
 				<div style={styles.profileInfo}>
 					<img
 						src={'/user.png'}
 						alt="User Avatar"
 						style={styles.avatar}
 					/>
-					<h2 style={styles.userName}>{user?.name || 'Гость'}</h2>
-					<p style={styles.userWeight}>Вес: {user?.weight ? `${user.weight}кг` : '—'}</p>
+					<h2 style={styles.userName}>{theUser?.name || 'Гость'}</h2>
+					<p style={styles.userWeight}>Вес: {theUser?.weight ? `${theUser.weight}kg` : '—'}</p>
 				</div>
 
 				{isEditing ? (
@@ -134,11 +136,11 @@ export default function Profile() {
 					<div style={styles.infoSection}>
 						<div style={styles.infoRow}>
 							<span style={styles.infoLabel}>Имя:</span>
-							<span style={styles.infoValue}>{user?.name || 'Не указано'}</span>
+							<span style={styles.infoValue}>{theUser?.name || 'Не указано'}</span>
 						</div>
 						<div style={styles.infoRow}>
 							<span style={styles.infoLabel}>Вес:</span>
-							<span style={styles.infoValue}>{user?.weight ? `${user.weight}кг` : 'Не указан'}</span>
+							<span style={styles.infoValue}>{theUser?.weight ? `${theUser.weight}кг` : 'Не указан'}</span>
 						</div>
 						<button
 							onClick={toggleEdit}
@@ -156,7 +158,8 @@ export default function Profile() {
 				>
 					🚪 Выйти из аккаунта
 				</button>
-			</div>
+			</main>
+			<Footer />
 		</>
 	);
 }

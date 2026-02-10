@@ -8,7 +8,7 @@ export const colors = {
 	gray: "#4d4d4d",
 	white: '#FFFFFF',
 	black: '#000000',
-	inputBorder: '#BFBFBF'
+	inputBorder: '#BFBFBF',
 }
 export const toRem = (value) => {
 	return `${value / 16}rem`;

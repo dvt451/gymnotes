@@ -4,6 +4,7 @@ import { homeStyle } from './homeStyles';
 import TrainingsSection from './TrainingSection/TrainingsSection';
 import Profile from '../profile/Profile';
 import Footer from '../../widgets/Footer';
+import Nutritions from './nutritions/Nutritions';
 
 export default function Home() {
 
@@ -12,6 +13,7 @@ export default function Home() {
 		<>
 			<Header />
 			<main style={homeStyle.main}>
+				<Nutritions />
 				<TrainingsSection />
 			</main >
 			<Footer />

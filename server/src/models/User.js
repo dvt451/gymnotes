@@ -44,7 +44,8 @@ const userSchema = new mongoose.Schema({
 	weight: { type: Number },
 	email: { type: String, required: true, unique: true, lowercase: true },
 	password: { type: String },
-	trainingfiles: [trainingFileSchema],
+	nutritions:
+		trainingfiles: [trainingFileSchema],
 	trainingOrder: {
 		type: [String],
 		default: []
