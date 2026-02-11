@@ -19,7 +19,8 @@ export default function DateItem({ item, today, onOpen, onDelete }) {
 				<span style={{
 					...dateItemStyles.dateText,
 					...(isToday && dateItemStyles.todayText)
-				}}>
+				}}
+				>
 					{item.date}
 				</span>
 				{isToday && (

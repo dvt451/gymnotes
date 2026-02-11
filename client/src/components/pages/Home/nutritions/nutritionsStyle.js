@@ -39,5 +39,8 @@ export const nutritionsStyle = {
 		paddingBlock: toRem(5),
 		paddingInline: toRem(25),
 		color: colors.black,
+	},
+	nutritionItemButtonEdit: {
+		backgroundColor: colors.red,
 	}
 }

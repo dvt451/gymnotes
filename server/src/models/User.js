@@ -38,17 +38,31 @@ const trainingFileSchema = new mongoose.Schema({
 	templates: [TemplateSchema]
 }, { _id: true });
 
+// Схема для питания
+const NutritionSchema = new mongoose.Schema({
+	water: { type: Number, default: 0 },
+	meal: { type: Number, default: 0 },
+	protein: { type: Number, default: 0 },
+	vitamin: { type: Number, default: 0 },
+	lastUpdated: { type: Date, default: Date.now }
+}, { _id: false });
+
 // Схема пользователя
 const userSchema = new mongoose.Schema({
 	name: { type: String, required: true },
 	weight: { type: Number },
 	email: { type: String, required: true, unique: true, lowercase: true },
 	password: { type: String },
+	nutritions: {
+		type: NutritionSchema,
+		default: () => ({ water: 0, meal: 0, protein: 0, vitamin: 0 })
+	},
 	trainingfiles: [trainingFileSchema],
 	trainingOrder: {
 		type: [String],
 		default: []
-	}
+	},
+	lastNutritionReset: { type: Date, default: null }
 }, {
 	timestamps: true
 });
