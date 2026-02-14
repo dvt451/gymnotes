@@ -82,6 +82,7 @@ export default function Exercises() {
 		if (!newExerciseName.trim()) return;
 
 		try {
+			setModalVisible(false);
 			const token = await getToken();
 			const res = await axios.post(
 				`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises`,
@@ -101,7 +102,6 @@ export default function Exercises() {
 
 			setExercises(prev => [...prev, newExercise]);
 			setNewExerciseName('');
-			setModalVisible(false);
 		} catch (err) {
 			console.error('Ошибка сохранения упражнения:', err);
 		}
@@ -166,42 +166,40 @@ export default function Exercises() {
 				</button>
 
 				{modalVisible && (
-					<div style={styles.modalOverlay} onClick={() => setModalVisible(false)}>
-						<div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-							<h2 style={styles.modalTitle}>Новое упражнение</h2>
-							<input
-								type="text"
-								style={styles.exerciseInput}
-								placeholder="Название упражнения"
-								value={newExerciseName}
-								onChange={(e) => setNewExerciseName(e.target.value)}
-								onKeyPress={(e) => {
-									if (e.key === 'Enter') addExercise();
-								}}
-							/>
-							<div style={{
-								display: 'flex',
-							}}>
-								<button
-									style={{
-										...styles.saveButton,
-										backgroundColor: colors.orange,
-										flex: 1,
-									}}
-									onClick={() => setModalVisible(false)}
-								>
-									Отмена
-								</button>
-								<button
-									style={{
-										...styles.saveButton,
-										flex: 1,
-									}}
-									onClick={addExercise}
-									disabled={!newExerciseName.trim()}
-								>
-									Сохранить
-								</button>
+					<div style={commonStyle.popup} onClick={() => setModalVisible(false)}>
+						<div style={commonStyle.popupLayer} />
+						<div style={commonStyle.popupContent} onClick={(e) => e.stopPropagation()}>
+							<div style={commonStyle.popupContentLayer} />
+							<div style={commonStyle.popupContentContainer}>
+								<h2 style={{ textAlign: 'center', margin: '0 0 15px 0' }}>Новое упражнение</h2>
+
+								<div style={commonStyle.popupContentInputs}>
+									<input
+										type="text"
+										style={commonStyle.popupInput}
+										placeholder="Название упражнения"
+										value={newExerciseName}
+										onChange={(e) => setNewExerciseName(e.target.value)}
+										// onKeyPress={(e) => { if (e.key === 'Enter') addExercise(); }}
+										autoFocus
+									/>
+								</div>
+
+								<div style={commonStyle.popupButtons}>
+									<button
+										style={commonStyle.popupCreateButton}
+										onClick={addExercise}
+										disabled={!newExerciseName.trim()}
+									>
+										Сохранить
+									</button>
+									<button
+										style={commonStyle.popupCancelButton}
+										onClick={() => setModalVisible(false)}
+									>
+										Отмена
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import DateItem from './DateItem';
 import DatePickerModal from './DatePickerModal';
@@ -6,10 +6,12 @@ import { useDateListLogic } from './dateListLogic';
 import Header from '../../widgets/Header';
 import { dateListStyles } from './DateListStyles';
 import { colors } from '../../../styles/commonStyle';
+import DateListControls from './DateListControls';
 
 export default function DateList() {
 	const location = useLocation();
 	const { trainingId } = useParams();
+	const [editState, setEditState] = useState(false);
 	const { trainingText, trainingTitle } = location.state || {};
 	const {
 		datesByTraining,
@@ -21,10 +23,27 @@ export default function DateList() {
 		deleteDate,
 		openDayDetails,
 		isLoading,
-		error
+		error,
+		updateDate
 	} = useDateListLogic(trainingId, null, trainingText, trainingTitle);
+	const [addError, setAddError] = useState(null);
+	// Обработчик добавления даты
+	const handleAddDate = async () => {
+		const formatted = selectedDate.toISOString().split('T')[0];
+		try {
+			await addDate(formatted);
+			setShowPicker(false);   // закрываем при успехе
+			setAddError(null);       // сбрасываем ошибку
+		} catch (err) {
+			setAddError(err.message); // показываем ошибку в модалке
+		}
+	};
 
-	// Добавляем проверку на существование trainingId
+	// Обработчик закрытия модалки
+	const handleClosePicker = () => {
+		setShowPicker(false);
+		setAddError(null); // очищаем ошибку при закрытии
+	};
 	if (!trainingId) {
 		return <div style={dateListStyles.errorMessage}>Ошибка: не указан ID тренировки</div>;
 	}
@@ -41,13 +60,7 @@ export default function DateList() {
 		);
 	}
 
-	if (error) {
-		return (
-			<div style={dateListStyles.errorMessage}>
-				<p>{error}</p>
-			</div>
-		);
-	}
+	const handleToggleEdit = () => setEditState(!editState);
 
 	return (
 		<>
@@ -55,8 +68,13 @@ export default function DateList() {
 			<div style={dateListStyles.container}>
 				<div style={dateListStyles.trainingHeader}>
 					{trainingText ? `${trainingText} — ` : ''}{trainingTitle}
+					{currentDates.length > 0 && (
+						<DateListControls
+							editState={editState}
+							onToggleEdit={handleToggleEdit}
+						/>
+					)}
 				</div>
-
 				<div style={dateListStyles.content}>
 					<div style={dateListStyles.datesList}>
 						{currentDates.length === 0 ? (
@@ -74,6 +92,9 @@ export default function DateList() {
 										onOpen={openDayDetails}
 										onDelete={deleteDate}
 										styles={dateListStyles}
+										editState={editState}
+										onUpdate={updateDate}
+										error={error}
 									/>
 								))
 						)}
@@ -84,7 +105,8 @@ export default function DateList() {
 							style={{
 								...dateListStyles.todayButton,
 								...(todayExists && {
-									backgroundColor: colors.gray, opacity: 0.5,
+									backgroundColor: colors.gray,
+									opacity: 0.5,
 									cursor: 'not-allowed',
 								})
 							}}
@@ -107,15 +129,12 @@ export default function DateList() {
 					visible={showPicker}
 					selectedDate={selectedDate}
 					onSelect={setSelectedDate}
-					onClose={() => setShowPicker(false)}
-					onAdd={() => {
-						const formatted = selectedDate.toISOString().split('T')[0];
-						addDate(formatted);
-						setShowPicker(false);
-					}}
+					onClose={handleClosePicker}          // ← обновлённый обработчик
+					error={addError}                      // ← локальная ошибка
+					onAdd={handleAddDate}                  // ← новый обработчик
 					styles={dateListStyles}
 				/>
-			</div >
+			</div>
 		</>
 	);
 }

@@ -14,8 +14,7 @@ export default function Header() {
 
 	useEffect(() => {
 		// Проверяем, не находимся ли мы на странице /home
-		setShowBackButton(location.pathname !== '/home');
-		setShowUser(location.pathname !== '/profile');
+		setShowBackButton(location.pathname !== '/home' && location.pathname !== '/profile');
 	}, [location.pathname]);
 
 	const handleGoBack = () => {
@@ -36,7 +35,7 @@ export default function Header() {
 			)}
 
 			{/* Аватар */}
-			{showUser && <div style={headerStyle.user}>
+			{<div style={headerStyle.user}>
 				<div style={headerStyle.avatar}>
 					<img
 						style={headerStyle.avatarImage}

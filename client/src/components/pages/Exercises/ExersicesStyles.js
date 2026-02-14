@@ -57,14 +57,6 @@ export const exercisesStyles = {
 		margin: `${toRem(20)} 0`,
 	},
 
-	// Список упражнений
-	list: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: toRem(15),
-		marginBottom: toRem(30),
-	},
-
 	// Кнопка добавления упражнения
 	addButton: {
 		position: 'fixed',
@@ -256,7 +248,7 @@ export const exercisesStyles = {
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(15),
-		marginBottom: toRem(30),
+		paddingBottom: toRem(120),
 	},
 
 	addButton: {

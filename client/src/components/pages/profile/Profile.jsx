@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import Header from '../../widgets/Header';
 import Footer from '../../widgets/Footer';
+import { commonStyle } from '../../../styles/commonStyle';
 
 export default function Profile() {
 	const { BASE_URL, logout, setUser, user } = useContext(AuthContext);
@@ -77,20 +78,13 @@ export default function Profile() {
 		<>
 			<Header />
 			<main style={styles.profileSection}>
-				<div style={styles.profileInfo}>
-					<img
-						src={'/user.png'}
-						alt="User Avatar"
-						style={styles.avatar}
-					/>
-					<h2 style={styles.userName}>{theUser?.name || 'Гость'}</h2>
-					<p style={styles.userWeight}>Вес: {theUser?.weight ? `${theUser.weight}kg` : '—'}</p>
+				<div style={commonStyle.titleHeader}>
+					<h2 style={commonStyle.title}>My details</h2>
 				</div>
-
 				{isEditing ? (
 					<div style={styles.editSection}>
 						<div style={styles.inputGroup}>
-							<label style={styles.label}>Имя</label>
+							<label style={styles.label}>Name</label>
 							<input
 								type="text"
 								value={newName}
@@ -134,13 +128,17 @@ export default function Profile() {
 					</div>
 				) : (
 					<div style={styles.infoSection}>
-						<div style={styles.infoRow}>
-							<span style={styles.infoLabel}>Имя:</span>
-							<span style={styles.infoValue}>{theUser?.name || 'Не указано'}</span>
-						</div>
-						<div style={styles.infoRow}>
-							<span style={styles.infoLabel}>Вес:</span>
-							<span style={styles.infoValue}>{theUser?.weight ? `${theUser.weight}кг` : 'Не указан'}</span>
+						<div style={styles.infoList}>
+							<div style={styles.infoRow}>
+								<span style={styles.infoLabel}>Name:</span>
+								-
+								<span style={styles.infoValue}>{theUser?.name || 'Not specified'}</span>
+							</div>
+							<div style={styles.infoRow}>
+								<span style={styles.infoLabel}>Weight:</span>
+								-
+								<span style={styles.infoValue}>{theUser?.weight ? `${theUser.weight}kg` : 'Not specified'}</span>
+							</div>
 						</div>
 						<button
 							onClick={toggleEdit}
@@ -169,28 +167,7 @@ const styles = {
 		textAlign: 'center',
 		marginBottom: '30px',
 		paddingBottom: '20px',
-		borderTop: '1px solid #eee',
 		padding: '18px',
-	},
-	avatar: {
-		width: '100px',
-		height: '100px',
-		borderRadius: '50%',
-		objectFit: 'cover',
-		marginBottom: '15px',
-		border: '3px solid #666',
-		backgroundColor: '#fff',
-	},
-	userName: {
-		margin: '0 0 5px 0',
-		fontSize: '22px',
-		color: '#fff',
-		fontWeight: '600',
-	},
-	userWeight: {
-		margin: 0,
-		fontSize: '16px',
-		color: '#666',
 	},
 	editSection: {
 		marginBottom: '25px',
@@ -259,17 +236,20 @@ const styles = {
 	infoSection: {
 		marginBottom: '25px',
 	},
+	infoList: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '15px',
+	},
 	infoRow: {
 		display: 'flex',
-		justifyContent: 'space-between',
 		alignItems: 'center',
-		padding: '12px 0',
-		borderBottom: '1px solid #f5f5f5',
+		gap: '10px',
 	},
 	infoLabel: {
 		fontSize: '15px',
 		color: '#fff',
-		fontWeight: '500',
+		fontWeight: 'bold',
 	},
 	infoValue: {
 		fontSize: '16px',

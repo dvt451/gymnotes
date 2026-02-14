@@ -73,6 +73,48 @@ router.post('/', async (req, res) => {
 	}
 });
 
+// Обновить дату
+router.put('/:dateId', async (req, res) => {
+	try {
+		const { date } = req.body;
+		const { fileId, dateId } = req.params;
+
+		if (!date) {
+			return res.status(400).json({ message: 'Новая дата обязательна' });
+		}
+
+		const user = await User.findById(req.userId);
+		const file = user.trainingfiles.id(fileId);
+		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+
+		// Найти запись даты по её _id
+		const dateEntry = file.dates.id(dateId);
+		if (!dateEntry) return res.status(404).json({ message: 'Запись даты не найдена' });
+
+		// Проверить, не занята ли новая дата в этом же файле (кроме самой себя)
+		const isDuplicate = file.dates.some(d =>
+			d._id.toString() !== dateId &&
+			d.date === date
+		);
+		if (isDuplicate) {
+			return res.status(400).json({ message: 'Эта дата уже существует' });
+		}
+
+		// Обновляем дату
+		dateEntry.date = date;
+		await user.save();
+
+		res.json({
+			success: true,
+			message: 'Дата обновлена',
+			date: dateEntry
+		});
+	} catch (err) {
+		console.error('Ошибка обновления даты:', err);
+		res.status(500).json({ message: err.message });
+	}
+});
+
 // Удалить дату
 router.delete('/:dateId', async (req, res) => {
 	try {

@@ -5,19 +5,13 @@ export const dateItemStyles = {
 	// Контейнер элемента даты
 	container: {
 		display: 'flex',
-		justifyContent: 'space-between',
 		alignItems: 'center',
 		backgroundColor: colors.labelBG,
 		borderRadius: toRem(12),
-		marginBottom: toRem(10),
 		cursor: 'pointer',
 		transition: 'all 0.3s ease',
-		border: `2px solid transparent`,
-		'&:hover': {
-			borderColor: colors.blueLight,
-			transform: 'translateY(-2px)',
-			boxShadow: `0 4px 12px rgba(0, 200, 255, 0.2)`,
-		},
+		overflow: 'hidden',
+		height: toRem(60),
 	},
 
 	// Стиль для сегодняшней даты
@@ -27,16 +21,12 @@ export const dateItemStyles = {
 
 	// Кнопка с датой
 	dateButton: {
-		backgroundColor: 'transparent',
-		border: 'none',
 		cursor: 'pointer',
 		flex: 1,
-		textAlign: 'left',
-		padding: 0,
 		display: 'flex',
 		alignItems: 'center',
 		gap: toRem(10),
-		padding: toRem(15) + ' ' + toRem(20),
+		paddingLeft: toRem(15),
 
 	},
 
@@ -54,31 +44,16 @@ export const dateItemStyles = {
 
 	// Кнопка удаления
 	deleteButton: {
-		backgroundColor: 'transparent',
-		border: 'none',
-		cursor: 'pointer',
-		padding: toRem(8),
-		borderRadius: toRem(6),
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		transition: 'all 0.3s ease',
-		padding: toRem(15) + ' ' + toRem(20),
-		'&:hover': {
-			backgroundColor: 'rgba(227, 60, 63, 0.1)',
-			transform: 'scale(1.1)',
-		},
+		backgroundColor: colors.red,
+		paddingInline: toRem(20),
+		display: 'block',
+		height: '100%',
 	},
 
 	// Текст кнопки удаления
-	deleteText: {
-		color: colors.red,
+	deleteIcon: {
+		// color: colors.red,
 		fontSize: toRem(16),
-		fontWeight: 'bold',
-		transition: 'all 0.3s ease',
-		'&:hover': {
-			color: colors.orange,
-		},
 	},
 
 	// Бейдж "Сегодня"

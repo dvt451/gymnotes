@@ -11,69 +11,71 @@ export default function DatePickerModal({
 	onSelect,
 	onClose,
 	onAdd,
-	styles = datePickerModalStyles // добавляем параметр стилей
+	error,
+	title = "Выберите дату",
+	buttonText = "Добавить"
 }) {
 	if (!visible) return null;
 
-	const handleDateChange = (date) => {
-		onSelect(date);
-	};
-
-	const handleAddClick = () => {
+	const handleAddClick = (e) => {
+		e.stopPropagation();
 		onAdd();
-		onClose();
 	};
 
 	return (
-		<div
-			style={commonStyle.popup}
-			onClick={onClose}
-		>
-			<div style={commonStyle.popup} onClick={onClose}>
-				<div style={commonStyle.popupLayer}></div>
-				<div style={commonStyle.popupContent} onClick={e => e.stopPropagation()}>
-					<div style={commonStyle.popupContentLayer}></div>
-					<div
-						style={commonStyle.popupContentContainer}
-						onClick={e => e.stopPropagation()}
-					>
-						{/* Заголовок (опционально) */}
-						<div style={commonStyle.title}>
-							Выберите дату
-						</div>
+		<div style={commonStyle.popup} onClick={onClose}>
+			<div style={commonStyle.popupLayer} />
+			<div style={commonStyle.popupContent} onClick={(e) => e.stopPropagation()}>
+				<div style={commonStyle.popupContentLayer} />
+				<div style={commonStyle.popupContentContainer}>
+					<div style={commonStyle.title}>{title}</div>
 
-						<div style={styles.calendarContainer}>
-							<ReactDatePicker
-								selected={selectedDate}
-								onChange={handleDateChange}
-								inline
-								showMonthDropdown
-								showYearDropdown
-								dropdownMode="select"
-								calendarClassName="custom-calendar"
-								dateFormat="yyyy-MM-dd"
-							// Можно передать стили через wrapperClassName или создать кастомный компонент
-							/>
+					{/* Яркий блок ошибки (inline-стили для гарантии) */}
+					{error && (
+						<div style={{
+							color: '#d32f2f',
+							backgroundColor: '#ffebee',
+							padding: '10px 15px',
+							borderRadius: '6px',
+							marginBottom: '15px',
+							textAlign: 'center',
+							border: '1px solid #ef9a9a',
+							fontWeight: '500',
+							fontSize: '14px'
+						}}>
+							{error}
 						</div>
+					)}
 
-						<div style={commonStyle.popupButtons}>
-							<button
-								style={{ ...commonStyle.button, ...commonStyle.popupDeleteButton }}
-								onClick={onClose}
-							>
-								Отмена
-							</button>
-							<button
-								style={{ ...commonStyle.button, ...commonStyle.popupCreateButton }}
-								onClick={handleAddClick}
-							>
-								Добавить дату
-							</button>
-						</div>
+					<div style={datePickerModalStyles.calendarContainer}>
+						<ReactDatePicker
+							selected={selectedDate}
+							onChange={onSelect}
+							inline
+							showMonthDropdown
+							showYearDropdown
+							dropdownMode="select"
+							calendarClassName="custom-calendar"
+							dateFormat="yyyy-MM-dd"
+						/>
+					</div>
+
+					<div style={commonStyle.popupButtons}>
+						<button
+							style={{ ...commonStyle.button, ...commonStyle.popupCancelButton }}
+							onClick={onClose}
+						>
+							Отмена
+						</button>
+						<button
+							style={{ ...commonStyle.button, ...commonStyle.popupCreateButton }}
+							onClick={handleAddClick}
+						>
+							{buttonText}
+						</button>
 					</div>
 				</div>
 			</div>
-
 		</div>
 	);
 }
