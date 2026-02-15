@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { commonStyle } from '../../../../../styles/commonStyle';
+import React, { useContext, useState } from 'react';
+import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
-import exercisesStyles from '../../ExersicesStyles';
+import { createExercisesStyles } from '../../ExersicesStyles';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 export default function AddReps({
 	BASE_URL,
@@ -14,6 +15,10 @@ export default function AddReps({
 	const [showPopup, setShowPopup] = useState(false);
 	const [repsInput, setRepsInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { mainColor } = useContext(GlobalContext)
+
+	const exercisesStyles = createExercisesStyles(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 
 	const handleAddRepClick = () => {
 		setShowPopup(true);

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { getToken } from '../../../../utils/getToken';
-import { commonStyle } from '../../../../../styles/commonStyle';
-import exercisesStyles from '../../ExersicesStyles';
+import { createCommonStyle } from '../../../../../styles/commonStyle';
+import { createExercisesStyles } from '../../ExersicesStyles';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 export default function DeleteWeights({
 	BASE_URL,
@@ -13,6 +14,10 @@ export default function DeleteWeights({
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { mainColor } = useContext(GlobalContext)
+
+	const exercisesStyles = createExercisesStyles(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 
 	const handleDeleteClick = () => {
 		setShowPopup(true);

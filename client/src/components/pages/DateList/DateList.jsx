@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import DateItem from './DateItem';
 import DatePickerModal from './DatePickerModal';
 import { useDateListLogic } from './dateListLogic';
 import Header from '../../widgets/Header';
-import { dateListStyles } from './DateListStyles';
-import { colors } from '../../../styles/commonStyle';
+import { createDateListStyles } from './DateListStyles';
+import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import DateListControls from './DateListControls';
+import { GlobalContext } from '../../../context/GlobalContext';
 
 export default function DateList() {
 	const location = useLocation();
@@ -26,7 +27,10 @@ export default function DateList() {
 		error,
 		updateDate
 	} = useDateListLogic(trainingId, null, trainingText, trainingTitle);
+	const { mainColor } = useContext(GlobalContext);
 	const [addError, setAddError] = useState(null);
+	const commonStyle = createCommonStyle(mainColor);
+
 	// Обработчик добавления даты
 	const handleAddDate = async () => {
 		const formatted = selectedDate.toISOString().split('T')[0];
@@ -38,7 +42,7 @@ export default function DateList() {
 			setAddError(err.message); // показываем ошибку в модалке
 		}
 	};
-
+	const dateListStyles = createDateListStyles(mainColor); // передаем основной цвет в стили
 	// Обработчик закрытия модалки
 	const handleClosePicker = () => {
 		setShowPicker(false);
@@ -66,7 +70,7 @@ export default function DateList() {
 		<>
 			<Header />
 			<div style={dateListStyles.container}>
-				<div style={dateListStyles.trainingHeader}>
+				<div style={{ ...dateListStyles.trainingHeader, ...commonStyle.titleHeader }}>
 					{trainingText ? `${trainingText} — ` : ''}{trainingTitle}
 					{currentDates.length > 0 && (
 						<DateListControls
@@ -103,7 +107,7 @@ export default function DateList() {
 					<div style={dateListStyles.buttonContainer}>
 						<button
 							style={{
-								...dateListStyles.todayButton,
+								...commonStyle.button,
 								...(todayExists && {
 									backgroundColor: colors.gray,
 									opacity: 0.5,
@@ -117,7 +121,7 @@ export default function DateList() {
 						</button>
 
 						<button
-							style={dateListStyles.pickerButton}
+							style={{ ...commonStyle.button, ...dateListStyles.pickerButton }}
 							onClick={() => setShowPicker(true)}
 						>
 							Choose date

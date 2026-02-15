@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import styles from '../ExersicesStyles';
+import React, { useContext, useState } from 'react';
+import { createExercisesStyles } from '../ExersicesStyles';
 import Weights from './Weights/Weights';
 import DeleteExerciseItem from './DeleteExerciseItem';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 export default function ExerciseItem({
 	item,
@@ -13,6 +14,10 @@ export default function ExerciseItem({
 	setExpandedExerciseId,
 	editState
 }) {
+	const { mainColor } = useContext(GlobalContext)
+
+	const styles = createExercisesStyles(mainColor);
+
 	const toggleExpand = (e) => {
 		// Останавливаем всплытие события, чтобы клик по кнопке удаления не открывал упражнение
 		e.stopPropagation();

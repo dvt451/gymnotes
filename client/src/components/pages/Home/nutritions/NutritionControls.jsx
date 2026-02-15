@@ -1,10 +1,14 @@
-import React from 'react'
-import { colors, commonStyle } from '../../../../styles/commonStyle'
+import React, { useContext } from 'react'
+import { colors, createCommonStyle } from '../../../../styles/commonStyle'
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 export default function NutritionControls({
 	editState,
 	handleToggleEdit
 }) {
+	const { mainColor } = useContext(GlobalContext);
+	const commonStyle = createCommonStyle(mainColor);
+
 	return (
 		<div style={{
 			display: 'flex',

@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { dateItemStyles } from './DateItemStyles';
 import DatePickerModal from './DatePickerModal';
-import { colors, commonStyle } from '../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import { FaTrash } from "react-icons/fa";
+import { GlobalContext } from '../../../context/GlobalContext';
 
 export default function DateItem({ item, today, onOpen, onDelete, onUpdate, editState }) {
 	const isToday = item.date === today;
 	const [showEditPicker, setShowEditPicker] = useState(false);
 	const [selectedDate, setSelectedDate] = useState(new Date(item.date));
 	const [localError, setLocalError] = useState(null);
+
+	const { mainColor } = useContext(GlobalContext);
+	const commonStyle = createCommonStyle(mainColor);
 
 	const handleEdit = () => {
 		setShowEditPicker(true);

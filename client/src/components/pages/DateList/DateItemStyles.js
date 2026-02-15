@@ -1,5 +1,5 @@
 // DateItemStyles.js (дополнительный файл для стилей DateItem)
-import { commonStyle, colors, toRem } from '../../../styles/commonStyle';
+import { colors, toRem } from '../../../styles/commonStyle';
 
 export const dateItemStyles = {
 	// Контейнер элемента даты

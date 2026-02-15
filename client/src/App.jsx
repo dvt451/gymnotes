@@ -9,6 +9,7 @@ import Register from './components/pages/Log/Register';
 import DateList from './components/pages/DateList/DateList';
 import Exercises from './components/pages/Exercises/Exercises';
 import Profile from './components/pages/profile/Profile';
+import { GlobalProvider } from './context/GlobalContext';
 
 function App() {
 	return (
@@ -16,16 +17,19 @@ function App() {
 		<div className="wrapper">
 			{/* <GlobalStyles /> */}
 			<BrowserRouter>
-				<AuthProvider>
-					<Routes>
-						<Route element={<Login />} path='/' />
-						<Route element={<Home />} path='/home' />
-						<Route element={<Profile />} path='/profile' />
-						<Route element={<Register />} path='/register' />
-						<Route element={<DateList />} path='/date-list/:trainingId' />
-						<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
-					</Routes>
-				</AuthProvider>
+				<GlobalProvider>
+					<AuthProvider>
+						<Routes>
+							<Route element={<Login />} path='/' />
+							<Route element={<Home />} path='/home' />
+							<Route element={<Profile />} path='/profile' />
+							<Route element={<Register />} path='/register' />
+							<Route element={<DateList />} path='/date-list/:trainingId' />
+							<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
+						</Routes>
+					</AuthProvider>
+				</GlobalProvider>
+
 			</BrowserRouter>
 		</div >
 	);

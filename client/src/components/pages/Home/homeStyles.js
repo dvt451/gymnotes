@@ -1,6 +1,6 @@
 import { colors, toRem } from "../../../styles/commonStyle";
 
-export const homeStyle = {
+export const createHomeStyle = (mainColor) => ({
 	main: {
 		padding: toRem(18),
 	},
@@ -13,7 +13,7 @@ export const homeStyle = {
 		backgroundColor: colors.labelBG,
 		borderRadius: toRem(10),
 		padding: toRem(20) + ' ' + toRem(15),
-		boxShadow: `0 2px 0 ${colors.green}`,
+		boxShadow: `0 2px 0 ${mainColor || colors.green}`,
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(10),
@@ -48,4 +48,4 @@ export const homeStyle = {
 		display: 'flex',
 		gap: toRem(15),
 	}
-}
+});

@@ -1,7 +1,7 @@
 // ExercisesStyles.js
-import { colors, commonStyle, toRem } from '../../../styles/commonStyle';
+import { colors, toRem } from '../../../styles/commonStyle';
 
-export const exercisesStyles = {
+export const createExercisesStyles = (mainColor) => ({
 	// Основной контейнер
 	container: {
 		backgroundColor: colors.blueDark,
@@ -63,7 +63,7 @@ export const exercisesStyles = {
 		bottom: toRem(20),
 		left: toRem(20),
 		right: toRem(20),
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		border: 'none',
 		borderRadius: toRem(12),
 		padding: toRem(20),
@@ -139,7 +139,7 @@ export const exercisesStyles = {
 	saveButton: {
 		width: '100%',
 		padding: `${toRem(15)} ${toRem(20)}`,
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		border: 'none',
 		borderRadius: toRem(10),
 		color: colors.black,
@@ -256,7 +256,7 @@ export const exercisesStyles = {
 		bottom: toRem(20),
 		left: toRem(20),
 		right: toRem(20),
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		border: 'none',
 		borderRadius: toRem(12),
 		padding: toRem(20),
@@ -396,14 +396,14 @@ export const exercisesStyles = {
 		flexWrap: 'wrap',
 	},
 	addSetBtn: {
-		border: `1px dashed ${colors.green}`,
+		border: `1px solid ${mainColor || colors.green}`,
 		color: colors.white,
 		fontSize: toRem(14),
 		padding: `${toRem(5)} ${toRem(10)}`,
 		borderRadius: toRem(6),
 		cursor: 'pointer',
 		transition: 'all 0.3s ease',
-		backgroundColor: 'rgba(146, 227, 60,1)',
+		backgroundColor: mainColor || colors.green,
 		whiteSpace: 'nowrap',
 	},
 	addWeightBtn: {
@@ -439,7 +439,7 @@ export const exercisesStyles = {
 	},
 
 	addWeightButton: {
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		border: 'none',
 		color: colors.black,
 		padding: `${toRem(10)} ${toRem(16)}`,
@@ -455,31 +455,7 @@ export const exercisesStyles = {
 	},
 
 	// ========== МОДАЛЬНЫЕ ОКНА (используем commonStyle) ==========
-	modalOverlay: {
-		...commonStyle.popup,
-	},
 
-	modalLayer: {
-		...commonStyle.popupLayer,
-	},
-
-	modalContent: {
-		...commonStyle.popupContent,
-		backgroundColor: colors.labelBG,
-		border: `2px solid ${colors.blueLight}`,
-		maxWidth: toRem(400),
-	},
-
-	modalContentLayer: {
-		...commonStyle.popupContentLayer,
-		backgroundColor: colors.white,
-		opacity: 0.95,
-	},
-
-	modalContentContainer: {
-		...commonStyle.popupContentContainer,
-		backgroundColor: 'transparent',
-	},
 
 	modalTitle: {
 		fontSize: toRem(20),
@@ -489,55 +465,10 @@ export const exercisesStyles = {
 		textAlign: 'center',
 	},
 
-	exerciseInput: {
-		...commonStyle.popupInput,
-		width: '100%',
-		marginBottom: toRem(15),
-	},
-
-	saveButton: {
-		...commonStyle.popupCreateButton,
-		backgroundColor: colors.green,
-		fontSize: toRem(16),
-		fontWeight: 'bold',
-		transition: 'all 0.3s ease',
-		'&:hover': {
-			backgroundColor: '#7ac22a',
-			transform: 'translateY(-2px)',
-		},
-	},
-
 	modalButtons: {
 		display: 'flex',
 		gap: toRem(10),
 		marginTop: toRem(20),
 	},
 
-	cancelButton: {
-		...commonStyle.popupCancelButton,
-		flex: 1,
-		fontSize: toRem(16),
-		fontWeight: 'bold',
-		transition: 'all 0.3s ease',
-		'&:hover': {
-			backgroundColor: '#e6b800',
-			transform: 'translateY(-2px)',
-		},
-	},
-
-	confirmButton: {
-		...commonStyle.popupCreateButton,
-		backgroundColor: colors.green,
-		flex: 1,
-		fontSize: toRem(16),
-		fontWeight: 'bold',
-		transition: 'all 0.3s ease',
-		'&:hover': {
-			backgroundColor: '#7ac22a',
-			transform: 'translateY(-2px)',
-		},
-	},
-};
-
-// Экспортируем по умолчанию
-export default exercisesStyles;
+});

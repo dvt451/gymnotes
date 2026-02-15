@@ -1,6 +1,6 @@
-import React from 'react';
-import { commonStyle } from '../../../../styles/commonStyle';
-import { homeStyle } from '../homeStyles';
+import React, { useContext } from 'react';
+import { createCommonStyle } from '../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 function TrainingPopup({
 	isOpen,
@@ -16,6 +16,9 @@ function TrainingPopup({
 	onDelete
 }) {
 	if (!isOpen) return null;
+	const { mainColor } = useContext(GlobalContext);
+
+	const commonStyle = createCommonStyle(mainColor);
 
 	const title = mode === 'create' ? 'New Training' : 'Edit Training';
 	const submitText = mode === 'create'

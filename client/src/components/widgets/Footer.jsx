@@ -1,11 +1,15 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FaRegUser } from "react-icons/fa";
-import { footerStyle } from './footerStyle.js'
+import { createFooterStyle } from './footerStyle.js'
 import { MdHomeFilled } from "react-icons/md";
+import { GlobalContext } from '../../context/GlobalContext.jsx';
 
 export default function Footer() {
 	const location = useLocation().pathname;
+	const { mainColor } = useContext(GlobalContext);
+
+	const footerStyle = createFooterStyle(mainColor);
 
 	return (
 		<footer style={footerStyle.footer}>

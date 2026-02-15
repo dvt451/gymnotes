@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ReactDatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { datePickerModalStyles } from './DatePickerModalStyles';
-import { commonStyle } from '../../../styles/commonStyle';
+import { createCommonStyle } from '../../../styles/commonStyle';
 import './styles/style.scss';
+import { GlobalContext } from '../../../context/GlobalContext';
 
 export default function DatePickerModal({
 	visible,
@@ -15,13 +15,14 @@ export default function DatePickerModal({
 	title = "Выберите дату",
 	buttonText = "Добавить"
 }) {
-	if (!visible) return null;
 
+	if (!visible) return null;
+	const { mainColor } = useContext(GlobalContext);
+	const commonStyle = createCommonStyle(mainColor);
 	const handleAddClick = (e) => {
 		e.stopPropagation();
 		onAdd();
 	};
-
 	return (
 		<div style={commonStyle.popup} onClick={onClose}>
 			<div style={commonStyle.popupLayer} />
@@ -47,7 +48,7 @@ export default function DatePickerModal({
 						</div>
 					)}
 
-					<div style={datePickerModalStyles.calendarContainer}>
+					<div style={{ marginBottom: '20px' }}>
 						<ReactDatePicker
 							selected={selectedDate}
 							onChange={onSelect}

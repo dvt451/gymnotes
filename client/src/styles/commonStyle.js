@@ -1,20 +1,24 @@
+// styles/commonStyle.js
+
 export const colors = {
 	blueDark: '#0C0E14',
 	blueLight: '#00C8FF',
 	labelBG: '#181E23',
-	green: '#92E33C',
+	green: '#92E33C', // Значение по умолчанию
 	orange: '#FFCC00',
 	red: '#E33C3F',
 	gray: "#4d4d4d",
 	white: '#FFFFFF',
 	black: '#000000',
 	inputBorder: '#BFBFBF',
-}
+};
+
 export const toRem = (value) => {
 	return `${value / 16}rem`;
 };
 
-export const commonStyle = {
+// Функция для создания стилей с динамическим цветом
+export const createCommonStyle = (mainColor) => ({
 	titleHeader: {
 		display: 'flex',
 		justifyContent: 'space-between',
@@ -38,11 +42,20 @@ export const commonStyle = {
 	button: {
 		width: '100%',
 		padding: toRem(20),
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		borderRadius: toRem(10),
 		fontWeight: 'bold',
 		color: colors.black,
 		textAlign: 'center',
+		cursor: 'pointer',
+		border: 'none',
+		'&:hover': {
+			opacity: 0.9,
+		},
+		'&:disabled': {
+			opacity: 0.5,
+			cursor: 'not-allowed',
+		}
 	},
 	popup: {
 		position: 'fixed',
@@ -102,23 +115,50 @@ export const commonStyle = {
 		backgroundColor: colors.white,
 		color: colors.black,
 		fontSize: toRem(16),
+		'&:focus': {
+			outline: 'none',
+			borderColor: mainColor || colors.green,
+		}
 	},
 	popupCreateButton: {
 		padding: toRem(10),
-		backgroundColor: colors.green,
-
+		backgroundColor: mainColor || colors.green,
+		color: colors.white,
+		border: 'none',
+		borderRadius: toRem(5),
+		cursor: 'pointer',
+		fontWeight: 'bold',
+		'&:hover': {
+			opacity: 0.9,
+		}
 	},
 	popupCancelButton: {
 		padding: toRem(10),
 		backgroundColor: colors.orange,
+		color: colors.black,
+		border: 'none',
+		borderRadius: toRem(5),
+		cursor: 'pointer',
+		fontWeight: 'bold',
+		'&:hover': {
+			opacity: 0.9,
+		}
 	},
 	popupDeleteButton: {
 		padding: toRem(10),
 		backgroundColor: colors.red,
+		color: colors.white,
+		border: 'none',
+		borderRadius: toRem(5),
+		cursor: 'pointer',
+		fontWeight: 'bold',
+		'&:hover': {
+			opacity: 0.9,
+		}
 	},
 	popupButtons: {
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(15),
 	},
-}
+});

@@ -10,15 +10,20 @@ import TrainingCard from './TrainingCard';
 import TrainingControls from './TrainingControls';
 import TrainingPopup from './TrainingPopup';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
-import { colors, commonStyle } from '../../../../styles/commonStyle';
-import { homeStyle } from '../homeStyles';
+import { colors, createCommonStyle } from '../../../../styles/commonStyle';
+import { createHomeStyle } from '../homeStyles';
 import axios from 'axios';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 export default function TrainingsSection() {
 	const navigate = useNavigate();
 	const { userToken, BASE_URL } = useContext(AuthContext);
 	const [editState, setEditState] = useState(false);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const { mainColor } = useContext(GlobalContext);
+
+	const homeStyle = createHomeStyle(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 
 	const {
 		state,

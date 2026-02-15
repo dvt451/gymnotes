@@ -131,3 +131,16 @@ h6 {
 main {
 	flex: 1 1 auto;
 }
+
+.profile-input {
+	border: 1px solid #333;
+
+	&::placeholder {
+		color: #fff;
+		opacity: .4;
+	}
+
+	&:focus {
+		border-color: #fff;
+	}
+}

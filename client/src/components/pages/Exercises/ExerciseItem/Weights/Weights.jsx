@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
-import styles from '../../ExersicesStyles';
+import React, { useContext, useState } from 'react';
+import { createExercisesStyles } from '../../ExersicesStyles';
 import AddWeight from './AddWeight';
 import DeleteWeights from './DeleteWeights';
 import Repeats from '../Reps/Repeats';
-import { colors, commonStyle } from '../../../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 export default function Weights({ item, editState, setExercises, date, trainingId, isExpanded, BASE_URL }) {
 	const [showEditPopup, setShowEditPopup] = useState(false);
 	const [currentWeight, setCurrentWeight] = useState(null);
 	const [newWeightInput, setNewWeightInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { mainColor } = useContext(GlobalContext)
+
+	const styles = createExercisesStyles(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
+
 
 	const weightChangeHandler = (weight) => {
 		// Сохраняем текущий вес и открываем popup

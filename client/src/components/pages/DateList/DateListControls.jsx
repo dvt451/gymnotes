@@ -1,10 +1,13 @@
-import React from 'react';
-import { colors, commonStyle } from '../../../styles/commonStyle';
+import React, { use, useContext } from 'react';
+import { colors, createCommonStyle } from '../../../styles/commonStyle';
+import { GlobalContext } from '../../../context/GlobalContext';
 
 function DateListControls({
 	editState,
 	onToggleEdit,
 }) {
+	const { mainColor } = useContext(GlobalContext);
+	const commonStyle = createCommonStyle(mainColor);
 	return (
 		<div style={{
 			display: 'flex',

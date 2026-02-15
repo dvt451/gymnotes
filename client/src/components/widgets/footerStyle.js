@@ -1,6 +1,6 @@
 import { colors, toRem } from '../../styles/commonStyle';
 
-export const footerStyle = {
+export const createFooterStyle = (mainColor) => ({
 	footer: {
 		padding: toRem(20),
 	},
@@ -26,7 +26,7 @@ export const footerStyle = {
 
 	},
 	footerLinkActive: {
-		color: colors.green,
+		color: mainColor || colors.green,
 	},
 	footerLinkDott: {
 		backgroundColor: '#fff',
@@ -34,4 +34,4 @@ export const footerStyle = {
 		height: toRem(10),
 		borderRadius: '50%',
 	}
-};
+});

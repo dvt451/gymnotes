@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { nutritionsStyle } from "./nutritionsStyle";
-import { colors, toRem, commonStyle } from "../../../../styles/commonStyle";
+import { createNutritionsStyle } from "./nutritionsStyle";
+import { colors, toRem, createCommonStyle } from "../../../../styles/commonStyle";
 import nutritionBottle from "/img/nutritions/bottle.png";
 import nutritionMeal from "/img/nutritions/meal.png";
 import nutritionProtein from "/img/nutritions/protein.png";
@@ -8,6 +8,7 @@ import nutritionVitamin from "/img/nutritions/vitamin.png";
 import { getToken } from '../../../utils/getToken';
 import { AuthContext } from '../../../../context/AuthContext';
 import NutritionControls from './NutritionControls';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 export default function Nutritions() {
 	const { BASE_URL } = useContext(AuthContext);
@@ -19,6 +20,10 @@ export default function Nutritions() {
 		vitamin: 0
 	});
 	const [loading, setLoading] = useState(false);
+	const { mainColor } = useContext(GlobalContext);
+
+	const nutritionsStyle = createNutritionsStyle(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 
 	useEffect(() => {
 		fetchNutritions();

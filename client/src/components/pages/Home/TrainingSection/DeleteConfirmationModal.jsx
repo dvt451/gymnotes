@@ -1,9 +1,14 @@
-import React from 'react';
-import { commonStyle } from '../../../../styles/commonStyle';
-import { homeStyle } from '../homeStyles';
+import React, { useContext } from 'react';
+import { createCommonStyle } from '../../../../styles/commonStyle';
+import { createHomeStyle } from '../homeStyles';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 function DeleteConfirmationModal({ isOpen, trainingName, isLoading, onConfirm, onCancel }) {
 	if (!isOpen) return null;
+	const { mainColor } = useContext(GlobalContext);
+
+	const homeStyle = createHomeStyle(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 
 	return (
 		<div style={commonStyle.popup} onClick={onCancel}>

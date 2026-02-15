@@ -5,9 +5,10 @@ import Templates from './Templates/Templates';
 import { getToken } from '../../../components/utils/getToken';
 import { AuthContext } from '../../../context/AuthContext';
 import axios from 'axios';
-import styles from './ExersicesStyles';
+import { createExercisesStyles } from './ExersicesStyles';
 import Header from '../../widgets/Header';
-import { colors, commonStyle } from '../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../styles/commonStyle';
+import { GlobalContext } from '../../../context/GlobalContext';
 
 export default function Exercises() {
 	const { trainingId, date } = useParams();
@@ -19,30 +20,10 @@ export default function Exercises() {
 	const [exercises, setExercises] = useState([]);
 	const [modalVisible, setModalVisible] = useState(false);
 	const [newExerciseName, setNewExerciseName] = useState('');
+	const { mainColor } = useContext(GlobalContext)
 
-	const saveExercisesToBackend = async (updatedExercises) => {
-		try {
-			const token = await getToken();
-			const response = await axios.put(
-
-				`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises`,
-				{ exercises: updatedExercises },
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${token}`,
-					}
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error('Ошибка сохранения');
-			}
-		} catch (error) {
-			console.error('Ошибка автосохранения:', error);
-		}
-	};
-
+	const styles = createExercisesStyles(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 	useEffect(() => {
 		const loadExercises = async () => {
 			try {

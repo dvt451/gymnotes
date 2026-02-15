@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { templatesStyles } from './TemplatesStyles';
+import { createTemplatesStyles } from './TemplatesStyles';
 import { getToken } from '../../../utils/getToken';
 import { AuthContext } from '../../../../context/AuthContext';
-import { commonStyle } from '../../../../styles/commonStyle';
+import { createCommonStyle } from '../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 export default function Templates({ setExercises, trainingId, date }) {
 	const { BASE_URL } = useContext(AuthContext);
+	const { mainColor } = useContext(GlobalContext);
 	const [templates, setTemplates] = useState([]);
 	const [modalVisible, setModalVisible] = useState(false);
 	const [editModalVisible, setEditModalVisible] = useState(false);
@@ -20,6 +22,8 @@ export default function Templates({ setExercises, trainingId, date }) {
 	const [showNotification, setShowNotification] = useState(false);
 	const [notificationMessage, setNotificationMessage] = useState('');
 
+	const commonStyle = createCommonStyle(mainColor);
+	const templatesStyles = createTemplatesStyles(mainColor);
 	useEffect(() => {
 		const fetchTemplates = async () => {
 			try {
@@ -345,11 +349,11 @@ export default function Templates({ setExercises, trainingId, date }) {
 
 				{/* Create template modal */}
 				{modalVisible && (
-					<div style={templatesStyles.modalOverlay} onClick={() => setModalVisible(false)}>
-						<div style={templatesStyles.modalLayer} />
-						<div style={templatesStyles.modalContent} onClick={(e) => e.stopPropagation()}>
-							<div style={templatesStyles.modalContentLayer} />
-							<div style={templatesStyles.modalContentContainer}>
+					<div style={commonStyle.popup} onClick={() => setModalVisible(false)}>
+						<div style={commonStyle.popupLayer} />
+						<div style={{ ...templatesStyles.modalContent, ...commonStyle.popupContent }} onClick={(e) => e.stopPropagation()}>
+							<div style={{ ...templatesStyles.modalContentLayer, ...commonStyle.popupContentLayer }} />
+							<div style={{ ...templatesStyles.modalContentContainer, ...commonStyle.popupContentContainer }}>
 								<h3 style={commonStyle.title}>New Template</h3>
 
 								<input
@@ -357,7 +361,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 									placeholder="Template name"
 									value={newTemplateName}
 									onChange={(e) => setNewTemplateName(e.target.value)}
-									style={templatesStyles.input}
+									style={{ ...templatesStyles.input, ...commonStyle.popupInput }}
 								/>
 
 								<div style={templatesStyles.exerciseInputRow}>
@@ -367,7 +371,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 										value={newExerciseName}
 										onChange={(e) => setNewExerciseName(e.target.value)}
 										onKeyDown={(e) => e.key === 'Enter' && addExerciseToNewTemplate()}
-										style={templatesStyles.exerciseInput}
+										style={{ ...templatesStyles.exerciseInput, ...commonStyle.popupInput }}
 									/>
 									<button
 										style={templatesStyles.addExerciseButton}
@@ -393,13 +397,13 @@ export default function Templates({ setExercises, trainingId, date }) {
 
 								<div style={templatesStyles.modalButtonsHorizontal}>
 									<button
-										style={templatesStyles.cancelButton}
+										style={{ ...templatesStyles.cancelButton, ...commonStyle.popupCancelButton }}
 										onClick={() => setModalVisible(false)}
 									>
 										Cancel
 									</button>
 									<button
-										style={templatesStyles.saveButton}
+										style={{ ...templatesStyles.saveButton, ...commonStyle.popupCreateButton }}
 										onClick={saveNewTemplate}
 									>
 										Save
@@ -460,7 +464,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 
 								<div style={templatesStyles.modalButtonsHorizontal}>
 									<button
-										style={templatesStyles.deleteButton}
+										style={{ ...templatesStyles.deleteButton, ...commonStyle.popupDeleteButton }}
 										onClick={deleteTemplate}
 									>
 										Delete

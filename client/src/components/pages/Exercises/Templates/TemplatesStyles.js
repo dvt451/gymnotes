@@ -1,7 +1,7 @@
 // TemplatesStyles.js
-import { colors, toRem, commonStyle } from '../../../../styles/commonStyle';
+import { colors, toRem } from '../../../../styles/commonStyle';
 
-export const templatesStyles = {
+export const createTemplatesStyles = (mainColor) => ({
 	// Основной контейнер
 	container: {
 		marginBottom: toRem(30),
@@ -108,7 +108,7 @@ export const templatesStyles = {
 
 	// Кнопка добавления шаблона
 	templateAddButton: {
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		border: 'none',
 		color: colors.black,
 		padding: `${toRem(12)} ${toRem(16)}`,
@@ -125,32 +125,19 @@ export const templatesStyles = {
 		},
 	},
 
-	// ========== МОДАЛЬНЫЕ ОКНА (используем commonStyle) ==========
-	// Оверлей модального окна
-	modalOverlay: {
-		...commonStyle.popup,
-	},
-
-	modalLayer: {
-		...commonStyle.popupLayer,
-	},
-
 	// Контент модального окна
 	modalContent: {
-		...commonStyle.popupContent,
 		backgroundColor: colors.labelBG,
 		border: `2px solid ${colors.blueLight}`,
 		maxWidth: toRem(400),
 	},
 
 	modalContentLayer: {
-		...commonStyle.popupContentLayer,
 		backgroundColor: colors.white,
 		opacity: 0.95,
 	},
 
 	modalContentContainer: {
-		...commonStyle.popupContentContainer,
 		backgroundColor: 'transparent',
 	},
 
@@ -164,7 +151,6 @@ export const templatesStyles = {
 
 	// Поля ввода
 	input: {
-		...commonStyle.popupInput,
 		width: '100%',
 		marginBottom: toRem(15),
 	},
@@ -177,7 +163,6 @@ export const templatesStyles = {
 	},
 
 	exerciseInput: {
-		...commonStyle.popupInput,
 		flex: 1,
 		marginBottom: 0,
 	},
@@ -245,10 +230,6 @@ export const templatesStyles = {
 	},
 
 	// ========== КНОПКИ МОДАЛЬНЫХ ОКОН ==========
-	// Контейнер для кнопок (вертикальный)
-	modalButtonsVertical: {
-		...commonStyle.popupButtons,
-	},
 
 	// Контейнер для кнопок (горизонтальный)
 	modalButtonsHorizontal: {
@@ -260,8 +241,7 @@ export const templatesStyles = {
 
 	// Кнопка сохранения
 	saveButton: {
-		...commonStyle.popupCreateButton,
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		flex: 1,
 		fontSize: toRem(16),
 		fontWeight: 'bold',
@@ -274,7 +254,6 @@ export const templatesStyles = {
 
 	// Кнопка отмены
 	cancelButton: {
-		...commonStyle.popupCancelButton,
 		backgroundColor: colors.orange,
 		flex: 1,
 		fontSize: toRem(16),
@@ -288,7 +267,6 @@ export const templatesStyles = {
 
 	// Кнопка удаления
 	deleteButton: {
-		...commonStyle.popupDeleteButton,
 		backgroundColor: colors.red,
 		flex: 1,
 		fontSize: toRem(16),
@@ -299,4 +277,4 @@ export const templatesStyles = {
 			transform: 'translateY(-2px)',
 		},
 	},
-};
+});

@@ -1,6 +1,6 @@
 import { colors, toRem } from "../../../../styles/commonStyle";
 
-export const nutritionsStyle = {
+export const createNutritionsStyle = (mainColor) => ({
 	nutritionsList: {
 		display: 'flex',
 		gap: toRem(10),
@@ -32,7 +32,7 @@ export const nutritionsStyle = {
 		textAlign: 'center',
 	},
 	nutritionItemButton: {
-		backgroundColor: colors.green,
+		backgroundColor: mainColor || colors.green,
 		borderRadius: toRem(10),
 		fontWeight: 'bold',
 		fontSize: toRem(30),
@@ -43,4 +43,4 @@ export const nutritionsStyle = {
 	nutritionItemButtonEdit: {
 		backgroundColor: colors.red,
 	}
-}
+});

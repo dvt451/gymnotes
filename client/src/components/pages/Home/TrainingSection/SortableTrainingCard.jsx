@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { homeStyle } from '../homeStyles';
+import { createHomeStyle } from '../homeStyles';
 
 function SortableTrainingCard({ item, editState, onEditClick, style }) {
 	const {
@@ -12,7 +12,8 @@ function SortableTrainingCard({ item, editState, onEditClick, style }) {
 		transition,
 		isDragging,
 	} = useSortable({ id: item._id });
-
+	const { mainColor } = useContext(GlobalContext);
+	const homeStyle = createHomeStyle(mainColor);
 	const dragStyle = {
 		transform: CSS.Transform.toString(transform),
 		transition,

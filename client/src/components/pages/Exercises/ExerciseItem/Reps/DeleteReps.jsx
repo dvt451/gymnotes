@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { getToken } from '../../../../utils/getToken';
-import { commonStyle } from '../../../../../styles/commonStyle';
+import { createCommonStyle } from '../../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 export default function DeleteReps({
 	BASE_URL,
@@ -13,6 +14,8 @@ export default function DeleteReps({
 }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { mainColor } = useContext(GlobalContext);
+	const commonStyle = createCommonStyle(mainColor);
 
 	const handleDeleteClick = () => {
 		setShowPopup(true);

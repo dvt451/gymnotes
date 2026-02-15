@@ -1,7 +1,7 @@
 // DateListStyles.js
-import { commonStyle, colors, toRem } from '../../../styles/commonStyle';
+import { colors, toRem } from '../../../styles/commonStyle';
 
-export const dateListStyles = {
+export const createDateListStyles = (mainColor) => ({
 	// Основной контейнер
 	container: {
 		padding: toRem(18),
@@ -9,7 +9,6 @@ export const dateListStyles = {
 
 	// Хедер с заголовком тренировки
 	trainingHeader: {
-		...commonStyle.titleHeader,
 		fontSize: toRem(24),
 		fontWeight: 'bold',
 		color: colors.white,
@@ -58,7 +57,7 @@ export const dateListStyles = {
 	// Стиль для сегодняшней даты
 	dateItemToday: {
 		backgroundColor: 'rgba(146, 227, 60, 0.1)',
-		border: `2px solid ${colors.green}`,
+		border: `2px solid ${mainColor || colors.green}`,
 	},
 
 	// Контейнер с информацией о дате
@@ -79,7 +78,7 @@ export const dateListStyles = {
 	// Подпись "Сегодня"
 	todayBadge: {
 		fontSize: toRem(12),
-		color: colors.green,
+		color: mainColor || colors.green,
 		fontWeight: 'bold',
 		marginLeft: toRem(10),
 		padding: `${toRem(2)} ${toRem(6)}`,
@@ -128,62 +127,14 @@ export const dateListStyles = {
 		borderTop: `1px solid ${colors.labelBG}`,
 	},
 
-	// Кнопка "Добавить сегодня"
-	todayButton: {
-		...commonStyle.button,
-	},
 
 	// Кнопка выбора даты
 	pickerButton: {
-		...commonStyle.button,
 		backgroundColor: colors.orange,
-	},
-
-	// Модальное окно выбора даты
-	modalOverlay: {
-		...commonStyle.popup,
-	},
-
-	modalLayer: {
-		...commonStyle.popupLayer,
-	},
-
-	modalContent: {
-		...commonStyle.popupContent,
-		backgroundColor: colors.labelBG,
-		border: `2px solid ${colors.blueLight}`,
-	},
-
-	modalHeader: {
-		fontSize: toRem(20),
-		fontWeight: 'bold',
-		color: colors.white,
-		marginBottom: toRem(20),
-		textAlign: 'center',
-	},
-
-	modalButtons: {
-		display: 'flex',
-		justifyContent: 'space-between',
-		gap: toRem(15),
-		marginTop: toRem(30),
-	},
-
-	modalCancelButton: {
-		...commonStyle.popupCancelButton,
-		backgroundColor: colors.orange,
-		flex: 1,
-	},
-
-	modalAddButton: {
-		...commonStyle.popupCreateButton,
-		backgroundColor: colors.green,
-		flex: 1,
 	},
 
 	// Сообщение об ошибке
 	errorMessage: {
-		...commonStyle.center,
 		color: colors.red,
 		fontSize: toRem(18),
 		fontWeight: 'bold',
@@ -193,7 +144,6 @@ export const dateListStyles = {
 
 	// Пустое состояние
 	emptyState: {
-		...commonStyle.center,
 		padding: toRem(50),
 		textAlign: 'center',
 	},
@@ -206,7 +156,6 @@ export const dateListStyles = {
 
 	// Индикатор загрузки
 	loadingContainer: {
-		...commonStyle.center,
 		padding: toRem(50),
 	},
 
@@ -214,26 +163,26 @@ export const dateListStyles = {
 		color: colors.blueLight,
 		fontSize: toRem(18),
 	},
-};
+});
 
 // Экспортируем также отдельные стили для использования в компонентах
 export const DateItemStyles = {
-	container: dateListStyles.dateItem,
-	today: dateListStyles.dateItemToday,
-	info: dateListStyles.dateInfo,
-	date: dateListStyles.dateText,
-	todayBadge: dateListStyles.todayBadge,
-	exercisesCount: dateListStyles.exercisesCount,
-	actions: dateListStyles.actionButtons,
-	deleteButton: dateListStyles.deleteButton,
+	container: createDateListStyles.dateItem,
+	today: createDateListStyles.dateItemToday,
+	info: createDateListStyles.dateInfo,
+	date: createDateListStyles.dateText,
+	todayBadge: createDateListStyles.todayBadge,
+	exercisesCount: createDateListStyles.exercisesCount,
+	actions: createDateListStyles.actionButtons,
+	deleteButton: createDateListStyles.deleteButton,
 };
 
 export const DatePickerModalStyles = {
-	overlay: dateListStyles.modalOverlay,
-	layer: dateListStyles.modalLayer,
-	content: dateListStyles.modalContent,
-	header: dateListStyles.modalHeader,
-	buttons: dateListStyles.modalButtons,
-	cancelButton: dateListStyles.modalCancelButton,
-	addButton: dateListStyles.modalAddButton,
+	overlay: createDateListStyles.modalOverlay,
+	layer: createDateListStyles.modalLayer,
+	content: createDateListStyles.modalContent,
+	header: createDateListStyles.modalHeader,
+	buttons: createDateListStyles.modalButtons,
+	cancelButton: createDateListStyles.modalCancelButton,
+	addButton: createDateListStyles.modalAddButton,
 };

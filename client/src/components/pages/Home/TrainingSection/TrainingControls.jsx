@@ -1,5 +1,6 @@
-import React from 'react';
-import { commonStyle, colors } from '../../../../styles/commonStyle';
+import React, { useContext } from 'react';
+import { colors, createCommonStyle } from '../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 function TrainingControls({
 	editState,
@@ -9,6 +10,8 @@ function TrainingControls({
 	onSaveReorder,
 	onAddTraining
 }) {
+	const { mainColor } = useContext(GlobalContext);
+	const commonStyle = createCommonStyle(mainColor);
 	return (
 		<div style={{
 			display: 'flex',

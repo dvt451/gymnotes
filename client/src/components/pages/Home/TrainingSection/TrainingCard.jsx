@@ -1,7 +1,12 @@
-import React from 'react';
-import { homeStyle } from '../homeStyles';
+import React, { useContext } from 'react';
+import { createHomeStyle } from '../homeStyles';
+import { GlobalContext } from '../../../../context/GlobalContext';
 
 function TrainingCard({ item, editState, onClick }) {
+	const { mainColor } = useContext(GlobalContext);
+
+	const homeStyle = createHomeStyle(mainColor);
+
 	return (
 		<div
 			onClick={() => onClick(item)}

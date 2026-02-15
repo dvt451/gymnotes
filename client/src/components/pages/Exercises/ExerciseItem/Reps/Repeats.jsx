@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import styles from '../../ExersicesStyles';
+import React, { useContext, useState } from 'react';
+import { createExercisesStyles } from '../../ExersicesStyles';
 import AddReps from './AddReps';
 import DeleteReps from './DeleteReps';
-import { colors, commonStyle } from '../../../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, date, item: exercise, w: weight, setExercises }) {
 	const [showEditPopup, setShowEditPopup] = useState(false);
 	const [currentSet, setCurrentSet] = useState(null);
 	const [newRepsInput, setNewRepsInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { mainColor } = useContext(GlobalContext)
+
+	const styles = createExercisesStyles(mainColor);
+	const commonStyle = createCommonStyle(mainColor);
 
 	const weightSetChangeHandler = async (set) => {
 		if (!editState || !isExpanded) return;
