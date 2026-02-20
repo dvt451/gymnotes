@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 import dotenv from 'dotenv';
 
 const env = process.env.NODE_ENV || 'development';
-const envFile = `.env.${env}`;
+const envFile = `../.env.${env}`;
 const envPath = path.join(__dirname, envFile);
 
 console.log(`=== Загружаем окружение: ${env} ===`);
@@ -37,6 +37,7 @@ import templateRoutes from './routes/templates.js';
 import weightRoutes from './routes/weights.js';
 import repRoutes from './routes/reps.js';
 import nutritionRoutes from './routes/nutritions.js';
+import exerciseLibraryRoutes from './routes/exerciseLibrary.js';
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use('/api/auth', authRoutes);
 // Основные роутеры
 app.use('/api/trainings', trainingRoutes); // Основные операции с тренировками
 app.use('/api/nutritions', nutritionRoutes);
+app.use('/api/exercise-library', exerciseLibraryRoutes);
 
 // Роутеры для работы с датами, упражнениями, весами и повторениями
 // Эти роутеры должны быть ПОДКЛЮЧЕНЫ ТОЛЬКО ОДИН РАЗ и в правильном порядке
@@ -64,7 +66,14 @@ app.use('/api/trainings/:fileId/dates/:date/exercises', exerciseRoutes);
 app.use('/api/trainings/:fileId/dates/:date/exercises/:exerciseId/weights', weightRoutes);
 app.use('/api/trainings/:fileId/dates/:date/exercises/:exerciseId/weights/:weightId/sets', repRoutes);
 app.use('/api/trainings/:fileId/templates', templateRoutes);
-app.use('/api/trainings/:fileId/templates', templateRoutes);
+
+app.get('/api/test-weights', (req, res) => {
+	res.json({
+		message: 'Weights endpoint is accessible',
+		status: 'OK',
+		timestamp: new Date().toISOString()
+	});
+});
 
 // Health check
 app.get('/health', (req, res) => {
@@ -90,6 +99,9 @@ app.get('/', (req, res) => {
 			weights: '/api/trainings/:fileId/dates/:date/exercises/:exerciseId/weights',
 			sets: '/api/trainings/:fileId/dates/:date/exercises/:exerciseId/weights/:weightId/sets',
 			templates: '/api/trainings/:fileId/templates',
+			nutritions: '/api/nutritions',
+			exercise_library: '/api/exercise-library',
+			test_weights: '/api/test-weights',
 			health: '/health'
 		}
 	});
@@ -113,7 +125,18 @@ const connectDB = async () => {
 			console.error('❌ ОШИБКА: Не найден MongoDB connection string!');
 			console.log('Пожалуйста добавьте в .env файл:');
 			console.log('MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname');
-			process.exit(1);
+			console.log('Trying local MongoDB fallback...');
+			try {
+				await mongoose.connect('mongodb://localhost:27017/gymnotes', {
+					useNewUrlParser: true,
+					useUnifiedTopology: true,
+				});
+				console.log('Local MongoDB connected');
+				return true;
+			} catch (localErr) {
+				console.error('Local MongoDB is not available');
+				return false;
+			}
 		}
 
 		console.log(`🔗 Подключаемся к MongoDB Atlas...`);
@@ -121,6 +144,10 @@ const connectDB = async () => {
 		await mongoose.connect(connectionString, {
 			useNewUrlParser: true,
 			useUnifiedTopology: true,
+			serverSelectionTimeoutMS: 30000,
+			socketTimeoutMS: 45000,
+			retryWrites: true,
+			w: 'majority',
 		});
 
 		console.log('✅ MongoDB Atlas подключена успешно!');
