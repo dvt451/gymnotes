@@ -420,7 +420,7 @@ export default function Exercises() {
 									<p style={{ ...styles.error, margin: '0 0 8px 0', padding: '8px' }}>{modalError}</p>
 								)}
 
-								<div style={{ marginBottom: '12px' }}>
+								<div style={{ marginBottom: '12px', backgroundColor: colors.blueDark, borderRadius: '8px', padding: '12px' }}>
 									<h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Поиск по существующим упражнениям</h4>
 									<div
 										style={{
@@ -431,7 +431,6 @@ export default function Exercises() {
 											gap: '6px',
 											padding: '8px',
 											borderRadius: '8px',
-											background: 'rgba(255,255,255,0.06)',
 										}}
 									>
 										{userExercises.length === 0 && (
@@ -451,7 +450,7 @@ export default function Exercises() {
 													padding: '6px 8px',
 													borderRadius: '6px',
 													border: '1px solid rgba(255,255,255,0.1)',
-													background: 'transparent',
+													background: colors.labelBG,
 													color: '#fff',
 													cursor: isCreatingExercise ? 'not-allowed' : 'pointer',
 													opacity: isCreatingExercise ? 0.6 : 1,
