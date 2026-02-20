@@ -103,9 +103,11 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 
 	return (
 		<>
-			<button onClick={handleAddWeightClick} style={exercisesStyles.addWeightBtn}>
-				+ weight
-			</button>
+			<div>
+				<button onClick={handleAddWeightClick} style={exercisesStyles.addWeightBtn}>
+					+ weight
+				</button>
+			</div>
 
 			{showPopup && (
 				<div style={commonStyle.popup}>

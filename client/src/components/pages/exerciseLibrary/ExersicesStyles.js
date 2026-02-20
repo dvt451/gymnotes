@@ -2,6 +2,21 @@
 import { colors, toRem } from '../../../styles/commonStyle';
 
 export const createExercisesStyles = (mainColor) => ({
+	exercisesHeader: {
+		justifyContent: 'center',
+	},
+	exerciseListBlock: {
+		marginBottom: toRem(10),
+	},
+	exercisesListTitle: {
+		paddingTop: toRem(20),
+		paddingBottom: toRem(20),
+	},
+	exercisesList: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(10),
+	},
 	// Основной контейнер
 	container: {
 		backgroundColor: colors.blueDark,
@@ -55,6 +70,26 @@ export const createExercisesStyles = (mainColor) => ({
 		backgroundColor: 'rgba(227, 60, 63, 0.1)',
 		borderRadius: toRem(10),
 		margin: `${toRem(20)} 0`,
+	},
+
+	// Кнопка добавления упражнения
+	addButton: {
+		backgroundColor: mainColor || colors.green,
+		border: 'none',
+		borderRadius: toRem(12),
+		padding: toRem(20),
+		color: colors.black,
+		fontSize: toRem(18),
+		fontWeight: 'bold',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: toRem(10),
+		cursor: 'pointer',
+		transition: 'all 0.3s ease',
+		zIndex: 100,
+		marginTop: toRem(20),
+		width: '100%',
 	},
 
 	// Модальное окно
@@ -221,24 +256,6 @@ export const createExercisesStyles = (mainColor) => ({
 		paddingBottom: toRem(120),
 	},
 
-	addButton: {
-		backgroundColor: mainColor || colors.green,
-		border: 'none',
-		borderRadius: toRem(12),
-		padding: toRem(20),
-		color: colors.black,
-		fontSize: toRem(18),
-		fontWeight: 'bold',
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: toRem(10),
-		cursor: 'pointer',
-		transition: 'all 0.3s ease',
-		zIndex: 100,
-		marginTop: toRem(20),
-		width: '100%',
-	},
 
 	// ========== СТИЛИ ДЛЯ КОМПОНЕНТА EXERCISEITEM ==========
 	exerciseBlock: {
@@ -292,11 +309,6 @@ export const createExercisesStyles = (mainColor) => ({
 		padding: toRem(15),
 		fontStyle: 'italic',
 	},
-	settingsRow: {
-		display: 'flex',
-		flexDirection: 'column',
-		rowGap: toRem(6),
-	},
 	weightBlock: {
 		display: 'flex',
 		alignItems: 'center',
@@ -329,20 +341,6 @@ export const createExercisesStyles = (mainColor) => ({
 	setText: {
 		color: colors.white,
 		fontSize: toRem(14),
-	},
-	PrevWeightText: {
-		color: colors.blueLight,
-		opacity: 0.8,
-	},
-	PrevSetText: {
-		color: colors.blueLight,
-		opacity: 0.8,
-	},
-	prevMetaText: {
-		paddingLeft: toRem(15),
-		paddingRight: toRem(15),
-		color: colors.blueLight,
-		opacity: 0.75,
 	},
 
 	deleteBtn: {

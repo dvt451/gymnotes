@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import DateItem from './DateItem';
 import DatePickerModal from './DatePickerModal';
 import { useDateListLogic } from './dateListLogic';
@@ -26,7 +26,7 @@ export default function DateList() {
 		isLoading,
 		error,
 		updateDate
-	} = useDateListLogic(trainingId, null, trainingText, trainingTitle);
+	} = useDateListLogic(trainingId, trainingText, trainingTitle);
 	const { mainColor } = useContext(GlobalContext);
 	const [addError, setAddError] = useState(null);
 	const commonStyle = createCommonStyle(mainColor);

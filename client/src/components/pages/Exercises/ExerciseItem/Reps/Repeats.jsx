@@ -176,9 +176,9 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 				<div style={styles.repsContainer}>
 					{weight.sets.length > 0 && <div>-</div>}
 					<div style={styles.repsContainerRow}>
-						{weight.sets.map((set) => (
+						{weight.sets.map((set, index) => (
 							<button
-								key={set._id}
+								key={set._id || index}
 								onClick={() => weightSetChangeHandler(set)}
 								style={{
 									background: 'none',

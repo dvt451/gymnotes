@@ -1,137 +1,218 @@
-// routes/dates.js
-import express from 'express';
-import User from '../models/User.js';
+﻿import express from 'express';
+import mongoose from 'mongoose';
+import TrainingFile from '../models/TrainingFile.js';
+import TrainingDate from '../models/TrainingDate.js';
+import ExerciseEntry from '../models/ExerciseEntry.js';
+import ExerciseUserLibrary from '../models/ExerciseUserLibrary.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-// Получить все даты для тренировки
+const normalizeDateString = (value) => {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().split('T')[0];
+  const str = String(value);
+  return str.includes('T') ? str.split('T')[0] : str;
+};
+
+const toDateStartUtc = (dateLike) => {
+  const normalized = normalizeDateString(dateLike);
+  const dt = new Date(`${normalized}T00:00:00.000Z`);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+};
+
+const ensureFile = async (userId, fileId) => {
+  if (!mongoose.isValidObjectId(fileId)) return null;
+  return TrainingFile.findOne({ _id: fileId, userId });
+};
+
+const mapEntriesToExercises = async (entries) => {
+  const libraryIds = entries.map((e) => e.exerciseUserLibraryId);
+  const libs = await ExerciseUserLibrary.find({ _id: { $in: libraryIds } }).select('name');
+  const nameById = new Map(libs.map((l) => [l._id.toString(), l.name]));
+
+  return entries.map((entry) => ({
+    _id: entry._id,
+    exerciseUserLibraryId: entry.exerciseUserLibraryId,
+    name: nameById.get(entry.exerciseUserLibraryId.toString()) || 'Unknown exercise',
+    weights: entry.weights || [],
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+  }));
+};
+
 router.get('/', async (req, res) => {
-	try {
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+  try {
+    const file = await ensureFile(req.userId, req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		res.json(file.dates || []);
-	} catch (err) {
-		console.error('Ошибка получения дат:', err);
-		res.status(500).json({ message: err.message });
-	}
+    const dates = await TrainingDate.find({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+    }).sort({ date: 1, createdAt: 1 });
+
+    res.json(
+      dates.map((d) => ({
+        _id: d._id,
+        userId: d.userId,
+        trainingFileId: d.trainingFileId,
+        date: normalizeDateString(d.date),
+        createdAt: d.createdAt,
+        updatedAt: d.updatedAt,
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Получить конкретную дату
 router.get('/:date', async (req, res) => {
-	try {
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+  try {
+    const file = await ensureFile(req.userId, req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		const dateEntry = file.dates.find(d => {
-			if (!d.date) return false;
-			const dStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dStr === req.params.date;
-		});
+    const dt = toDateStartUtc(req.params.date);
+    if (!dt) return res.status(400).json({ message: 'Некорректная дата' });
 
-		if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+    const dateEntry = await TrainingDate.findOne({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      date: dt,
+    });
 
-		res.json(dateEntry);
-	} catch (err) {
-		console.error('Ошибка получения даты:', err);
-		res.status(500).json({ message: err.message });
-	}
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+
+    const entries = await ExerciseEntry.find({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
+
+    const exercises = await mapEntriesToExercises(entries);
+
+    res.json({
+      _id: dateEntry._id,
+      date: normalizeDateString(dateEntry.date),
+      exercises,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Добавить дату
 router.post('/', async (req, res) => {
-	try {
-		const { date, exercises } = req.body;
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+  try {
+    const file = await ensureFile(req.userId, req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		if (file.dates.some(d => d.date === date))
-			return res.status(400).json({ message: 'Дата уже существует' });
+    const { date } = req.body;
+    const dt = toDateStartUtc(date);
+    if (!dt) return res.status(400).json({ message: 'Некорректная дата' });
 
-		file.dates.push({
-			date,
-			exercises: exercises || []
-		});
-		await user.save();
+    const exists = await TrainingDate.exists({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      date: dt,
+    });
 
-		// Получаем обновленный файл (или используем тот же объект, так как мы его уже изменили)
-		// Но чтобы быть уверенным, что у нас самые свежие данные, можно перезагрузить пользователя?
-		// Нет, так как мы только что сохранили, и объект file уже обновлен.
+    if (exists) return res.status(400).json({ message: 'Дата уже существует' });
 
-		// Возвращаем объект с полем dates, содержащим все даты файла
-		res.status(201).json({
-			dates: file.dates
-		});
-	} catch (err) {
-		res.status(500).json({ message: err.message });
-	}
+    await TrainingDate.create({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      date: dt,
+    });
+
+    const dates = await TrainingDate.find({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+    }).sort({ date: 1, createdAt: 1 });
+
+    res.status(201).json({
+      dates: dates.map((d) => ({
+        _id: d._id,
+        userId: d.userId,
+        trainingFileId: d.trainingFileId,
+        date: normalizeDateString(d.date),
+        createdAt: d.createdAt,
+        updatedAt: d.updatedAt,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Обновить дату
 router.put('/:dateId', async (req, res) => {
-	try {
-		const { date } = req.body;
-		const { fileId, dateId } = req.params;
+  try {
+    const { date } = req.body;
+    const { fileId, dateId } = req.params;
 
-		if (!date) {
-			return res.status(400).json({ message: 'Новая дата обязательна' });
-		}
+    if (!date) return res.status(400).json({ message: 'Новая дата обязательна' });
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+    const file = await ensureFile(req.userId, fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		// Найти запись даты по её _id
-		const dateEntry = file.dates.id(dateId);
-		if (!dateEntry) return res.status(404).json({ message: 'Запись даты не найдена' });
+    const dt = toDateStartUtc(date);
+    if (!dt) return res.status(400).json({ message: 'Некорректная дата' });
 
-		// Проверить, не занята ли новая дата в этом же файле (кроме самой себя)
-		const isDuplicate = file.dates.some(d =>
-			d._id.toString() !== dateId &&
-			d.date === date
-		);
-		if (isDuplicate) {
-			return res.status(400).json({ message: 'Эта дата уже существует' });
-		}
+    const dateEntry = await TrainingDate.findOne({ _id: dateId, userId: req.userId, trainingFileId: fileId });
+    if (!dateEntry) return res.status(404).json({ message: 'Запись даты не найдена' });
 
-		// Обновляем дату
-		dateEntry.date = date;
-		await user.save();
+    const duplicate = await TrainingDate.exists({
+      _id: { $ne: dateId },
+      userId: req.userId,
+      trainingFileId: fileId,
+      date: dt,
+    });
 
-		res.json({
-			success: true,
-			message: 'Дата обновлена',
-			date: dateEntry
-		});
-	} catch (err) {
-		console.error('Ошибка обновления даты:', err);
-		res.status(500).json({ message: err.message });
-	}
+    if (duplicate) return res.status(400).json({ message: 'Эта дата уже существует' });
+
+    dateEntry.date = dt;
+    await dateEntry.save();
+
+    res.json({
+      success: true,
+      message: 'Дата обновлена',
+      date: {
+        _id: dateEntry._id,
+        userId: dateEntry.userId,
+        trainingFileId: dateEntry.trainingFileId,
+        date: normalizeDateString(dateEntry.date),
+        createdAt: dateEntry.createdAt,
+        updatedAt: dateEntry.updatedAt,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Удалить дату
 router.delete('/:dateId', async (req, res) => {
-	try {
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+  try {
+    const file = await ensureFile(req.userId, req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		const dateIndex = file.dates.findIndex(d => d._id.toString() === req.params.dateId);
-		if (dateIndex === -1) return res.status(404).json({ message: 'Дата не найдена' });
+    const deleted = await TrainingDate.findOneAndDelete({
+      _id: req.params.dateId,
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+    });
 
-		file.dates.splice(dateIndex, 1);
-		await user.save();
+    if (!deleted) return res.status(404).json({ message: 'Дата не найдена' });
 
-		res.json({ success: true, message: 'Дата удалена' });
-	} catch (err) {
-		res.status(500).json({ message: err.message });
-	}
+    await ExerciseEntry.deleteMany({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: req.params.dateId,
+    });
+
+    res.json({ success: true, message: 'Дата удалена' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 export default router;

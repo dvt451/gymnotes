@@ -1,201 +1,163 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import User from '../models/User.js';
+﻿import express from 'express';
+import TrainingDate from '../models/TrainingDate.js';
+import ExerciseEntry from '../models/ExerciseEntry.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-// Получить все подходы для веса
+const normalizeDateString = (value) => {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().split('T')[0];
+  const str = String(value);
+  return str.includes('T') ? str.split('T')[0] : str;
+};
+
+const toDateStartUtc = (dateLike) => {
+  const normalized = normalizeDateString(dateLike);
+  const dt = new Date(`${normalized}T00:00:00.000Z`);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+};
+
+const getWeightForRoute = async ({ userId, fileId, dateParam, exerciseId, weightId }) => {
+  const dt = toDateStartUtc(dateParam);
+  if (!dt) return { error: 'Date not found', status: 404 };
+
+  const trainingDate = await TrainingDate.findOne({
+    userId,
+    trainingFileId: fileId,
+    date: dt,
+  });
+
+  if (!trainingDate) return { error: 'Date not found', status: 404 };
+
+  const exercise = await ExerciseEntry.findOne({
+    _id: exerciseId,
+    userId,
+    trainingFileId: fileId,
+    trainingDateId: trainingDate._id,
+  });
+
+  if (!exercise) return { error: 'Exercise not found', status: 404 };
+
+  const weight = exercise.weights.id(weightId);
+  if (!weight) return { error: 'Weight not found', status: 404 };
+
+  return { exercise, weight };
+};
+
 router.get('/', async (req, res) => {
-	try {
-		const { fileId, date, exerciseId, weightId } = req.params;
+  try {
+    const { fileId, date, exerciseId, weightId } = req.params;
+    const data = await getWeightForRoute({ userId: req.userId, fileId, dateParam: date, exerciseId, weightId });
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
-		if (!file) return res.status(404).json({ message: 'File not found' });
+    if (data.error) return res.status(data.status).json({ message: data.error });
 
-		const trainingDate = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === date;
-		});
-		if (!trainingDate) return res.status(404).json({ message: 'Date not found' });
-
-		const exercise = trainingDate.exercises.id(exerciseId);
-		if (!exercise) return res.status(404).json({ message: 'Exercise not found' });
-
-		const weight = exercise.weights.id(weightId);
-		if (!weight) return res.status(404).json({ message: 'Weight not found' });
-
-		res.json(weight.sets || []);
-	} catch (err) {
-		console.error('Error getting sets:', err);
-		res.status(500).json({ message: 'Server error' });
-	}
+    res.json(data.weight.sets || []);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Добавить подход
 router.post('/', async (req, res) => {
-	try {
-		const { reps } = req.body;
-		const { fileId, date, exerciseId, weightId } = req.params;
+  try {
+    const reps = Number(req.body.reps);
+    if (!Number.isFinite(reps) || reps < 0) {
+      return res.status(400).json({ message: 'Number of repetitions is required' });
+    }
 
-		if (!reps && reps !== 0) {
-			return res.status(400).json({ message: 'Number of repetitions is required' });
-		}
+    const { fileId, date, exerciseId, weightId } = req.params;
+    const data = await getWeightForRoute({ userId: req.userId, fileId, dateParam: date, exerciseId, weightId });
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
-		if (!file) return res.status(404).json({ message: 'File not found' });
+    if (data.error) return res.status(data.status).json({ message: data.error });
 
-		const trainingDate = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === date;
-		});
-		if (!trainingDate) return res.status(404).json({ message: 'Date not found' });
+    data.weight.sets.push(reps);
+    await data.exercise.save();
 
-		const exercise = trainingDate.exercises.id(exerciseId);
-		if (!exercise) return res.status(404).json({ message: 'Exercise not found' });
-
-		const weight = exercise.weights.id(weightId);
-		if (!weight) return res.status(404).json({ message: 'Weight not found' });
-
-		const newSet = {
-			_id: new mongoose.Types.ObjectId(),
-			reps
-		};
-
-		weight.sets.push(newSet);
-		await user.save();
-
-		res.status(201).json(newSet);
-	} catch (err) {
-		console.error('Error adding set:', err);
-		res.status(500).json({ message: 'Server error' });
-	}
+    const setIndex = data.weight.sets.length - 1;
+    res.status(201).json({ setIndex, reps: data.weight.sets[setIndex] });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Обновить подход
 router.put('/:setId', async (req, res) => {
-	try {
-		const { reps } = req.body;
-		const { fileId, date, exerciseId, weightId, setId } = req.params;
+  try {
+    const reps = Number(req.body.reps);
+    const setIndex = Number(req.params.setId);
 
-		if (!reps && reps !== 0) {
-			return res.status(400).json({ message: 'Number of repetitions is required' });
-		}
+    if (!Number.isFinite(reps) || reps < 0) {
+      return res.status(400).json({ message: 'Enter a valid number of repetitions (positive number)' });
+    }
 
-		if (typeof reps !== 'number' || reps < 0) {
-			return res.status(400).json({ message: 'Enter a valid number of repetitions (positive number)' });
-		}
+    if (!Number.isInteger(setIndex) || setIndex < 0) {
+      return res.status(400).json({ message: 'Set index must be a non-negative integer' });
+    }
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
-		if (!file) return res.status(404).json({ message: 'File not found' });
+    const { fileId, date, exerciseId, weightId } = req.params;
+    const data = await getWeightForRoute({ userId: req.userId, fileId, dateParam: date, exerciseId, weightId });
 
-		const trainingDate = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === date;
-		});
-		if (!trainingDate) return res.status(404).json({ message: 'Date not found' });
+    if (data.error) return res.status(data.status).json({ message: data.error });
+    if (setIndex >= data.weight.sets.length) return res.status(404).json({ message: 'Set not found' });
 
-		const exercise = trainingDate.exercises.id(exerciseId);
-		if (!exercise) return res.status(404).json({ message: 'Exercise not found' });
+    data.weight.sets[setIndex] = reps;
+    await data.exercise.save();
 
-		const weight = exercise.weights.id(weightId);
-		if (!weight) return res.status(404).json({ message: 'Weight not found' });
-
-		const set = weight.sets.id(setId);
-		if (!set) return res.status(404).json({ message: 'Set not found' });
-
-		set.reps = reps;
-		await user.save();
-
-		res.status(200).json(set);
-	} catch (err) {
-		console.error('Error updating set:', err);
-		res.status(500).json({ message: 'Server error' });
-	}
+    res.status(200).json({ setIndex, reps: data.weight.sets[setIndex] });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// PATCH метод для совместимости
 router.patch('/:setId', async (req, res) => {
-	try {
-		const { reps } = req.body;
-		const { fileId, date, exerciseId, weightId, setId } = req.params;
+  try {
+    const reps = Number(req.body.reps);
+    const setIndex = Number(req.params.setId);
 
-		if (!reps && reps !== 0) {
-			return res.status(400).json({ message: 'Number of repetitions is required' });
-		}
+    if (!Number.isFinite(reps) || reps < 0) {
+      return res.status(400).json({ message: 'Enter a valid number of repetitions (positive number)' });
+    }
 
-		if (typeof reps !== 'number' || reps < 0) {
-			return res.status(400).json({ message: 'Enter a valid number of repetitions (positive number)' });
-		}
+    if (!Number.isInteger(setIndex) || setIndex < 0) {
+      return res.status(400).json({ message: 'Set index must be a non-negative integer' });
+    }
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
-		if (!file) return res.status(404).json({ message: 'File not found' });
+    const { fileId, date, exerciseId, weightId } = req.params;
+    const data = await getWeightForRoute({ userId: req.userId, fileId, dateParam: date, exerciseId, weightId });
 
-		const trainingDate = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === date;
-		});
-		if (!trainingDate) return res.status(404).json({ message: 'Date not found' });
+    if (data.error) return res.status(data.status).json({ message: data.error });
+    if (setIndex >= data.weight.sets.length) return res.status(404).json({ message: 'Set not found' });
 
-		const exercise = trainingDate.exercises.id(exerciseId);
-		if (!exercise) return res.status(404).json({ message: 'Exercise not found' });
+    data.weight.sets[setIndex] = reps;
+    await data.exercise.save();
 
-		const weight = exercise.weights.id(weightId);
-		if (!weight) return res.status(404).json({ message: 'Weight not found' });
-
-		const set = weight.sets.id(setId);
-		if (!set) return res.status(404).json({ message: 'Set not found' });
-
-		set.reps = reps;
-		await user.save();
-
-		res.status(200).json(set);
-	} catch (err) {
-		console.error('Error updating set:', err);
-		res.status(500).json({ message: 'Server error' });
-	}
+    res.status(200).json({ setIndex, reps: data.weight.sets[setIndex] });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// Удалить подход
 router.delete('/:setId', async (req, res) => {
-	try {
-		const { fileId, date, exerciseId, weightId, setId } = req.params;
+  try {
+    const setIndex = Number(req.params.setId);
+    if (!Number.isInteger(setIndex) || setIndex < 0) {
+      return res.status(400).json({ message: 'Set index must be a non-negative integer' });
+    }
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
-		if (!file) return res.status(404).json({ message: 'File not found' });
+    const { fileId, date, exerciseId, weightId } = req.params;
+    const data = await getWeightForRoute({ userId: req.userId, fileId, dateParam: date, exerciseId, weightId });
 
-		const trainingDate = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === date;
-		});
-		if (!trainingDate) return res.status(404).json({ message: 'Date not found' });
+    if (data.error) return res.status(data.status).json({ message: data.error });
+    if (setIndex >= data.weight.sets.length) return res.status(404).json({ message: 'Set not found' });
 
-		const exercise = trainingDate.exercises.id(exerciseId);
-		if (!exercise) return res.status(404).json({ message: 'Exercise not found' });
+    data.weight.sets.splice(setIndex, 1);
+    await data.exercise.save();
 
-		const weight = exercise.weights.id(weightId);
-		if (!weight) return res.status(404).json({ message: 'Weight not found' });
-
-		weight.sets.pull(setId);
-		await user.save();
-
-		res.status(200).json({ message: 'Set deleted' });
-	} catch (err) {
-		console.error('Error deleting set:', err);
-		res.status(500).json({ message: 'Server error' });
-	}
+    res.status(200).json({ message: 'Set deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 export default router;

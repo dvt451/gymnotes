@@ -27,31 +27,31 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 				return;
 			}
 
-			// Загружаем тренировку и ее даты
-			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}`, {
+			// Загружаем даты конкретной тренировки
+			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/dates`, {
 				headers: {
 					'Authorization': `Bearer ${token}`,
 				},
 			});
 
 			if (!res.ok) {
-				throw new Error(`Ошибка ${res.status}: Не удалось загрузить тренировку`);
+				throw new Error(`Ошибка ${res.status}: Не удалось загрузить даты`);
 			}
 
-			const training = await res.json();
+			const responseData = await res.json();
 
 			// Обрабатываем разные форматы ответа
 			let datesArray = [];
 
-			if (training && training.dates && Array.isArray(training.dates)) {
+			if (responseData && responseData.dates && Array.isArray(responseData.dates)) {
 				// Формат: { ..., dates: [...] }
-				datesArray = training.dates;
-			} else if (training && Array.isArray(training)) {
+				datesArray = responseData.dates;
+			} else if (responseData && Array.isArray(responseData)) {
 				// Формат: [{...}, {...}] - массив дат напрямую
-				datesArray = training;
-			} else if (training && training.success && training.dates) {
+				datesArray = responseData;
+			} else if (responseData && responseData.success && responseData.dates) {
 				// Формат: { success: true, dates: [...] }
-				datesArray = training.dates;
+				datesArray = responseData.dates;
 			}
 
 			const formattedDates = datesArray.map(dateItem => ({
@@ -67,7 +67,7 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 			}));
 
 		} catch (err) {
-			console.error('Error loading training:', err);
+			console.error('Error loading dates:', err);
 			setError(err.message);
 		} finally {
 			setIsLoading(false);

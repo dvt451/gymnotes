@@ -10,6 +10,7 @@ import DateList from './components/pages/DateList/DateList';
 import Exercises from './components/pages/Exercises/Exercises';
 import Profile from './components/pages/profile/Profile';
 import { GlobalProvider } from './context/GlobalContext';
+import ExerciseLibrary from './components/pages/exerciseLibrary/ExerciseLibrary';
 
 function App() {
 	return (
@@ -26,6 +27,7 @@ function App() {
 							<Route element={<Register />} path='/register' />
 							<Route element={<DateList />} path='/date-list/:trainingId' />
 							<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
+							<Route element={<ExerciseLibrary />} path='/exercise-library' />
 						</Routes>
 					</AuthProvider>
 				</GlobalProvider>

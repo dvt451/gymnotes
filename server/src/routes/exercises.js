@@ -1,240 +1,307 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import User from '../models/User.js';
+import TrainingFile from '../models/TrainingFile.js';
+import TrainingDate from '../models/TrainingDate.js';
+import ExerciseEntry from '../models/ExerciseEntry.js';
+import ExerciseUserLibrary from '../models/ExerciseUserLibrary.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-// Вспомогательная функция для нормализации даты
-const normalizeDate = (dateStr) => {
-	if (!dateStr) return null;
-
-	if (typeof dateStr === 'string' && dateStr.includes('T')) {
-		return dateStr.split('T')[0];
-	}
-
-	if (dateStr instanceof Date) {
-		const year = dateStr.getFullYear();
-		const month = String(dateStr.getMonth() + 1).padStart(2, '0');
-		const day = String(dateStr.getDate()).padStart(2, '0');
-		return `${year}-${month}-${day}`;
-	}
-
-	return dateStr;
+const normalizeDateString = (value) => {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().split('T')[0];
+  const str = String(value);
+  return str.includes('T') ? str.split('T')[0] : str;
 };
 
-// Получить все упражнения для даты
+const toDateStartUtc = (dateLike) => {
+  const normalized = normalizeDateString(dateLike);
+  const dt = new Date(`${normalized}T00:00:00.000Z`);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+};
+
+const findTrainingDate = async (userId, fileId, date) => {
+  const dt = toDateStartUtc(date);
+  if (!dt) return null;
+
+  return TrainingDate.findOne({
+    userId,
+    trainingFileId: fileId,
+    date: dt,
+  });
+};
+
+const mapEntriesToExercises = async (entries) => {
+  const libraryIds = entries.map((e) => e.exerciseUserLibraryId.toString());
+  const uniqueIds = [...new Set(libraryIds)];
+  const libs = uniqueIds.length
+    ? await ExerciseUserLibrary.find({ _id: { $in: uniqueIds } }).select('name')
+    : [];
+
+  const nameById = new Map(libs.map((l) => [l._id.toString(), l.name]));
+
+  return entries.map((entry) => ({
+    _id: entry._id,
+    exerciseUserLibraryId: entry.exerciseUserLibraryId,
+    name: nameById.get(entry.exerciseUserLibraryId.toString()) || 'Unknown exercise',
+    weights: entry.weights || [],
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+  }));
+};
+
+const ensureFile = async (userId, fileId) => {
+  if (!mongoose.isValidObjectId(fileId)) return null;
+  return TrainingFile.findOne({ _id: fileId, userId });
+};
+
 router.get('/', async (req, res) => {
-	try {
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+  try {
+    const file = await ensureFile(req.userId, req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		const dateEntry = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === req.params.date;
-		});
+    const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
 
-		if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+    const entries = await ExerciseEntry.find({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
 
-		res.json({ exercises: dateEntry.exercises || [] });
-	} catch (err) {
-		console.error('Ошибка получения упражнений по дате:', err);
-		res.status(500).json({ message: err.message });
-	}
+    const exercises = await mapEntriesToExercises(entries);
+    res.json({ exercises });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Добавить упражнение
 router.post('/', async (req, res) => {
-	try {
-		const { name } = req.body;
-		if (!name) return res.status(400).json({ message: 'Имя упражнения обязательно' });
+  try {
+    const { name, exerciseUserLibraryId } = req.body;
+    if ((!name || !name.trim()) && !exerciseUserLibraryId) {
+      return res.status(400).json({ message: 'Имя упражнения обязательно' });
+    }
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+    const file = await ensureFile(req.userId, req.params.fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		const dateEntry = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === req.params.date;
-		});
+    const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
 
-		if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+    let libraryExercise = null;
 
-		const newExercise = {
-			_id: new mongoose.Types.ObjectId(),
-			name,
-			weights: [],
-		};
+    if (exerciseUserLibraryId && mongoose.isValidObjectId(exerciseUserLibraryId)) {
+      libraryExercise = await ExerciseUserLibrary.findOne({
+        _id: exerciseUserLibraryId,
+        userId: req.userId,
+      });
+      if (!libraryExercise) {
+        return res.status(404).json({ message: 'Упражнение из библиотеки не найдено' });
+      }
+    } else {
+      const normalizedName = name.trim();
+      const escaped = normalizedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-		dateEntry.exercises.push(newExercise);
-		await user.save();
+      libraryExercise = await ExerciseUserLibrary.findOne({
+        userId: req.userId,
+        name: { $regex: `^${escaped}$`, $options: 'i' },
+      });
 
-		res.status(201).json(newExercise);
-	} catch (err) {
-		console.error('Ошибка добавления упражнения:', err);
-		res.status(500).json({ message: 'Ошибка добавления упражнения' });
-	}
+      if (!libraryExercise) {
+        libraryExercise = await ExerciseUserLibrary.create({ userId: req.userId, name: normalizedName });
+      }
+    }
+
+    const existing = await ExerciseEntry.findOne({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+      exerciseUserLibraryId: libraryExercise._id,
+    });
+
+    if (existing) {
+      const [mapped] = await mapEntriesToExercises([existing]);
+      return res.status(200).json(mapped);
+    }
+
+    const entry = await ExerciseEntry.create({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+      exerciseUserLibraryId: libraryExercise._id,
+      weights: [],
+    });
+
+    const [mapped] = await mapEntriesToExercises([entry]);
+    res.status(201).json(mapped);
+  } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(400).json({ message: 'Это упражнение уже добавлено на выбранную дату' });
+    }
+    res.status(500).json({ message: 'Ошибка добавления упражнения' });
+  }
 });
 
-// Применить шаблон упражнений к дате
 router.post('/apply-template', async (req, res) => {
-	try {
-		const { exercises: templateExercises } = req.body;
-		const { fileId, date: requestedDate } = req.params;
+  try {
+    const { exercises: templateExercises } = req.body;
+    const { fileId, date } = req.params;
 
-		console.log('Applying template:', {
-			fileId,
-			requestedDate,
-			templateExercises
-		});
+    if (!Array.isArray(templateExercises)) {
+      return res.status(400).json({ message: 'Неверный формат упражнений в шаблоне' });
+    }
 
-		if (!templateExercises || !Array.isArray(templateExercises)) {
-			return res.status(400).json({ message: 'Неверный формат упражнений в шаблоне' });
-		}
+    const file = await ensureFile(req.userId, fileId);
+    if (!file) return res.status(404).json({ message: 'Файл не найден' });
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(fileId);
+    const dateEntry = await findTrainingDate(req.userId, fileId, date);
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
 
-		if (!file) {
-			return res.status(404).json({ message: 'Файл не найден' });
-		}
+    const createdOrFound = [];
 
-		console.log('File found:', file.name);
-		console.log('Dates in file:', file.dates.map(d => ({
-			rawDate: d.date,
-			normalizedDate: normalizeDate(d.date)
-		})));
+    for (const exercise of templateExercises) {
+      if (!exercise) continue;
 
-		// Ищем дату, нормализуя для сравнения
-		let dateEntry = file.dates.find(d => {
-			const normalizedDbDate = normalizeDate(d.date);
-			const normalizedRequestDate = normalizeDate(requestedDate);
-			console.log('Comparing dates:', {
-				dbDate: d.date,
-				normalizedDbDate,
-				requestedDate,
-				normalizedRequestDate,
-				match: normalizedDbDate === normalizedRequestDate
-			});
-			return normalizedDbDate === normalizedRequestDate;
-		});
+      let libraryExercise = null;
 
-		// Если дата не найдена, создаем новую
-		if (!dateEntry) {
-			console.log('Date not found, creating new one');
-			dateEntry = {
-				_id: new mongoose.Types.ObjectId(),
-				date: requestedDate,
-				exercises: []
-			};
-			file.dates.push(dateEntry);
-		}
+      if (exercise.exerciseUserLibraryId && mongoose.isValidObjectId(exercise.exerciseUserLibraryId)) {
+        libraryExercise = await ExerciseUserLibrary.findOne({
+          _id: exercise.exerciseUserLibraryId,
+          userId: req.userId,
+        });
+      } else if (exercise.name && typeof exercise.name === 'string') {
+        const normalizedName = exercise.name.trim();
+        if (!normalizedName) continue;
 
-		console.log('Date object:', dateEntry);
-		console.log('Template exercises to add:', templateExercises);
+        libraryExercise = await ExerciseUserLibrary.findOne({ userId: req.userId, name: normalizedName });
+        if (!libraryExercise) {
+          libraryExercise = await ExerciseUserLibrary.create({ userId: req.userId, name: normalizedName });
+        }
+      }
 
-		// Создаем новые упражнения из шаблона
-		const newExercises = templateExercises.map(exercise => ({
-			_id: new mongoose.Types.ObjectId(),
-			name: exercise.name,
-			weights: []
-		}));
+      if (!libraryExercise) continue;
 
-		console.log('New exercises to add:', newExercises);
+      let entry = await ExerciseEntry.findOne({
+        userId: req.userId,
+        trainingFileId: fileId,
+        trainingDateId: dateEntry._id,
+        exerciseUserLibraryId: libraryExercise._id,
+      });
 
-		// Добавляем упражнения к дате
-		if (!dateEntry.exercises) {
-			dateEntry.exercises = [];
-		}
+      if (!entry) {
+        entry = await ExerciseEntry.create({
+          userId: req.userId,
+          trainingFileId: fileId,
+          trainingDateId: dateEntry._id,
+          exerciseUserLibraryId: libraryExercise._id,
+          weights: [],
+        });
+      }
 
-		dateEntry.exercises.push(...newExercises);
-		await user.save();
+      createdOrFound.push(entry);
+    }
 
-		console.log('Template applied successfully');
-
-		// Возвращаем добавленные упражнения
-		const addedExercises = dateEntry.exercises.slice(-newExercises.length);
-		res.status(201).json(addedExercises);
-	} catch (err) {
-		console.error('Ошибка при применении шаблона:', err);
-		res.status(500).json({
-			message: err.message,
-			stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-		});
-	}
+    const mapped = await mapEntriesToExercises(createdOrFound);
+    res.status(201).json(mapped);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    });
+  }
 });
 
-// Обновить упражнение
 router.put('/:exerciseId', async (req, res) => {
-	try {
-		const { name } = req.body;
-		if (!name) return res.status(400).json({ message: 'Имя упражнения обязательно' });
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ message: 'Имя упражнения обязательно' });
 
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+    const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
 
-		const dateEntry = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === req.params.date;
-		});
+    const entry = await ExerciseEntry.findOne({
+      _id: req.params.exerciseId,
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
 
-		if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+    if (!entry) return res.status(404).json({ message: 'Упражнение не найдено' });
 
-		const exercise = dateEntry.exercises.id(req.params.exerciseId);
-		if (!exercise) return res.status(404).json({ message: 'Упражнение не найдено' });
+    const normalizedName = name.trim();
+    const escaped = normalizedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-		exercise.name = name;
-		await user.save();
+    let targetLibrary = await ExerciseUserLibrary.findOne({
+      userId: req.userId,
+      name: { $regex: `^${escaped}$`, $options: 'i' },
+    });
 
-		res.json(exercise);
-	} catch (err) {
-		console.error('Ошибка обновления упражнения:', err);
-		res.status(500).json({ message: err.message });
-	}
+    if (!targetLibrary) {
+      targetLibrary = await ExerciseUserLibrary.create({
+        userId: req.userId,
+        name: normalizedName,
+      });
+    }
+
+    const duplicateEntry = await ExerciseEntry.findOne({
+      _id: { $ne: entry._id },
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+      exerciseUserLibraryId: targetLibrary._id,
+    });
+
+    if (duplicateEntry) {
+      return res.status(409).json({
+        message: 'Упражнение с таким названием уже есть в этой дате',
+      });
+    }
+
+    entry.exerciseUserLibraryId = targetLibrary._id;
+    await entry.save();
+
+    const [mapped] = await mapEntriesToExercises([entry]);
+    res.json(mapped);
+  } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({
+        message: 'Упражнение с таким названием уже есть в этой дате',
+      });
+    }
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Удалить упражнение
 router.delete('/:exerciseId', async (req, res) => {
-	try {
-		const user = await User.findById(req.userId);
-		const file = user.trainingfiles.id(req.params.fileId);
-		if (!file) return res.status(404).json({ message: 'Файл не найден' });
+  try {
+    const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
 
-		const dateEntry = file.dates.find(d => {
-			if (!d.date) return false;
-			const dateStr = d.date instanceof Date ? d.date.toISOString().split('T')[0] : d.date.split('T')[0];
-			return dateStr === req.params.date;
-		});
+    const deleted = await ExerciseEntry.findOneAndDelete({
+      _id: req.params.exerciseId,
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
 
-		if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+    if (!deleted) return res.status(404).json({ message: 'Упражнение не найдено' });
 
-		const exerciseIndex = dateEntry.exercises.findIndex(e => e._id.toString() === req.params.exerciseId);
-		if (exerciseIndex === -1) return res.status(404).json({ message: 'Упражнение не найдено' });
-
-		dateEntry.exercises.splice(exerciseIndex, 1);
-		await user.save();
-
-		res.status(200).json({ message: 'Упражнение успешно удалено' });
-	} catch (err) {
-		console.error('Ошибка при удалении упражнения:', err);
-		res.status(500).json({ message: 'Ошибка на сервере при удалении упражнения' });
-	}
+    res.status(200).json({ message: 'Упражнение успешно удалено' });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка на сервере при удалении упражнения' });
+  }
 });
 
-// Добавим тестовый маршрут для проверки
 router.get('/test-apply-template', (req, res) => {
-	res.json({
-		message: 'Apply template endpoint is accessible',
-		params: req.params,
-		timestamp: new Date().toISOString()
-	});
+  res.json({
+    message: 'Apply template endpoint is accessible',
+    params: req.params,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default router;

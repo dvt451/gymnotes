@@ -10,13 +10,13 @@ export default function Login() {
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',
-		showPassword: false
+		showPassword: false,
 	});
 	const [message, setMessage] = useState({ text: '', type: '' });
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
-		setFormData(prev => ({ ...prev, [name]: value }));
+		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
 	const handleSubmit = async (e) => {
@@ -34,39 +34,22 @@ export default function Login() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: formData.email,
-					password: formData.password
+					password: formData.password,
 				}),
 			});
 
-			const data = await response.json();
+			const contentType = response.headers.get('content-type') || '';
+			const data = contentType.includes('application/json')
+				? await response.json()
+				: { message: await response.text() };
+
 			if (!response.ok) throw new Error(data.message || 'Ошибка входа');
+			if (!data?.token) throw new Error('Токен не получен от сервера');
 
-			login(data.token);
-			navigate('/home');
+			await login(data.token);
 		} catch (error) {
 			setMessage({ text: error.message, type: 'error' });
 		}
-	};
-
-	const handleGoogleSuccess = async (credentialResponse) => {
-		try {
-			const response = await fetch(`${BASE_URL}/api/auth/google`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token: credentialResponse.credential }),
-			});
-
-			const data = await response.json();
-			if (!response.ok) throw new Error(data.message || 'Ошибка Google-входа');
-
-			login(data.token);
-		} catch (error) {
-			setMessage({ text: error.message, type: 'error' });
-		}
-	};
-
-	const handleGoogleError = () => {
-		setMessage({ text: 'Ошибка входа через Google', type: 'error' });
 	};
 
 	return (
@@ -86,7 +69,7 @@ export default function Login() {
 
 				<div className={styles.passwordContainer}>
 					<input
-						type={formData.showPassword ? "text" : "password"}
+						type={formData.showPassword ? 'text' : 'password'}
 						name="password"
 						placeholder="Пароль"
 						value={formData.password}
@@ -96,10 +79,10 @@ export default function Login() {
 					/>
 					<button
 						type="button"
-						onClick={() => setFormData(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+						onClick={() => setFormData((prev) => ({ ...prev, showPassword: !prev.showPassword }))}
 						className={styles.passwordToggle}
 					>
-						{formData.showPassword ? '🙈' : '👁️'}
+						{formData.showPassword ? 'Hide' : 'Show'}
 					</button>
 				</div>
 
@@ -110,9 +93,7 @@ export default function Login() {
 
 			{message.text && (
 				<div className={`${styles.messageContainer} ${styles[`${message.type}Message`]}`}>
-					<span className={`${styles.messageText} ${styles[`${message.type}Text`]}`}>
-						{message.text}
-					</span>
+					<span className={`${styles.messageText} ${styles[`${message.type}Text`]}`}>{message.text}</span>
 				</div>
 			)}
 
@@ -120,10 +101,7 @@ export default function Login() {
 				{/* Google Login компонент */}
 			</div>
 
-			<button
-				onClick={() => navigate('/register')}
-				className={styles.registerLink}
-			>
+			<button onClick={() => navigate('/register')} className={styles.registerLink}>
 				Нет аккаунта? Зарегистрируйтесь
 			</button>
 		</div>
