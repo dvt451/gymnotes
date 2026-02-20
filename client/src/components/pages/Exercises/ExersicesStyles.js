@@ -222,6 +222,9 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 
 	addButton: {
+		position: 'fixed',
+		left: toRem(20),
+		bottom: toRem(20),
 		backgroundColor: mainColor || colors.green,
 		border: 'none',
 		borderRadius: toRem(12),
@@ -237,7 +240,7 @@ export const createExercisesStyles = (mainColor) => ({
 		transition: 'all 0.3s ease',
 		zIndex: 100,
 		marginTop: toRem(20),
-		width: '100%',
+		width: `calc(100% - ${toRem(40)})`,
 	},
 
 	// ========== СТИЛИ ДЛЯ КОМПОНЕНТА EXERCISEITEM ==========

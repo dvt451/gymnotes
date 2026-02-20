@@ -202,8 +202,7 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 	container: {
 		backgroundColor: colors.blueDark,
-		minHeight: '100vh',
-		padding: `${toRem(20)} ${toRem(20)} ${toRem(100)}`,
+		padding: toRem(20),
 	},
 
 	header: {

@@ -226,41 +226,43 @@ export default function ExerciseLibrary() {
 	return (
 		<>
 			<Header />
-			<div style={{ ...commonStyle.titleHeader, ...styles.exercisesHeader }}>
-				<h2 style={commonStyle.title}>Exercise Library</h2>
-			</div>
-			<div style={styles.exerciseListBlock}>
-				<h3 style={{ ...commonStyle.title, ...styles.exercisesListTitle }}>App Library</h3>
-				<div style={styles.exercisesList}>
-					{appExercises.map((item) => (
-						<ExerciseLibraryItem key={item.id || item._id || item.name} name={item.name} />
-					))}
+			<main style={styles.container}>
+				<div style={{ ...commonStyle.titleHeader, ...styles.exercisesHeader }}>
+					<h2 style={commonStyle.title}>Exercise Library</h2>
 				</div>
-			</div>
-			<div style={styles.exerciseListBlock}>
-				<h3 style={{ ...commonStyle.title, ...styles.exercisesListTitle }}>User Library</h3>
-				{isLoading && <p style={styles.noExercises}>Загрузка...</p>}
-				{error && <p style={styles.error}>{error}</p>}
-				<div style={styles.exercisesList}>
-					{!isLoading && !error && userExercises.length === 0 && (
-						<p style={styles.noExercises}>У вас пока нет упражнений</p>
-					)}
-					{userExercises.map((item) => (
-						<ExerciseLibraryItem
-							key={item._id || item.id || item.name}
-							name={item.name}
-							onRename={() => openRenameModal(item)}
-							onDelete={() => handleDeleteExercise(item)}
-							isRenaming={renamingExerciseId === String(item._id || item.id)}
-							isDeleting={deletingExerciseId === String(item._id || item.id)}
-						/>
-					))}
+				<div style={styles.exerciseListBlock}>
+					<h3 style={{ ...commonStyle.title, ...styles.exercisesListTitle }}>App Library</h3>
+					<div style={styles.exercisesList}>
+						{appExercises.map((item) => (
+							<ExerciseLibraryItem key={item.id || item._id || item.name} name={item.name} />
+						))}
+					</div>
 				</div>
-				<CreateExerciseButton
-					existingExercises={userExercises}
-					onCreateExercise={handleCreateExercise}
-				/>
-			</div>
+				<div style={styles.exerciseListBlock}>
+					<h3 style={{ ...commonStyle.title, ...styles.exercisesListTitle }}>User Library</h3>
+					{isLoading && <p style={styles.noExercises}>Загрузка...</p>}
+					{error && <p style={styles.error}>{error}</p>}
+					<div style={styles.exercisesList}>
+						{!isLoading && !error && userExercises.length === 0 && (
+							<p style={styles.noExercises}>У вас пока нет упражнений</p>
+						)}
+						{userExercises.map((item) => (
+							<ExerciseLibraryItem
+								key={item._id || item.id || item.name}
+								name={item.name}
+								onRename={() => openRenameModal(item)}
+								onDelete={() => handleDeleteExercise(item)}
+								isRenaming={renamingExerciseId === String(item._id || item.id)}
+								isDeleting={deletingExerciseId === String(item._id || item.id)}
+							/>
+						))}
+					</div>
+					<CreateExerciseButton
+						existingExercises={userExercises}
+						onCreateExercise={handleCreateExercise}
+					/>
+				</div>
+			</main>
 
 			{renameModalVisible && (
 				<div style={commonStyle.popup} onClick={closeRenameModal}>

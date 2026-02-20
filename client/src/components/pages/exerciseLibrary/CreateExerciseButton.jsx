@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { createExercisesStyles } from './ExersicesStyles';
 import { GlobalContext } from '../../../context/GlobalContext';
-import { createCommonStyle } from '../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import {
 	filterExercisesByName,
 	findExactExerciseMatch,
@@ -85,7 +85,7 @@ export default function CreateExerciseButton({ existingExercises = [], onCreateE
 								</p>
 							)}
 
-							<div style={{ marginBottom: '12px' }}>
+							<div style={{ marginBottom: '12px', backgroundColor: colors.blueDark, borderRadius: '8px', padding: '12px' }}>
 								<h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Существующие упражнения</h4>
 								<div
 									style={{
@@ -96,7 +96,6 @@ export default function CreateExerciseButton({ existingExercises = [], onCreateE
 										gap: '6px',
 										padding: '8px',
 										borderRadius: '8px',
-										background: 'rgba(255,255,255,0.06)',
 									}}
 								>
 									{existingExercises.length === 0 && (
@@ -118,7 +117,7 @@ export default function CreateExerciseButton({ existingExercises = [], onCreateE
 												padding: '6px 8px',
 												borderRadius: '6px',
 												border: '1px solid rgba(255,255,255,0.1)',
-												background: 'transparent',
+												background: colors.labelBG,
 												color: '#fff',
 												cursor: 'pointer',
 											}}
