@@ -7,6 +7,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import axios from 'axios';
 import { createExercisesStyles } from './ExersicesStyles';
 import Header from '../../widgets/Header';
+import Popup from '../../widgets/Popup';
 import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import { GlobalContext } from '../../../context/GlobalContext';
 import {
@@ -211,7 +212,26 @@ export default function Exercises() {
 		});
 	};
 
+	const isExerciseAlreadyInDay = ({ name, exerciseUserLibraryId }) => {
+		const normalizedName = normalizeExerciseName(name).toLowerCase();
+		const normalizedLibraryId = exerciseUserLibraryId ? String(exerciseUserLibraryId) : '';
+
+		return exercises.some((item) => {
+			const itemLibraryId = item.exerciseUserLibraryId ? String(item.exerciseUserLibraryId) : '';
+			if (normalizedLibraryId && itemLibraryId && normalizedLibraryId === itemLibraryId) {
+				return true;
+			}
+
+			const itemName = normalizeExerciseName(item?.name || '').toLowerCase();
+			return Boolean(normalizedName && itemName && itemName === normalizedName);
+		});
+	};
+
 	const addExerciseToCurrentDay = async ({ name, exerciseUserLibraryId }) => {
+		if (isExerciseAlreadyInDay({ name, exerciseUserLibraryId })) {
+			return { success: false, message: 'Упражнение уже в списке' };
+		}
+
 		try {
 			const token = await getToken();
 			const payload = {
@@ -245,6 +265,11 @@ export default function Exercises() {
 		setModalError('');
 
 		try {
+			if (isExerciseAlreadyInDay({ name: normalizedInput })) {
+				setModalError('Упражнение уже в списке');
+				return;
+			}
+
 			const createResult = await handleCreateExercise({
 				BASE_URL,
 				exerciseName: normalizedInput,
@@ -297,6 +322,11 @@ export default function Exercises() {
 		setModalError('');
 
 		try {
+			if (isExerciseAlreadyInDay({ name: exercise.name, exerciseUserLibraryId: exercise._id || exercise.id })) {
+				setModalError('Упражнение уже в списке');
+				return;
+			}
+
 			const addResult = await addExerciseToCurrentDay({
 				name: exercise.name,
 				exerciseUserLibraryId: exercise._id || exercise.id,
@@ -341,6 +371,7 @@ export default function Exercises() {
 					date={date}
 					BASE_URL={BASE_URL}
 					styles={styles}
+					existingExercises={exercises}
 				/>
 				<div style={commonStyle.titleHeader}>
 					<h2 style={commonStyle.title}>Exercises</h2>
@@ -388,101 +419,94 @@ export default function Exercises() {
 					<span>Add Exercise</span>
 				</button>
 
-				{modalVisible && (
-					<div style={commonStyle.popup} onClick={() => setModalVisible(false)}>
-						<div style={commonStyle.popupLayer} />
-						<div style={commonStyle.popupContent} onClick={(e) => e.stopPropagation()}>
-							<div style={commonStyle.popupContentLayer} />
-							<div style={commonStyle.popupContentContainer}>
-								<h2 style={{ textAlign: 'center', margin: '0 0 15px 0' }}>Новое упражнение</h2>
+				<Popup isOpen={modalVisible} onClose={() => setModalVisible(false)}>
+					<h2 style={{ textAlign: 'center', margin: '0 0 15px 0' }}>Новое упражнение</h2>
 
-								<div style={commonStyle.popupContentInputs}>
-									<input
-										type="text"
-										style={commonStyle.popupInput}
-										placeholder="Название упражнения"
-										value={newExerciseName}
-										onChange={(e) => {
-											setModalError('');
-											setNewExerciseName(e.target.value);
-										}}
-										autoFocus
-									/>
-								</div>
+					<div style={commonStyle.popupContentInputs}>
+						<input
+							type="text"
+							style={commonStyle.popupInput}
+							placeholder="Название упражнения"
+							value={newExerciseName}
+							onChange={(e) => {
+								setModalError('');
+								setNewExerciseName(e.target.value);
+							}}
+							autoFocus
+						/>
+					</div>
 
-								{exactMatch && (
-									<p style={{ ...styles.noExercises, margin: '0 0 8px 0', padding: '8px' }}>
-										Уже есть в библиотеке: {exactMatch.name}
-									</p>
-								)}
+					{exactMatch && (
+						<p style={{ ...styles.noExercises, margin: '0 0 8px 0', padding: '8px' }}>
+							Уже есть в библиотеке: {exactMatch.name}
+						</p>
+					)}
 
-								{modalError && (
-									<p style={{ ...styles.error, margin: '0 0 8px 0', padding: '8px' }}>{modalError}</p>
-								)}
+					{modalError && (
+						<p style={{ ...styles.error, margin: '0 0 8px 0', padding: '8px' }}>{modalError}</p>
+					)}
 
-								<div style={{ marginBottom: '12px', backgroundColor: colors.blueDark, borderRadius: '8px', padding: '12px' }}>
-									<h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Поиск по существующим упражнениям</h4>
-									<div
-										style={{
-											maxHeight: '140px',
-											overflowY: 'auto',
-											display: 'flex',
-											flexDirection: 'column',
-											gap: '6px',
-											padding: '8px',
-											borderRadius: '8px',
-										}}
-									>
-										{userExercises.length === 0 && (
-											<span style={{ color: '#c7d1db', fontSize: '14px' }}>Библиотека пользователя пуста</span>
-										)}
-										{userExercises.length > 0 && filteredExistingExercises.length === 0 && (
-											<span style={{ color: '#c7d1db', fontSize: '14px' }}>Совпадений не найдено</span>
-										)}
-										{filteredExistingExercises.map((item) => (
-											<button
-												key={item._id || item.id || item.name}
-												type="button"
-												onClick={() => addExistingExerciseFromModal(item)}
-												disabled={isCreatingExercise}
-												style={{
-													textAlign: 'left',
-													padding: '6px 8px',
-													borderRadius: '6px',
-													border: '1px solid rgba(255,255,255,0.1)',
-													background: colors.labelBG,
-													color: '#fff',
-													cursor: isCreatingExercise ? 'not-allowed' : 'pointer',
-													opacity: isCreatingExercise ? 0.6 : 1,
-												}}
-											>
-												{item.name}
-											</button>
-										))}
-									</div>
-								</div>
-
-								<div style={commonStyle.popupButtons}>
-									<button
-										style={commonStyle.popupCreateButton}
-										onClick={createExerciseFromModal}
-										disabled={!newExerciseName.trim() || isCreatingExercise}
-									>
-										{isCreatingExercise ? 'Сохранение...' : 'Сохранить'}
-									</button>
-									<button
-										style={commonStyle.popupCancelButton}
-										onClick={() => setModalVisible(false)}
-										disabled={isCreatingExercise}
-									>
-										Отмена
-									</button>
-								</div>
-							</div>
+					<div style={{ marginBottom: '12px', backgroundColor: colors.blueDark, borderRadius: '8px', padding: '12px' }}>
+						<h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Поиск по существующим упражнениям</h4>
+						<div
+							style={{
+								maxHeight: '140px',
+								overflowY: 'auto',
+								display: 'flex',
+								flexDirection: 'column',
+								gap: '6px',
+								padding: '8px',
+								borderRadius: '8px',
+							}}
+						>
+							{userExercises.length === 0 && (
+								<span style={{ color: '#c7d1db', fontSize: '14px' }}>Библиотека пользователя пуста</span>
+							)}
+							{userExercises.length > 0 && filteredExistingExercises.length === 0 && (
+								<span style={{ color: '#c7d1db', fontSize: '14px' }}>Совпадений не найдено</span>
+							)}
+							{filteredExistingExercises.map((item) => (
+								<button
+									key={item._id || item.id || item.name}
+									type="button"
+									onClick={() => addExistingExerciseFromModal(item)}
+									disabled={isCreatingExercise}
+									style={{
+										textAlign: 'left',
+										padding: '6px 8px',
+										borderRadius: '6px',
+										border: '1px solid rgba(255,255,255,0.1)',
+										background: colors.labelBG,
+										color: '#fff',
+										cursor: isCreatingExercise ? 'not-allowed' : 'pointer',
+										opacity: isCreatingExercise ? 0.6 : 1,
+									}}
+								>
+									{item.name}
+								</button>
+							))}
 						</div>
 					</div>
-				)}
+
+					<div style={commonStyle.popupButtons}>
+						<button
+							style={commonStyle.popupCreateButton}
+							onClick={createExerciseFromModal}
+							disabled={!newExerciseName.trim() || isCreatingExercise}
+						>
+							{isCreatingExercise ? 'Сохранение...' : 'Сохранить'}
+						</button>
+						<button
+							style={commonStyle.popupCancelButton}
+							onClick={() => setModalVisible(false)}
+							disabled={isCreatingExercise}
+						>
+							Отмена
+						</button>
+					</div>
+				</Popup>
 			</div>
 		</>
 	);
 }
+

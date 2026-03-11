@@ -3,6 +3,7 @@ import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import Popup from '../../../../widgets/Popup';
 
 export default function AddReps({
 	BASE_URL,
@@ -109,15 +110,7 @@ export default function AddReps({
 				+ approach
 			</button>
 
-			{showPopup && (
-				<div style={commonStyle.popup}>
-					<div
-						style={commonStyle.popupLayer}
-						onClick={handleCancel}
-					/>
-					<div style={commonStyle.popupContent}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
 							<h3 style={commonStyle.title}>
 								Добавить подход
 							</h3>
@@ -153,10 +146,7 @@ export default function AddReps({
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 		</>
 	);
 }

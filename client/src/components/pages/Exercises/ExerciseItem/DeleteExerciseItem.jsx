@@ -4,6 +4,7 @@ import { createCommonStyle } from '../../../../styles/commonStyle';
 import { createExercisesStyles } from '../ExersicesStyles';
 import { FaTrash } from "react-icons/fa";
 import { GlobalContext } from '../../../../context/GlobalContext';
+import Popup from '../../../widgets/Popup';
 
 export default function DeleteExerciseItem({
 	item,
@@ -69,15 +70,7 @@ export default function DeleteExerciseItem({
 				<FaTrash />
 			</button>
 
-			{showPopup && (
-				<div style={commonStyle.popup}>
-					<div
-						style={commonStyle.popupLayer}
-						onClick={handleCancel}
-					/>
-					<div style={commonStyle.popupContent}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
 							<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
 								Подтверждение удаления
 							</h3>
@@ -125,10 +118,7 @@ export default function DeleteExerciseItem({
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 		</>
 	);
 }

@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { createExercisesStyles } from '../ExersicesStyles';
 import Weights from './Weights/Weights';
 import DeleteExerciseItem from './DeleteExerciseItem';
+import Popup from '../../../widgets/Popup';
 import { GlobalContext } from '../../../../context/GlobalContext';
 import { createCommonStyle } from '../../../../styles/commonStyle';
 import { getToken } from '../../../utils/getToken';
@@ -140,12 +141,7 @@ export default function ExerciseItem({
 				isExpanded={isExpanded}
 			/>
 
-			{showRenamePopup && (
-				<div style={commonStyle.popup} onClick={closeRenamePopup}>
-					<div style={commonStyle.popupLayer} />
-					<div style={commonStyle.popupContent} onClick={(e) => e.stopPropagation()}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={showRenamePopup} onClose={closeRenamePopup}>
 							<h3 style={{ textAlign: 'center', margin: 0 }}>Переименовать упражнение</h3>
 							<div style={commonStyle.popupContentInputs}>
 								<input
@@ -181,10 +177,7 @@ export default function ExerciseItem({
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 		</div>
 	);
 }

@@ -3,6 +3,7 @@ import { getToken } from '../../../../utils/getToken';
 import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import Popup from '../../../../widgets/Popup';
 
 export default function DeleteWeights({
 	BASE_URL,
@@ -79,15 +80,7 @@ export default function DeleteWeights({
 				-
 			</button>
 
-			{showPopup && (
-				<div style={commonStyle.popup}>
-					<div
-						style={commonStyle.popupLayer}
-						onClick={handleCancel}
-					/>
-					<div style={commonStyle.popupContent}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
 							<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
 								Подтверждение удаления
 							</h3>
@@ -139,10 +132,7 @@ export default function DeleteWeights({
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 		</>
 	);
 }

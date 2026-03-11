@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Footer from '../../widgets/Footer';
 import Header from '../../widgets/Header';
+import Popup from '../../widgets/Popup';
 import { createExercisesStyles } from './ExersicesStyles';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { createCommonStyle } from '../../../styles/commonStyle';
@@ -264,12 +265,7 @@ export default function ExerciseLibrary() {
 				</div>
 			</main>
 
-			{renameModalVisible && (
-				<div style={commonStyle.popup} onClick={closeRenameModal}>
-					<div style={commonStyle.popupLayer} />
-					<div style={commonStyle.popupContent} onClick={(e) => e.stopPropagation()}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={renameModalVisible} onClose={closeRenameModal}>
 							<h3 style={{ textAlign: 'center', margin: 0 }}>Переименовать упражнение</h3>
 							<div style={commonStyle.popupContentInputs}>
 								<input
@@ -302,10 +298,7 @@ export default function ExerciseLibrary() {
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 
 			<Footer />
 		</>

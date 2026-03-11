@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { createExercisesStyles } from './ExersicesStyles';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { colors, createCommonStyle } from '../../../styles/commonStyle';
+import Popup from '../../widgets/Popup';
 import {
 	filterExercisesByName,
 	findExactExerciseMatch,
@@ -54,12 +55,7 @@ export default function CreateExerciseButton({ existingExercises = [], onCreateE
 				<span>+</span>
 				<span>Add Exercise</span>
 			</button>
-			{modalVisible && (
-				<div style={commonStyle.popup} onClick={() => setModalVisible(false)}>
-					<div style={commonStyle.popupLayer} />
-					<div style={commonStyle.popupContent} onClick={(e) => e.stopPropagation()}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={modalVisible} onClose={() => setModalVisible(false)}>
 							<h2 style={{ textAlign: 'center', margin: '0 0 15px 0' }}>Новое упражнение</h2>
 
 							<div style={commonStyle.popupContentInputs}>
@@ -147,10 +143,7 @@ export default function CreateExerciseButton({ existingExercises = [], onCreateE
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 		</>
 	);
 }

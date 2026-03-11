@@ -3,6 +3,7 @@ import { getToken } from '../../../../utils/getToken';
 import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import Popup from '../../../../widgets/Popup';
 
 export default function AddWeight({ setExercises, itemID, trainingId, date, BASE_URL }) {
 	const [showPopup, setShowPopup] = useState(false);
@@ -109,15 +110,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 				</button>
 			</div>
 
-			{showPopup && (
-				<div style={commonStyle.popup}>
-					<div
-						style={commonStyle.popupLayer}
-						onClick={handleCancel}
-					/>
-					<div style={commonStyle.popupContent}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
 							<h3 style={{ textAlign: 'center', margin: 0 }}>
 								Add Weight
 							</h3>
@@ -154,10 +147,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 									Cancel
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
-			)}
+			</Popup>
 		</>
 	);
 }

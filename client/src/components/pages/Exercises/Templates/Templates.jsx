@@ -2,10 +2,17 @@ import React, { useContext, useEffect, useState } from 'react';
 import { createTemplatesStyles } from './TemplatesStyles';
 import { getToken } from '../../../utils/getToken';
 import { AuthContext } from '../../../../context/AuthContext';
-import { createCommonStyle } from '../../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../../styles/commonStyle';
 import { GlobalContext } from '../../../../context/GlobalContext';
+import Popup from '../../../widgets/Popup';
+import {
+	handleCreateExercise,
+	filterExercisesByName,
+	findExactExerciseMatch,
+	normalizeExerciseName,
+} from '../../exerciseLibrary/handleCreateExercise';
 
-export default function Templates({ setExercises, trainingId, date }) {
+export default function Templates({ setExercises, trainingId, date, existingExercises = [] }) {
 	const { BASE_URL } = useContext(AuthContext);
 	const { mainColor } = useContext(GlobalContext);
 	const [templates, setTemplates] = useState([]);
@@ -21,9 +28,128 @@ export default function Templates({ setExercises, trainingId, date }) {
 	const [editState, setEditState] = useState(false);
 	const [showNotification, setShowNotification] = useState(false);
 	const [notificationMessage, setNotificationMessage] = useState('');
+	const [modalError, setModalError] = useState('');
+	const [isCreatingExercise, setIsCreatingExercise] = useState(false);
+
+	const [userExercises, setUserExercises] = useState([]);
+	const filteredExistingExercises = filterExercisesByName(userExercises, newExerciseName);
+	const exactMatch = findExactExerciseMatch(userExercises, newExerciseName);
 
 	const commonStyle = createCommonStyle(mainColor);
 	const templatesStyles = createTemplatesStyles(mainColor);
+	const errorStyle = {
+		backgroundColor: colors.red,
+		color: '#fff',
+		borderRadius: '8px',
+		fontSize: '14px',
+	};
+
+	const addExerciseNameToList = (list, name) => {
+		const normalized = normalizeExerciseName(name);
+		if (!normalized) return list;
+
+		const normalizedLower = normalized.toLowerCase();
+		const exists = list.some(
+			(item) => normalizeExerciseName(item).toLowerCase() === normalizedLower
+		);
+
+		if (exists) return list;
+		return [...list, normalized];
+
+	};
+
+	const addExerciseToTemplateList = (name, mode) => {
+		if (!name) return;
+		if (mode === 'edit') {
+			setEditingExercises((prev) => addExerciseNameToList(prev, name));
+
+		} else {
+			setNewTemplateExercises((prev) => addExerciseNameToList(prev, name));
+		}
+	};
+
+	const isDuplicateInDayList = (list, exercise) => {
+		const normalizedName = normalizeExerciseName(exercise?.name || '').toLowerCase();
+		const normalizedLibraryId = exercise?.exerciseUserLibraryId
+			? String(exercise.exerciseUserLibraryId)
+			: '';
+
+		return list.some((item) => {
+			const itemLibraryId = item?.exerciseUserLibraryId ? String(item.exerciseUserLibraryId) : '';
+			if (normalizedLibraryId && itemLibraryId && normalizedLibraryId === itemLibraryId) {
+				return true;
+			}
+
+			const itemName = normalizeExerciseName(item?.name || '').toLowerCase();
+			return Boolean(normalizedName && itemName && itemName === normalizedName);
+		});
+	};
+
+	const addExistingExerciseToTemplate = (exercise, mode) => {
+		if (!exercise || isCreatingExercise) return;
+		setModalError('');
+		addExerciseToTemplateList(exercise.name || '', mode);
+		setNewExerciseName('');
+
+	};
+
+	const addExerciseFromInput = async (mode) => {
+		const normalizedInput = normalizeExerciseName(newExerciseName);
+		if (!normalizedInput || isCreatingExercise) return;
+
+		setIsCreatingExercise(true);
+		setModalError('');
+
+		try {
+			const existing = findExactExerciseMatch(userExercises, normalizedInput);
+			if (existing) {
+				addExerciseToTemplateList(existing.name || normalizedInput, mode);
+				setNewExerciseName('');
+				return;
+
+			}
+
+			const createResult = await handleCreateExercise({
+				BASE_URL,
+				exerciseName: normalizedInput,
+				existingExercises: userExercises,
+
+			});
+
+			if (!createResult.success) {
+				setModalError(createResult.message || 'Не удалось создать упражнение');
+				return;
+
+			}
+
+			const matchedExercise =
+				createResult.exercise || findExactExerciseMatch(userExercises, normalizedInput);
+
+			if (createResult.exercise) {
+				setUserExercises((prev) => {
+					const existsById = prev.some(
+						(item) => String(item._id || item.id) === String(createResult.exercise._id || createResult.exercise.id)
+					);
+					if (existsById) return prev;
+
+					return [...prev, createResult.exercise].sort((a, b) =>
+						(a.name || '').localeCompare(b.name || '')
+					);
+
+				});
+
+			}
+
+			addExerciseToTemplateList(matchedExercise?.name || normalizedInput, mode);
+			setNewExerciseName('');
+
+		} finally {
+			setIsCreatingExercise(false);
+
+		}
+
+	};
+
 	useEffect(() => {
 		const fetchTemplates = async () => {
 			try {
@@ -65,6 +191,29 @@ export default function Templates({ setExercises, trainingId, date }) {
 		}
 	}, [trainingId, BASE_URL]);
 
+	useEffect(() => {
+		const loadUserLibrary = async () => {
+			try {
+				const token = getToken();
+				if (!token) return;
+
+				const response = await fetch(`${BASE_URL}/api/exercise-library`, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+
+				if (!response.ok) return;
+				const data = await response.json();
+				setUserExercises(Array.isArray(data.userExercises) ? data.userExercises : []);
+			} catch (err) {
+				console.error('РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё Р±РёР±Р»РёРѕС‚РµРєРё СѓРїСЂР°Р¶РЅРµРЅРёР№:', err);
+			}
+		};
+
+		loadUserLibrary();
+	}, [BASE_URL]);
+
 	// Show notification
 	const showNotificationMessage = (message) => {
 		setNotificationMessage(message);
@@ -84,6 +233,15 @@ export default function Templates({ setExercises, trainingId, date }) {
 		}
 
 		try {
+			const exercisesToAdd = template.exercises.filter(
+				(exercise) => !isDuplicateInDayList(existingExercises, exercise)
+			);
+
+			if (exercisesToAdd.length === 0) {
+				showNotificationMessage('No new exercises to add');
+				return;
+			}
+
 			const token = await getToken();
 			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/apply-template`, {
 				method: 'POST',
@@ -91,7 +249,7 @@ export default function Templates({ setExercises, trainingId, date }) {
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${token}`,
 				},
-				body: JSON.stringify({ exercises: template.exercises }),
+				body: JSON.stringify({ exercises: exercisesToAdd }),
 			});
 
 			if (!res.ok) {
@@ -100,7 +258,15 @@ export default function Templates({ setExercises, trainingId, date }) {
 			}
 
 			const addedExercises = await res.json();
-			setExercises(prev => [...prev, ...addedExercises]);
+			setExercises((prev) => {
+				const next = [...prev];
+				addedExercises.forEach((exercise) => {
+					if (!isDuplicateInDayList(next, exercise)) {
+						next.push(exercise);
+					}
+				});
+				return next;
+			});
 
 			const exerciseCount = addedExercises.length;
 			const exerciseNames = addedExercises.map(ex => ex.name).join(', ');
@@ -226,12 +392,8 @@ export default function Templates({ setExercises, trainingId, date }) {
 	};
 
 	// Add exercise to new template
-	const addExerciseToNewTemplate = () => {
-		const trimmed = newExerciseName.trim();
-		if (trimmed && !newTemplateExercises.includes(trimmed)) {
-			setNewTemplateExercises([...newTemplateExercises, trimmed]);
-			setNewExerciseName('');
-		}
+	const addExerciseToNewTemplate = async () => {
+		await addExerciseFromInput('new');
 	};
 
 	// Open edit template modal
@@ -239,6 +401,8 @@ export default function Templates({ setExercises, trainingId, date }) {
 		setEditingTemplateId(template._id);
 		setEditingTemplateName(template.name);
 		setEditingExercises(template.exercises.map(e => e.name));
+		setNewExerciseName('');
+		setModalError('');
 		setEditModalVisible(true);
 	};
 
@@ -248,17 +412,15 @@ export default function Templates({ setExercises, trainingId, date }) {
 	};
 
 	// Add new exercise to editing template
-	const addExerciseToEditing = () => {
-		const trimmed = newExerciseName.trim();
-		if (trimmed && !editingExercises.includes(trimmed)) {
-			setEditingExercises([...editingExercises, trimmed]);
-			setNewExerciseName('');
-		}
+	const addExerciseToEditing = async () => {
+		await addExerciseFromInput('edit');
 	};
 
 	const openCreateModal = () => {
 		setNewTemplateName('');
 		setNewTemplateExercises([]);
+		setNewExerciseName('');
+		setModalError('');
 		setModalVisible(true);
 	};
 
@@ -348,138 +510,250 @@ export default function Templates({ setExercises, trainingId, date }) {
 				)}
 
 				{/* Create template modal */}
-				{modalVisible && (
-					<div style={commonStyle.popup} onClick={() => setModalVisible(false)}>
-						<div style={commonStyle.popupLayer} />
-						<div style={{ ...templatesStyles.modalContent, ...commonStyle.popupContent }} onClick={(e) => e.stopPropagation()}>
-							<div style={{ ...templatesStyles.modalContentLayer, ...commonStyle.popupContentLayer }} />
-							<div style={{ ...templatesStyles.modalContentContainer, ...commonStyle.popupContentContainer }}>
-								<h3 style={commonStyle.title}>New Template</h3>
+				<Popup
+					isOpen={modalVisible}
+					onClose={() => setModalVisible(false)}
+					contentStyle={{ ...templatesStyles.modalContent, ...commonStyle.popupContent }}
+					contentLayerStyle={{ ...templatesStyles.modalContentLayer, ...commonStyle.popupContentLayer }}
+					containerStyle={{ ...templatesStyles.modalContentContainer, ...commonStyle.popupContentContainer }}
+				>
+					<h3 style={commonStyle.title}>New Template</h3>
 
-								<input
-									type="text"
-									placeholder="Template name"
-									value={newTemplateName}
-									onChange={(e) => setNewTemplateName(e.target.value)}
-									style={{ ...templatesStyles.input, ...commonStyle.popupInput }}
-								/>
+					<input
+						type="text"
+						placeholder="Template name"
+						value={newTemplateName}
+						onChange={(e) => setNewTemplateName(e.target.value)}
+						style={{ ...templatesStyles.input, ...commonStyle.popupInput }}
+					/>
 
-								<div style={templatesStyles.exerciseInputRow}>
-									<input
-										type="text"
-										placeholder="Add exercise"
-										value={newExerciseName}
-										onChange={(e) => setNewExerciseName(e.target.value)}
-										onKeyDown={(e) => e.key === 'Enter' && addExerciseToNewTemplate()}
-										style={{ ...templatesStyles.exerciseInput, ...commonStyle.popupInput }}
-									/>
-									<button
-										style={templatesStyles.addExerciseButton}
-										onClick={addExerciseToNewTemplate}
-									>
-										➕
-									</button>
-								</div>
+					<div style={templatesStyles.exerciseInputRow}>
+						<input
+							type="text"
+							placeholder="Add exercise"
+							value={newExerciseName}
+							onChange={(e) => setNewExerciseName(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									addExerciseToNewTemplate();
+								}
+							}}
+							style={{ ...templatesStyles.exerciseInput, ...commonStyle.popupInput }}
+						/>
+						<button
+							style={templatesStyles.addExerciseButton}
+							onClick={addExerciseToNewTemplate}
+							disabled={isCreatingExercise}
+						>
+							➕
+						</button>
+					</div>
 
-								<div style={templatesStyles.exerciseList}>
-									{newTemplateExercises.map((ex, i) => (
-										<div key={`${ex}_${i}`} style={templatesStyles.exerciseItem}>
-											<span style={templatesStyles.exerciseName}>{ex}</span>
-											<button
-												style={templatesStyles.removeExerciseButton}
-												onClick={() => setNewTemplateExercises((prev) => prev.filter((e) => e !== ex))}
-											>
-												✖
-											</button>
-										</div>
-									))}
-								</div>
+					{exactMatch && (
+						<p style={{ ...errorStyle, margin: '0 0 12px 0', padding: '10px' }}>
+							Exercise already exists: {exactMatch.name}
+						</p>
+					)}
 
-								<div style={templatesStyles.modalButtonsHorizontal}>
-									<button
-										style={{ ...templatesStyles.cancelButton, ...commonStyle.popupCancelButton }}
-										onClick={() => setModalVisible(false)}
-									>
-										Cancel
-									</button>
-									<button
-										style={{ ...templatesStyles.saveButton, ...commonStyle.popupCreateButton }}
-										onClick={saveNewTemplate}
-									>
-										Save
-									</button>
-								</div>
-							</div>
+					{modalError && (
+						<p style={{ ...errorStyle, margin: '0 0 12px 0', padding: '10px' }}>
+							{modalError}
+						</p>
+					)}
+
+					<div style={{ marginBottom: '12px', backgroundColor: colors.blueDark, borderRadius: '8px', padding: '12px' }}>
+						<h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Existing exercises</h4>
+						<div
+							style={{
+								maxHeight: '140px',
+								overflowY: 'auto',
+								display: 'flex',
+								flexDirection: 'column',
+								gap: '6px',
+								padding: '8px',
+								borderRadius: '8px',
+							}}
+						>
+							{userExercises.length === 0 && (
+								<span style={{ color: '#c7d1db', fontSize: '14px' }}>Empty</span>
+							)}
+							{userExercises.length > 0 && filteredExistingExercises.length === 0 && (
+								<span style={{ color: '#c7d1db', fontSize: '14px' }}>No matches</span>
+							)}
+							{filteredExistingExercises.map((item) => (
+								<button
+									key={item._id || item.id || item.name}
+									type="button"
+									onClick={() => addExistingExerciseToTemplate(item, 'new')}
+									style={{
+										textAlign: 'left',
+										padding: '6px 8px',
+										borderRadius: '6px',
+										border: '1px solid rgba(255,255,255,0.1)',
+										background: colors.labelBG,
+										color: '#fff',
+										cursor: 'pointer',
+									}}
+								>
+									{item.name}
+								</button>
+							))}
 						</div>
 					</div>
-				)}
+
+					<div style={templatesStyles.exerciseList}>
+						{newTemplateExercises.map((ex, i) => (
+							<div key={`${ex}_${i}`} style={templatesStyles.exerciseItem}>
+								<span style={templatesStyles.exerciseName}>{ex}</span>
+								<button
+									style={templatesStyles.removeExerciseButton}
+									onClick={() => setNewTemplateExercises((prev) => prev.filter((e) => e !== ex))}
+								>
+									✖
+								</button>
+							</div>
+						))}
+					</div>
+
+					<div style={templatesStyles.modalButtonsHorizontal}>
+						<button
+							style={{ ...templatesStyles.cancelButton, ...commonStyle.popupCancelButton }}
+							onClick={() => setModalVisible(false)}
+						>
+							Cancel
+						</button>
+						<button
+							style={{ ...templatesStyles.saveButton, ...commonStyle.popupCreateButton }}
+							onClick={saveNewTemplate}
+						>
+							Save
+						</button>
+					</div>
+				</Popup>
 
 				{/* Edit template modal */}
-				{editModalVisible && (
-					<div style={templatesStyles.modalOverlay} onClick={() => setEditModalVisible(false)}>
-						<div style={templatesStyles.modalLayer} />
-						<div style={templatesStyles.modalContent} onClick={(e) => e.stopPropagation()}>
-							<div style={templatesStyles.modalContentLayer} />
-							<div style={templatesStyles.modalContentContainer}>
-								<h3 style={templatesStyles.modalTitle}>Edit Template</h3>
+				<Popup
+					isOpen={editModalVisible}
+					onClose={() => setEditModalVisible(false)}
+					contentStyle={{ ...templatesStyles.modalContent, ...commonStyle.popupContent }}
+					contentLayerStyle={{ ...templatesStyles.modalContentLayer, ...commonStyle.popupContentLayer }}
+					containerStyle={{ ...templatesStyles.modalContentContainer, ...commonStyle.popupContentContainer }}
+				>
+					<h3 style={templatesStyles.modalTitle}>Edit Template</h3>
 
-								<input
-									type="text"
-									placeholder="Template name"
-									value={editingTemplateName}
-									onChange={(e) => setEditingTemplateName(e.target.value)}
-									style={templatesStyles.input}
-								/>
+					<input
+						type="text"
+						placeholder="Template name"
+						value={editingTemplateName}
+						onChange={(e) => setEditingTemplateName(e.target.value)}
+						style={templatesStyles.input}
+					/>
 
-								<div style={templatesStyles.exerciseInputRow}>
-									<input
-										type="text"
-										placeholder="Add exercise"
-										value={newExerciseName}
-										onChange={(e) => setNewExerciseName(e.target.value)}
-										onKeyDown={(e) => e.key === 'Enter' && addExerciseToEditing()}
-										style={templatesStyles.exerciseInput}
-									/>
-									<button
-										style={templatesStyles.addExerciseButton}
-										onClick={addExerciseToEditing}
-									>
-										➕
-									</button>
-								</div>
+					<div style={templatesStyles.exerciseInputRow}>
+						<input
+							type="text"
+							placeholder="Add exercise"
+							value={newExerciseName}
+							onChange={(e) => setNewExerciseName(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									addExerciseToEditing();
+								}
+							}}
+							style={templatesStyles.exerciseInput}
+						/>
+						<button
+							style={templatesStyles.addExerciseButton}
+							onClick={addExerciseToEditing}
+							disabled={isCreatingExercise}
+						>
+							➕
+						</button>
+					</div>
 
-								<div style={templatesStyles.exerciseList}>
-									{editingExercises.map((ex, i) => (
-										<div key={`${ex}_${i}`} style={templatesStyles.exerciseItem}>
-											<span style={templatesStyles.exerciseName}>{ex}</span>
-											<button
-												style={templatesStyles.removeExerciseButton}
-												onClick={() => removeExerciseFromEditing(ex)}
-											>
-												✖
-											</button>
-										</div>
-									))}
-								</div>
+					{exactMatch && (
+						<p style={{ ...errorStyle, margin: '0 0 12px 0', padding: '10px' }}>
+							Exercise already exists: {exactMatch.name}
+						</p>
+					)}
 
-								<div style={templatesStyles.modalButtonsHorizontal}>
-									<button
-										style={{ ...templatesStyles.deleteButton, ...commonStyle.popupDeleteButton }}
-										onClick={deleteTemplate}
-									>
-										Delete
-									</button>
-									<button
-										style={templatesStyles.saveButton}
-										onClick={saveEditedTemplate}
-									>
-										Save
-									</button>
-								</div>
-							</div>
+					{modalError && (
+						<p style={{ ...errorStyle, margin: '0 0 12px 0', padding: '10px' }}>
+							{modalError}
+						</p>
+					)}
+
+					<div style={{ marginBottom: '12px', backgroundColor: colors.blueDark, borderRadius: '8px', padding: '12px' }}>
+						<h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Existing exercises</h4>
+						<div
+							style={{
+								maxHeight: '140px',
+								overflowY: 'auto',
+								display: 'flex',
+								flexDirection: 'column',
+								gap: '6px',
+								padding: '8px',
+								borderRadius: '8px',
+							}}
+						>
+							{userExercises.length === 0 && (
+								<span style={{ color: '#c7d1db', fontSize: '14px' }}>Empty</span>
+							)}
+							{userExercises.length > 0 && filteredExistingExercises.length === 0 && (
+								<span style={{ color: '#c7d1db', fontSize: '14px' }}>No matches</span>
+							)}
+							{filteredExistingExercises.map((item) => (
+								<button
+									key={item._id || item.id || item.name}
+									type="button"
+									onClick={() => addExistingExerciseToTemplate(item, 'edit')}
+									style={{
+										textAlign: 'left',
+										padding: '6px 8px',
+										borderRadius: '6px',
+										border: '1px solid rgba(255,255,255,0.1)',
+										background: colors.labelBG,
+										color: '#fff',
+										cursor: 'pointer',
+									}}
+								>
+									{item.name}
+								</button>
+							))}
 						</div>
 					</div>
-				)}
+
+					<div style={templatesStyles.exerciseList}>
+						{editingExercises.map((ex, i) => (
+							<div key={`${ex}_${i}`} style={templatesStyles.exerciseItem}>
+								<span style={templatesStyles.exerciseName}>{ex}</span>
+								<button
+									style={templatesStyles.removeExerciseButton}
+									onClick={() => removeExerciseFromEditing(ex)}
+								>
+									✖
+								</button>
+							</div>
+						))}
+					</div>
+
+					<div style={templatesStyles.modalButtonsHorizontal}>
+						<button
+							style={{ ...templatesStyles.deleteButton, ...commonStyle.popupDeleteButton }}
+							onClick={deleteTemplate}
+						>
+							Delete
+						</button>
+						<button
+							style={templatesStyles.saveButton}
+							onClick={saveEditedTemplate}
+						>
+							Save
+						</button>
+					</div>
+				</Popup>
 			</div>
 
 			{/* Notification */}

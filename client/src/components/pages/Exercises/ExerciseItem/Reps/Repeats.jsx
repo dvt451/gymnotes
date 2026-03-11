@@ -3,6 +3,7 @@ import { createExercisesStyles } from '../../ExersicesStyles';
 import AddReps from './AddReps';
 import DeleteReps from './DeleteReps';
 import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
+import Popup from '../../../../widgets/Popup';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 
@@ -217,87 +218,78 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 
 			{/* Popup for editing set */}
 			{showEditPopup && currentSet && (
-				<div style={commonStyle.popup}>
-					<div
-						style={commonStyle.popupLayer}
-						onClick={handleEditCancel}
-					/>
-					<div style={commonStyle.popupContent}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
-							<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
-								Edit Set
-							</h3>
+				<Popup isOpen onClose={handleEditCancel}>
+				<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
+					Edit Set
+				</h3>
 
-							<div style={{
-								textAlign: 'center',
-								marginBottom: '20px',
-								padding: '10px',
-								backgroundColor: '#fff8f0',
-								borderRadius: '5px',
-								border: '1px solid #ffe0b2'
-							}}>
-								<p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>
-									Current repetitions: <strong>{currentSet.reps}x</strong>
-								</p>
-								<p style={{ margin: 0, fontSize: '12px', color: '#ff9800', fontWeight: 'bold' }}>
-									💡 Enter 0 to delete set
-								</p>
-							</div>
-
-							<div style={commonStyle.popupContentInputs}>
-								<label style={{
-									display: 'block',
-									marginBottom: '8px',
-									fontSize: '14px',
-									color: '#555',
-									fontWeight: '500'
-								}}>
-									New number of repetitions
-								</label>
-								<input
-									type="number"
-									min="0"
-									step="1"
-									value={newRepsInput}
-									onChange={(e) => setNewRepsInput(e.target.value)}
-									onKeyPress={handleKeyPress}
-									placeholder="Enter new amount"
-									style={commonStyle.popupInput}
-									autoFocus
-									disabled={isSubmitting}
-								/>
-							</div>
-
-							<div style={commonStyle.popupButtons}>
-								<button
-									onClick={handleEditSubmit}
-									style={{
-										...commonStyle.popupCreateButton,
-										opacity: isSubmitting ? 0.7 : 1,
-										backgroundColor: newRepsInput === '0' ? colors.red : colors.blue,
-									}}
-									disabled={!newRepsInput.trim() || isSubmitting}
-								>
-									{isSubmitting
-										? 'Saving...'
-										: newRepsInput === '0'
-											? '🗑️ Delete Set'
-											: '💾 Save'
-									}
-								</button>
-
-								<button
-									onClick={handleEditCancel}
-									style={commonStyle.popupCancelButton}
-									disabled={isSubmitting}
-								>
-									Cancel
-								</button>
-							</div>
-						</div>
-					</div>
+				<div style={{
+					textAlign: 'center',
+					marginBottom: '20px',
+					padding: '10px',
+					backgroundColor: '#fff8f0',
+					borderRadius: '5px',
+					border: '1px solid #ffe0b2'
+				}}>
+					<p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>
+						Current repetitions: <strong>{currentSet.reps}x</strong>
+					</p>
+					<p style={{ margin: 0, fontSize: '12px', color: '#ff9800', fontWeight: 'bold' }}>
+						💡 Enter 0 to delete set
+					</p>
 				</div>
+
+				<div style={commonStyle.popupContentInputs}>
+					<label style={{
+						display: 'block',
+						marginBottom: '8px',
+						fontSize: '14px',
+						color: '#555',
+						fontWeight: '500'
+					}}>
+						New number of repetitions
+					</label>
+					<input
+						type="number"
+						min="0"
+						step="1"
+						value={newRepsInput}
+						onChange={(e) => setNewRepsInput(e.target.value)}
+						onKeyPress={handleKeyPress}
+						placeholder="Enter new amount"
+						style={commonStyle.popupInput}
+						autoFocus
+						disabled={isSubmitting}
+					/>
+				</div>
+
+				<div style={commonStyle.popupButtons}>
+					<button
+						onClick={handleEditSubmit}
+						style={{
+							...commonStyle.popupCreateButton,
+							opacity: isSubmitting ? 0.7 : 1,
+							backgroundColor: newRepsInput === '0' ? colors.red : colors.blue,
+						}}
+						disabled={!newRepsInput.trim() || isSubmitting}
+					>
+						{isSubmitting
+							? 'Saving...'
+							: newRepsInput === '0'
+								? '🗑️ Delete Set'
+								: '💾 Save'
+						}
+					</button>
+
+					<button
+						onClick={handleEditCancel}
+						style={commonStyle.popupCancelButton}
+						disabled={isSubmitting}
+					>
+						Cancel
+					</button>
+				</div>
+				</Popup>
 			)}
 		</>
 	);

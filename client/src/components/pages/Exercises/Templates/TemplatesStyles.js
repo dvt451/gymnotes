@@ -33,6 +33,7 @@ export const createTemplatesStyles = (mainColor) => ({
 		display: 'flex',
 		alignItems: 'center',
 		gap: toRem(10),
+		width: '100%',
 		'&:hover': {
 			backgroundColor: 'rgba(0, 200, 255, 0.1)',
 			transform: 'translateX(5px)',

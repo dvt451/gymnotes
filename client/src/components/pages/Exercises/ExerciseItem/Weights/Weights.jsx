@@ -4,6 +4,7 @@ import AddWeight from './AddWeight';
 import DeleteWeights from './DeleteWeights';
 import Repeats from '../Reps/Repeats';
 import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
+import Popup from '../../../../widgets/Popup';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 
@@ -160,14 +161,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 
 			{/* Popup для редактирования веса */}
 			{showEditPopup && currentWeight && (
-				<div style={commonStyle.popup}>
-					<div
-						style={commonStyle.popupLayer}
-						onClick={handleEditCancel}
-					/>
-					<div style={commonStyle.popupContent}>
-						<div style={commonStyle.popupContentLayer} />
-						<div style={commonStyle.popupContentContainer}>
+				<Popup isOpen onClose={handleEditCancel}>
 							<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
 								Изменить вес
 							</h3>
@@ -232,9 +226,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 									Отмена
 								</button>
 							</div>
-						</div>
-					</div>
-				</div>
+				</Popup>
 			)}
 		</>
 	);

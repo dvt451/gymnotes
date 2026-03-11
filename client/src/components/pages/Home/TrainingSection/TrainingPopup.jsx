@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { createCommonStyle } from '../../../../styles/commonStyle';
 import { GlobalContext } from '../../../../context/GlobalContext';
+import Popup from '../../../widgets/Popup';
 
 function TrainingPopup({
 	isOpen,
@@ -15,7 +16,6 @@ function TrainingPopup({
 	onSubmit,
 	onDelete
 }) {
-	if (!isOpen) return null;
 	const { mainColor } = useContext(GlobalContext);
 
 	const commonStyle = createCommonStyle(mainColor);
@@ -26,12 +26,8 @@ function TrainingPopup({
 		: (isLoading ? 'Saving...' : 'Save Changes');
 
 	return (
-		<div style={commonStyle.popup} onClick={onClose}>
-			<div style={commonStyle.popupLayer}></div>
-			<div style={commonStyle.popupContent} onClick={e => e.stopPropagation()}>
-				<div style={commonStyle.popupContentLayer}></div>
-				<div style={commonStyle.popupContentContainer}>
-					<h3 style={commonStyle.title}>{title}</h3>
+		<Popup isOpen={isOpen} onClose={onClose}>
+			<h3 style={commonStyle.title}>{title}</h3>
 
 					<div style={commonStyle.popupContentInputs}>
 						<input
@@ -50,38 +46,36 @@ function TrainingPopup({
 						/>
 					</div>
 
-					<div style={commonStyle.popupButtons}>
-						{mode === 'edit' && onDelete && (
-							<button
-								onClick={onDelete}
-								style={{
-									...commonStyle.button,
-									...commonStyle.popupDeleteButton
-								}}
-								disabled={isLoading}
-							>
-								Delete Training
-							</button>
-						)}
+			<div style={commonStyle.popupButtons}>
+				{mode === 'edit' && onDelete && (
+					<button
+						onClick={onDelete}
+						style={{
+							...commonStyle.button,
+							...commonStyle.popupDeleteButton
+						}}
+						disabled={isLoading}
+					>
+						Delete Training
+					</button>
+				)}
 
-						<button
-							onClick={onClose}
-							style={{ ...commonStyle.button, ...commonStyle.popupCancelButton }}
-						>
-							Cancel
-						</button>
+				<button
+					onClick={onClose}
+					style={{ ...commonStyle.button, ...commonStyle.popupCancelButton }}
+				>
+					Cancel
+				</button>
 
-						<button
-							onClick={onSubmit}
-							style={{ ...commonStyle.button, ...commonStyle.popupCreateButton }}
-							disabled={isLoading}
-						>
-							{submitText}
-						</button>
-					</div>
-				</div>
+				<button
+					onClick={onSubmit}
+					style={{ ...commonStyle.button, ...commonStyle.popupCreateButton }}
+					disabled={isLoading}
+				>
+					{submitText}
+				</button>
 			</div>
-		</div>
+		</Popup>
 	);
 }
 
