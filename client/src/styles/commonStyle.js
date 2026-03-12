@@ -48,8 +48,7 @@ export const createCommonStyle = (mainColor) => ({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: colors.blueDark,
-		bacdropFilter: 'blur(4px)',
+		backgroundColor: colors.labelBG,
 		opacity: 0.9,
 	},
 	exerciseEditButtonEditing: {
