@@ -1,46 +1,55 @@
 import React, { useContext, useState } from 'react';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import AddReps from './AddReps';
-import DeleteReps from './DeleteReps';
 import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
 import Popup from '../../../../widgets/Popup';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
+import ButtonType from '../../../../widgets/ButtonType';
 
 export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, date, item: exercise, w: weight, setExercises }) {
 	const [showEditPopup, setShowEditPopup] = useState(false);
-	const [currentSet, setCurrentSet] = useState(null);
+	const [currentSetIndex, setCurrentSetIndex] = useState(null);
 	const [newRepsInput, setNewRepsInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext)
+	const popupStyle = createPopupStyle(mainColor);
 
 	const styles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
 
-	const weightSetChangeHandler = async (set) => {
+	const getRepsValue = (setValue) => {
+		if (setValue && typeof setValue === 'object') {
+			const repsValue = Number(setValue.reps);
+			return Number.isFinite(repsValue) ? repsValue : 0;
+		}
+		const repsValue = Number(setValue);
+		return Number.isFinite(repsValue) ? repsValue : 0;
+	};
+
+	const weightSetChangeHandler = async (setValue, setIndex) => {
 		if (!editState || !isExpanded) return;
 
-		setCurrentSet(set);
-		setNewRepsInput(set.reps.toString());
+		setCurrentSetIndex(setIndex);
+		setNewRepsInput(getRepsValue(setValue).toString());
 		setShowEditPopup(true);
 	};
 
 	const handleEditCancel = () => {
 		setShowEditPopup(false);
-		setCurrentSet(null);
+		setCurrentSetIndex(null);
 		setNewRepsInput('');
 	};
 
 	const handleEditSubmit = async () => {
-		if (!newRepsInput.trim() || !currentSet) return;
+		if (!newRepsInput.trim() || currentSetIndex === null) return;
 
 		const reps = parseInt(newRepsInput, 10);
 
 		// If user entered 0 - delete the set
 		if (reps === 0) {
-			if (window.confirm('Delete this set?')) {
-				await handleDeleteSet();
-			}
+			handleDeleteSet();
 			return;
 		}
 
@@ -53,7 +62,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 
 		try {
 			const token = await getToken();
-			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${exercise._id}/weights/${weight._id}/sets/${currentSet._id}`;
+			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${exercise._id}/weights/${weight._id}/sets/${currentSetIndex}`;
 
 			const res = await fetch(url, {
 				method: 'PUT',
@@ -80,9 +89,9 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 								if (wt._id === weight._id) {
 									return {
 										...wt,
-										sets: wt.sets.map(s => {
-											if (s._id === currentSet._id) {
-												return { ...s, reps: reps };
+										sets: wt.sets.map((s, idx) => {
+											if (idx === currentSetIndex) {
+												return (s && typeof s === 'object') ? { ...s, reps } : reps;
 											}
 											return s;
 										}),
@@ -97,7 +106,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 			);
 
 			setShowEditPopup(false);
-			setCurrentSet(null);
+			setCurrentSetIndex(null);
 			setNewRepsInput('');
 
 		} catch (err) {
@@ -109,11 +118,12 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 	};
 
 	const handleDeleteSet = async () => {
+		if (currentSetIndex === null) return;
 		setIsSubmitting(true);
 
 		try {
 			const token = await getToken();
-			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${exercise._id}/weights/${weight._id}/sets/${currentSet._id}`;
+			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${exercise._id}/weights/${weight._id}/sets/${currentSetIndex}`;
 
 			const res = await fetch(url, {
 				method: 'DELETE',
@@ -137,7 +147,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 								if (wt._id === weight._id) {
 									return {
 										...wt,
-										sets: wt.sets.filter(s => s._id !== currentSet._id),
+										sets: wt.sets.filter((_, idx) => idx !== currentSetIndex),
 									};
 								}
 								return wt;
@@ -149,7 +159,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 			);
 
 			setShowEditPopup(false);
-			setCurrentSet(null);
+			setCurrentSetIndex(null);
 			setNewRepsInput('');
 
 		} catch (err) {
@@ -177,10 +187,10 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 				<div style={styles.repsContainer}>
 					{weight.sets.length > 0 && <div>-</div>}
 					<div style={styles.repsContainerRow}>
-						{weight.sets.map((set, index) => (
+						{weight.sets.map((setValue, index) => (
 							<button
-								key={set._id || index}
-								onClick={() => weightSetChangeHandler(set)}
+								key={index}
+								onClick={() => weightSetChangeHandler(setValue, index)}
 								style={{
 									background: 'none',
 									border: 'none',
@@ -200,7 +210,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 										position: 'relative',
 									})
 								}}>
-									{set.reps}x
+									{getRepsValue(setValue)}x
 								</span>
 							</button>
 						))}
@@ -217,78 +227,46 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 			</div>
 
 			{/* Popup for editing set */}
-			{showEditPopup && currentSet && (
+			{showEditPopup && currentSetIndex !== null && (
 				<Popup isOpen onClose={handleEditCancel}>
-				<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
-					Edit Set
-				</h3>
+					<h2 style={popupStyle.title}>Edit Set</h2>
 
-				<div style={{
-					textAlign: 'center',
-					marginBottom: '20px',
-					padding: '10px',
-					backgroundColor: '#fff8f0',
-					borderRadius: '5px',
-					border: '1px solid #ffe0b2'
-				}}>
-					<p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>
-						Current repetitions: <strong>{currentSet.reps}x</strong>
-					</p>
-					<p style={{ margin: 0, fontSize: '12px', color: '#ff9800', fontWeight: 'bold' }}>
-						💡 Enter 0 to delete set
-					</p>
-				</div>
+					<div style={popupStyle.popupBodyContent}>
+						<input
+							type="number"
+							min="0"
+							step="1"
+							value={newRepsInput}
+							onChange={(e) => setNewRepsInput(e.target.value)}
+							onKeyPress={handleKeyPress}
+							placeholder="Enter new amount"
+							style={popupStyle.popupInput}
+							autoFocus
+							disabled={isSubmitting}
+						/>
+					</div>
 
-				<div style={commonStyle.popupContentInputs}>
-					<label style={{
-						display: 'block',
-						marginBottom: '8px',
-						fontSize: '14px',
-						color: '#555',
-						fontWeight: '500'
-					}}>
-						New number of repetitions
-					</label>
-					<input
-						type="number"
-						min="0"
-						step="1"
-						value={newRepsInput}
-						onChange={(e) => setNewRepsInput(e.target.value)}
-						onKeyPress={handleKeyPress}
-						placeholder="Enter new amount"
-						style={commonStyle.popupInput}
-						autoFocus
-						disabled={isSubmitting}
-					/>
-				</div>
+					<div style={commonStyle.popupButtons}>
+						<ButtonType
+							buttonType={newRepsInput === '0' ? 9 : 2}
+							functionOnClick={handleEditSubmit}
+						>
+							{isSubmitting
+								? 'Saving...'
+								: newRepsInput === '0'
+									? 'Delete Set'
+									: 'Save'
+							}
+						</ButtonType>
 
-				<div style={commonStyle.popupButtons}>
-					<button
-						onClick={handleEditSubmit}
-						style={{
-							...commonStyle.popupCreateButton,
-							opacity: isSubmitting ? 0.7 : 1,
-							backgroundColor: newRepsInput === '0' ? colors.red : colors.blue,
-						}}
-						disabled={!newRepsInput.trim() || isSubmitting}
-					>
-						{isSubmitting
-							? 'Saving...'
-							: newRepsInput === '0'
-								? '🗑️ Delete Set'
-								: '💾 Save'
-						}
-					</button>
-
-					<button
-						onClick={handleEditCancel}
-						style={commonStyle.popupCancelButton}
-						disabled={isSubmitting}
-					>
-						Cancel
-					</button>
-				</div>
+						<button
+							onClick={handleEditCancel}
+							style={commonStyle.popupCancelButton}
+							disabled={isSubmitting}
+						>
+							Cancel
+						</button>
+					</div>
 				</Popup>
 			)}
 		</>

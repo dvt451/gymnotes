@@ -4,12 +4,14 @@ import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 export default function AddWeight({ setExercises, itemID, trainingId, date, BASE_URL }) {
 	const [showPopup, setShowPopup] = useState(false);
 	const [weightInput, setWeightInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext)
+	const popupStyle = createPopupStyle(mainColor);
 
 	const exercisesStyles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
@@ -111,42 +113,39 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 			</div>
 
 			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-							<h3 style={{ textAlign: 'center', margin: 0 }}>
-								Add Weight
-							</h3>
+				<h2 style={popupStyle.title}>New Exercise</h2>
+				<div style={popupStyle.popupBodyContent}>
+					<input
+						type="number"
+						step="0.1"
+						min="0.1"
+						value={weightInput}
+						onChange={(e) => setWeightInput(e.target.value)}
+						onKeyPress={handleKeyPress}
+						placeholder="Set weight (kg)"
+						style={popupStyle.popupInput}
+						autoFocus
+						disabled={isSubmitting}
+					/>
+				</div>
 
-							<div style={commonStyle.popupContentInputs}>
-								<input
-									type="number"
-									step="0.1"
-									min="0.1"
-									value={weightInput}
-									onChange={(e) => setWeightInput(e.target.value)}
-									onKeyPress={handleKeyPress}
-									placeholder="Set weight (kg)"
-									style={commonStyle.popupInput}
-									autoFocus
-									disabled={isSubmitting}
-								/>
-							</div>
+				<div style={commonStyle.popupButtons}>
+					<button
+						onClick={handleSubmit}
+						style={commonStyle.popupCreateButton}
+						disabled={!weightInput.trim() || isSubmitting}
+					>
+						{isSubmitting ? 'Adding...' : 'Add'}
+					</button>
 
-							<div style={commonStyle.popupButtons}>
-								<button
-									onClick={handleSubmit}
-									style={commonStyle.popupCreateButton}
-									disabled={!weightInput.trim() || isSubmitting}
-								>
-									{isSubmitting ? 'Adding...' : 'Add'}
-								</button>
-
-								<button
-									onClick={handleCancel}
-									style={commonStyle.popupCancelButton}
-									disabled={isSubmitting}
-								>
-									Cancel
-								</button>
-							</div>
+					<button
+						onClick={handleCancel}
+						style={commonStyle.popupCancelButton}
+						disabled={isSubmitting}
+					>
+						Cancel
+					</button>
+				</div>
 			</Popup>
 		</>
 	);

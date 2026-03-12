@@ -4,6 +4,7 @@ import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 export default function DeleteWeights({
 	BASE_URL,
@@ -16,6 +17,7 @@ export default function DeleteWeights({
 	const [showPopup, setShowPopup] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext)
+	const popupStyle = createPopupStyle(mainColor);
 
 	const exercisesStyles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
@@ -81,57 +83,41 @@ export default function DeleteWeights({
 			</button>
 
 			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-							<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
-								Подтверждение удаления
-							</h3>
+				<h2 style={popupStyle.title}>Подтверждение удаления</h2>
 
-							<div style={{
-								textAlign: 'center',
-								marginBottom: '20px',
-								padding: '10px',
-								backgroundColor: '#fff9f9',
-								borderRadius: '5px',
-								border: '1px solid #ffcccc'
-							}}>
-								<p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>
-									Вы уверены, что хотите удалить этот вес?
-								</p>
+				<div style={{
+					textAlign: 'center',
+					marginBottom: '20px',
+					padding: '10px',
+					backgroundColor: '#fff9f9',
+					borderRadius: '5px',
+					border: '1px solid #ffcccc'
+				}}>
+					<p style={{ fontWeight: 'bold' }}>
+						Вы уверены, что хотите удалить этот вес?
+					</p>
+				</div>
 
-								<div style={{
-									fontSize: '12px',
-									color: '#666',
-									textAlign: 'left',
-									backgroundColor: '#f5f5f5',
-									padding: '8px',
-									borderRadius: '4px',
-									marginTop: '10px'
-								}}>
-									<div><strong>ID упражнения:</strong> {exerciseId}</div>
-									<div><strong>ID веса:</strong> {weightId}</div>
-									<div><strong>Дата:</strong> {date}</div>
-								</div>
-							</div>
+				<div style={commonStyle.popupButtons}>
+					<button
+						onClick={handleDelete}
+						style={{
+							...commonStyle.popupDeleteButton,
+							opacity: isSubmitting ? 0.7 : 1
+						}}
+						disabled={isSubmitting}
+					>
+						{isSubmitting ? 'Удаление...' : 'Удалить'}
+					</button>
 
-							<div style={commonStyle.popupButtons}>
-								<button
-									onClick={handleDelete}
-									style={{
-										...commonStyle.popupDeleteButton,
-										opacity: isSubmitting ? 0.7 : 1
-									}}
-									disabled={isSubmitting}
-								>
-									{isSubmitting ? 'Удаление...' : 'Удалить'}
-								</button>
-
-								<button
-									onClick={handleCancel}
-									style={commonStyle.popupCancelButton}
-									disabled={isSubmitting}
-								>
-									Отмена
-								</button>
-							</div>
+					<button
+						onClick={handleCancel}
+						style={commonStyle.popupCancelButton}
+						disabled={isSubmitting}
+					>
+						Отмена
+					</button>
+				</div>
 			</Popup>
 		</>
 	);

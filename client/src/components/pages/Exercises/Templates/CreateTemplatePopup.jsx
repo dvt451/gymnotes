@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import { createTemplatesStyles } from './TemplatesStyles';
 import { GlobalContext } from '../../../../context/GlobalContext';
 import { colors, createCommonStyle } from '../../../../styles/commonStyle';
+import { getToken } from '../../../utils/getToken';
 import Popup from '../../../widgets/Popup';
 import {
 	handleCreateExercise,
@@ -32,7 +33,9 @@ export default function CreateTemplatePopup({
 	exactMatch,
 	filteredExistingExercises,
 	modalError,
-	setModalError
+	setModalError,
+	setUserExercises,
+	addExerciseToTemplateList
 }) {
 	const { mainColor } = useContext(GlobalContext);
 	const commonStyle = createCommonStyle(mainColor);

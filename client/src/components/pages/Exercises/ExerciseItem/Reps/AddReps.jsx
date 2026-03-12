@@ -4,6 +4,7 @@ import { getToken } from '../../../../utils/getToken';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 export default function AddReps({
 	BASE_URL,
@@ -17,6 +18,7 @@ export default function AddReps({
 	const [repsInput, setRepsInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext)
+	const popupStyle = createPopupStyle(mainColor);
 
 	const exercisesStyles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
@@ -63,6 +65,7 @@ export default function AddReps({
 			}
 
 			const newSet = await res.json();
+			const repsValue = Number.isFinite(Number(newSet?.reps)) ? Number(newSet.reps) : reps;
 
 			setExercises(prevExercises =>
 				prevExercises.map(ex => {
@@ -73,7 +76,7 @@ export default function AddReps({
 								if (w._id === weightId) {
 									return {
 										...w,
-										sets: [...w.sets, newSet],
+										sets: [...w.sets, repsValue],
 									};
 								}
 								return w;
@@ -111,18 +114,15 @@ export default function AddReps({
 			</button>
 
 			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-				<h3 style={commonStyle.title}>
-					Добавить подход
-				</h3>
-
-				<div style={commonStyle.popupContentInputs}>
+				<h2 style={popupStyle.title}>Добавить подход</h2>
+				<div style={popupStyle.popupBodyContent}>
 					<input
 						type="number"
 						value={repsInput}
 						onChange={(e) => setRepsInput(e.target.value)}
 						onKeyPress={handleKeyPress}
 						placeholder="Количество повторений"
-						style={commonStyle.popupInput}
+						style={popupStyle.popupInput}
 						autoFocus
 						min="1"
 						disabled={isSubmitting}

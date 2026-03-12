@@ -7,6 +7,7 @@ import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
 import Popup from '../../../../widgets/Popup';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 export default function Weights({ item, editState, setExercises, date, trainingId, isExpanded, BASE_URL }) {
 	const [showEditPopup, setShowEditPopup] = useState(false);
@@ -14,6 +15,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 	const [newWeightInput, setNewWeightInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext)
+	const popupStyle = createPopupStyle(mainColor);
 
 	const styles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
@@ -162,70 +164,42 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 			{/* Popup для редактирования веса */}
 			{showEditPopup && currentWeight && (
 				<Popup isOpen onClose={handleEditCancel}>
-							<h3 style={{ textAlign: 'center', margin: 0, marginBottom: '15px' }}>
-								Изменить вес
-							</h3>
+					<h2 style={popupStyle.title}>Изменить вес</h2>
+					<div style={commonStyle.popupContentInputs}>
+						<input
+							type="number"
+							step="0.1"
+							min="1"
+							value={newWeightInput}
+							onChange={(e) => setNewWeightInput(e.target.value)}
+							onKeyPress={handleKeyPress}
+							placeholder="Введите новый вес"
+							style={popupStyle.popupInput}
+							autoFocus
+							disabled={isSubmitting}
+						/>
+					</div>
 
-							<div style={{
-								textAlign: 'center',
-								marginBottom: '20px',
-								padding: '10px',
-								backgroundColor: '#f0f8ff',
-								borderRadius: '5px',
-								border: '1px solid #d0e7ff'
-							}}>
-								<p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#666' }}>
-									Текущий вес: <strong>{currentWeight.weight}кг</strong>
-								</p>
-								<p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
-									ID: {currentWeight._id}
-								</p>
-							</div>
+					<div style={commonStyle.popupButtons}>
+						<button
+							onClick={handleEditSubmit}
+							style={{
+								...commonStyle.popupCreateButton,
+								opacity: isSubmitting ? 0.7 : 1
+							}}
+							disabled={!newWeightInput.trim() || isSubmitting}
+						>
+							{isSubmitting ? 'Сохранение...' : 'Сохранить'}
+						</button>
 
-							<div style={commonStyle.popupContentInputs}>
-								<label style={{
-									display: 'block',
-									marginBottom: '8px',
-									fontSize: '14px',
-									color: '#555',
-									fontWeight: '500'
-								}}>
-									Новый вес (кг)
-								</label>
-								<input
-									type="number"
-									step="0.1"
-									min="1"
-									value={newWeightInput}
-									onChange={(e) => setNewWeightInput(e.target.value)}
-									onKeyPress={handleKeyPress}
-									placeholder="Введите новый вес"
-									style={commonStyle.popupInput}
-									autoFocus
-									disabled={isSubmitting}
-								/>
-							</div>
-
-							<div style={commonStyle.popupButtons}>
-								<button
-									onClick={handleEditSubmit}
-									style={{
-										...commonStyle.popupCreateButton,
-										opacity: isSubmitting ? 0.7 : 1
-									}}
-									disabled={!newWeightInput.trim() || isSubmitting}
-								>
-									{isSubmitting ? 'Сохранение...' : 'Сохранить'}
-								</button>
-
-								<button
-									onClick={handleEditCancel}
-									style={commonStyle.popupCancelButton}
-									disabled={isSubmitting}
-								>
-									Отмена
-								</button>
-							</div>
+						<button
+							onClick={handleEditCancel}
+							style={commonStyle.popupCancelButton}
+							disabled={isSubmitting}
+						>
+							Отмена
+						</button>
+					</div>
 				</Popup>
 			)}
 		</>

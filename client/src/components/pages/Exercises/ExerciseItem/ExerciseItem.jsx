@@ -8,6 +8,7 @@ import { createCommonStyle } from '../../../../styles/commonStyle';
 import { getToken } from '../../../utils/getToken';
 import { FaPen } from 'react-icons/fa';
 import PrevWeights from './PrevWeights';
+import { createPopupStyle } from '../../../widgets/popupStyle';
 
 export default function ExerciseItem({
 	item,
@@ -28,6 +29,7 @@ export default function ExerciseItem({
 	const [renameValue, setRenameValue] = useState(item.name || '');
 	const [renameError, setRenameError] = useState('');
 	const [isRenaming, setIsRenaming] = useState(false);
+	const popupStyle = createPopupStyle(mainColor);
 
 	const toggleExpand = (e) => {
 		e.stopPropagation();
@@ -142,41 +144,41 @@ export default function ExerciseItem({
 			/>
 
 			<Popup isOpen={showRenamePopup} onClose={closeRenamePopup}>
-							<h3 style={{ textAlign: 'center', margin: 0 }}>Переименовать упражнение</h3>
-							<div style={commonStyle.popupContentInputs}>
-								<input
-									type="text"
-									style={commonStyle.popupInput}
-									value={renameValue}
-									onChange={(e) => {
-										setRenameError('');
-										setRenameValue(e.target.value);
-									}}
-									placeholder="Новое название"
-									autoFocus
-								/>
-							</div>
-							{renameError && (
-								<p style={{ ...styles.error, margin: 0, padding: '8px' }}>{renameError}</p>
-							)}
-							<div style={commonStyle.popupButtons}>
-								<button
-									type="button"
-									style={commonStyle.popupCreateButton}
-									onClick={submitRename}
-									disabled={!renameValue.trim() || isRenaming}
-								>
-									{isRenaming ? 'Сохранение...' : 'Сохранить'}
-								</button>
-								<button
-									type="button"
-									style={commonStyle.popupCancelButton}
-									onClick={closeRenamePopup}
-									disabled={isRenaming}
-								>
-									Отмена
-								</button>
-							</div>
+				<h2 style={popupStyle.title}>New Exercise</h2>
+				<div style={popupStyle.popupBodyContent}>
+					<input
+						type="text"
+						style={popupStyle.popupInput}
+						value={renameValue}
+						onChange={(e) => {
+							setRenameError('');
+							setRenameValue(e.target.value);
+						}}
+						placeholder="Новое название"
+						autoFocus
+					/>
+				</div>
+				{renameError && (
+					<p style={{ ...styles.error, margin: 0, padding: '8px' }}>{renameError}</p>
+				)}
+				<div style={commonStyle.popupButtons}>
+					<button
+						type="button"
+						style={commonStyle.popupCreateButton}
+						onClick={submitRename}
+						disabled={!renameValue.trim() || isRenaming}
+					>
+						{isRenaming ? 'Сохранение...' : 'Сохранить'}
+					</button>
+					<button
+						type="button"
+						style={commonStyle.popupCancelButton}
+						onClick={closeRenamePopup}
+						disabled={isRenaming}
+					>
+						Отмена
+					</button>
+				</div>
 			</Popup>
 		</div>
 	);

@@ -102,10 +102,8 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 		const fetchTemplates = async () => {
 			try {
 				const token = await getToken();
-				console.log('Fetching templates for trainingId (fileId):', trainingId);
 				// Изменяем URL на правильный
 				const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/templates`, {
-
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
@@ -371,7 +369,7 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 						style={templatesStyles.title}
 						onClick={() => setExpanded(!expanded)}
 					>
-						📋 Templates
+						Templates
 					</button>
 					<button
 						style={{
@@ -390,6 +388,12 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 							<div style={templatesStyles.loading}>Loading templates...</div>
 						) : (
 							<div style={templatesStyles.templateList}>
+								<button
+									style={templatesStyles.templateAddButton}
+									onClick={openCreateModal}
+								>
+									+ Add
+								</button>
 								{templates.map((item) => (
 									<div key={item._id}>
 										<button
@@ -403,12 +407,6 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 										</button>
 									</div>
 								))}
-								<button
-									style={templatesStyles.templateAddButton}
-									onClick={openCreateModal}
-								>
-									+ Add Template
-								</button>
 							</div>
 						)}
 					</div>
@@ -436,6 +434,8 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 					modalError={modalError}
 					setModalError={setModalError}
 					filteredExistingExercises={filteredExistingExercises}
+					setUserExercises={setUserExercises}
+					addExerciseToTemplateList={addExerciseToTemplateList}
 				/>
 
 				{/* Edit template modal */}

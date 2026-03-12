@@ -11,6 +11,7 @@ import { GlobalContext } from '../../../context/GlobalContext';
 import ButtonType from '../../widgets/ButtonType';
 import ExercisesList from './ExercisesList';
 import AddExercisePopup from './AddExercisePopup';
+import EditButton from './EditButton';
 
 
 
@@ -26,6 +27,7 @@ export default function Exercises() {
 	const [previousDateKey, setPreviousDateKey] = useState('');
 	const [previousExercisesByLibraryId, setPreviousExercisesByLibraryId] = useState({});
 	const { mainColor } = useContext(GlobalContext);
+	const [editState, setEditState] = useState(false);
 
 	const styles = createExercisesStyles(mainColor);
 
@@ -60,6 +62,7 @@ export default function Exercises() {
 				<ExercisesList
 					exercises={exercises}
 					setExercises={setExercises}
+					editState={editState}
 					date={date}
 					trainingId={trainingId}
 					BASE_URL={BASE_URL}
@@ -72,6 +75,10 @@ export default function Exercises() {
 					<span>Add Exercise</span>
 				</ButtonType>
 			</div>
+			<EditButton
+				editState={editState}
+				setEditState={setEditState}
+			/>
 			<AddExercisePopup
 				userExercises={userExercises}
 				BASE_URL={BASE_URL}

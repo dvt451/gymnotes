@@ -21,7 +21,7 @@ export const createTemplatesStyles = (mainColor) => ({
 
 	// Заголовок шаблонов
 	title: {
-		fontSize: toRem(18),
+		fontSize: toRem(20),
 		fontWeight: '600',
 		color: colors.white,
 		backgroundColor: 'transparent',
@@ -34,10 +34,6 @@ export const createTemplatesStyles = (mainColor) => ({
 		alignItems: 'center',
 		gap: toRem(10),
 		width: '100%',
-		'&:hover': {
-			backgroundColor: 'rgba(0, 200, 255, 0.1)',
-			transform: 'translateX(5px)',
-		},
 	},
 
 	// Кнопка редактирования
@@ -51,20 +47,12 @@ export const createTemplatesStyles = (mainColor) => ({
 		borderRadius: toRem(6),
 		opacity: 0.7,
 		transition: 'all 0.3s ease',
-		'&:hover': {
-			opacity: 1,
-			backgroundColor: 'rgba(255, 204, 0, 0.1)',
-		},
 	},
-
 	editButtonEditing: {
 		backgroundColor: colors.orange,
 		color: colors.black,
 		opacity: 1,
 		fontWeight: 'bold',
-		'&:hover': {
-			backgroundColor: '#e6b800',
-		},
 	},
 
 	// Блок со списком шаблонов
@@ -76,26 +64,25 @@ export const createTemplatesStyles = (mainColor) => ({
 	// Список шаблонов
 	templateList: {
 		display: 'flex',
-		flexDirection: 'column',
+		alignItems: 'center',
 		gap: toRem(10),
+		overflowX: 'auto',
+		width: '100%',
 	},
+
 
 	// Элемент шаблона
 	templateItem: {
-		backgroundColor: colors.labelBG,
+		backgroundColor: colors.blueLight,
 		border: 'none',
 		color: colors.white,
 		padding: `${toRem(12)} ${toRem(16)}`,
-		borderRadius: toRem(8),
+		borderRadius: toRem(30),
 		fontSize: toRem(16),
 		textAlign: 'left',
 		cursor: 'pointer',
 		transition: 'all 0.3s ease',
-		width: '100%',
-		'&:hover': {
-			backgroundColor: 'rgba(0, 200, 255, 0.1)',
-			transform: 'translateX(5px)',
-		},
+		textAlign: 'center',
 	},
 
 	// Стиль для режима редактирования
@@ -113,17 +100,15 @@ export const createTemplatesStyles = (mainColor) => ({
 		border: 'none',
 		color: colors.black,
 		padding: `${toRem(12)} ${toRem(16)}`,
-		borderRadius: toRem(8),
+		borderRadius: '50%',
 		fontSize: toRem(16),
-		fontWeight: '600',
+		fontWeight: 'bold',
 		cursor: 'pointer',
 		marginTop: toRem(5),
 		transition: 'all 0.3s ease',
-		width: '100%',
-		'&:hover': {
-			backgroundColor: '#7ac22a',
-			transform: 'translateY(-2px)',
-		},
+		width: toRem(80),
+		height: toRem(80),
+		whiteSpace: 'nowrap',
 	},
 
 	// Контент модального окна
