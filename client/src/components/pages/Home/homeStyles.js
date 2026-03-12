@@ -27,7 +27,7 @@ export const createHomeStyle = (mainColor) => ({
 		fontSize: toRem(16),
 	},
 	trainingCardAddButton: {
-		marginTop: toRem(15),
+		marginTop: toRem(50),
 	},
 
 	trainingCardDetails: {

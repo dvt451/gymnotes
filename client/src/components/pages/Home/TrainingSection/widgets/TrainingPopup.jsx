@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
-import { createCommonStyle } from '../../../../styles/commonStyle';
-import { GlobalContext } from '../../../../context/GlobalContext';
-import Popup from '../../../widgets/Popup';
+import { createCommonStyle } from '../../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../../context/GlobalContext';
+import Popup from '../../../../widgets/Popup';
 
 function TrainingPopup({
 	isOpen,
@@ -29,22 +29,22 @@ function TrainingPopup({
 		<Popup isOpen={isOpen} onClose={onClose}>
 			<h3 style={commonStyle.title}>{title}</h3>
 
-					<div style={commonStyle.popupContentInputs}>
-						<input
-							type="text"
-							placeholder="Name"
-							value={name}
-							onChange={onNameChange}
-							style={commonStyle.popupInput}
-						/>
-						<input
-							type="text"
-							placeholder="Description (optional)"
-							value={text}
-							onChange={onTextChange}
-							style={commonStyle.popupInput}
-						/>
-					</div>
+			<div style={commonStyle.popupContentInputs}>
+				<input
+					type="text"
+					placeholder="Name"
+					value={name}
+					onChange={onNameChange}
+					style={commonStyle.popupInput}
+				/>
+				<input
+					type="text"
+					placeholder="Description (optional)"
+					value={text}
+					onChange={onTextChange}
+					style={commonStyle.popupInput}
+				/>
+			</div>
 
 			<div style={commonStyle.popupButtons}>
 				{mode === 'edit' && onDelete && (

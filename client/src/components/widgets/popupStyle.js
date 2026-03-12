@@ -1,7 +1,7 @@
 import { tr } from 'date-fns/locale';
 import { colors, toRem } from '../../styles/commonStyle';
 
-export const popupStyle = {
+export const createPopupStyle = (mainColor) => ({
 	popup: {
 		position: 'fixed',
 		top: 0,
@@ -19,8 +19,8 @@ export const popupStyle = {
 		left: 0,
 		width: '100%',
 		height: '100%',
-		backgroundColor: colors.blueDark,
-		opacity: 0.5,
+		backgroundColor: colors.black,
+		opacity: 0.9,
 	},
 	popupContent: {
 		position: 'relative',
@@ -37,8 +37,8 @@ export const popupStyle = {
 		left: 0,
 		width: '100%',
 		height: '100%',
-		backgroundColor: colors.white,
-		opacity: 0.9,
+		backgroundColor: colors.popupBG,
+		border: `1px solid ${colors.black}`,
 	},
 	popupContentContainer: {
 		position: 'relative',
@@ -46,12 +46,57 @@ export const popupStyle = {
 		padding: toRem(30),
 		display: 'flex',
 		flexDirection: 'column',
-		gap: toRem(30),
+		gap: toRem(20),
+	},
+	title: {
+		color: colors.white,
 	},
 	popupContentInputs: {
 		display: 'flex',
+		gap: toRem(10),
+	},
+	popupLibraryBlock: {
+		borderTop: `1px solid ${colors.popupBorderColor}`,
+		paddingTop: toRem(20),
+	},
+	libraryItem: {
+		textAlign: 'left',
+		padding: toRem(8) + ' ' + toRem(15),
+		fontWeight: 'bold',
+		borderRadius: toRem(10),
+		backgroundColor: '#79838B',
+		color: colors.white,
+	},
+	libraryList: {
+		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(10),
+		marginTop: toRem(20),
+		maxHeight: toRem(170),
+		overflowY: 'auto',
+	},
+	ListItems: {
+		display: 'flex',
+		borderRadius: toRem(10),
+		overflow: 'hidden',
+	},
+	ListItem: {
+		textAlign: 'left',
+		padding: toRem(8) + ' ' + toRem(15),
+		fontWeight: 'bold',
+		backgroundColor: '#181E23',
+		color: '#fff',
+		width: '100%',
+	},
+	removeExerciseButton: {
+		color: colors.white,
+		backgroundColor: colors.red,
+		padding: toRem(0) + ' ' + toRem(14),
+	},
+	popupBodyContent: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(20),
 	},
 	popupInput: {
 		padding: toRem(5) + ' ' + toRem(10),
@@ -60,10 +105,8 @@ export const popupStyle = {
 		backgroundColor: colors.white,
 		color: colors.black,
 		fontSize: toRem(16),
-		'&:focus': {
-			outline: 'none',
-			borderColor: mainColor || colors.green,
-		}
+		flex: '1 1 auto',
+		width: '100%',
 	},
 	popupCreateButton: {
 		padding: toRem(10),
@@ -106,4 +149,4 @@ export const popupStyle = {
 		flexDirection: 'column',
 		gap: toRem(15),
 	},
-};
+});

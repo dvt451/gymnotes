@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import { colors, createCommonStyle } from '../../../../styles/commonStyle';
-import { GlobalContext } from '../../../../context/GlobalContext';
+import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 function TrainingControls({
 	editState,

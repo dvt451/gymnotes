@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import { createHomeStyle } from '../homeStyles';
-import { GlobalContext } from '../../../../context/GlobalContext';
+import { createHomeStyle } from '../../homeStyles';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 function TrainingCard({ item, editState, onClick }) {
 	const { mainColor } = useContext(GlobalContext);

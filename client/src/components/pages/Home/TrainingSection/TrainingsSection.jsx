@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { AuthContext } from '../../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getToken } from '../../../utils/getToken';
 import { useTrainings } from './hooks/useTrainings';
-import SortableTrainingCard from './SortableTrainingCard';
-import TrainingCard from './TrainingCard';
-import TrainingControls from './TrainingControls';
-import TrainingPopup from './TrainingPopup';
-import DeleteConfirmationModal from './DeleteConfirmationModal';
+import TrainingControls from './widgets/TrainingControls';
+import TrainingPopup from './widgets/TrainingPopup';
+import DeleteConfirmationModal from './widgets/DeleteConfirmationModal';
 import { colors, createCommonStyle } from '../../../../styles/commonStyle';
 import { createHomeStyle } from '../homeStyles';
 import axios from 'axios';
 import { GlobalContext } from '../../../../context/GlobalContext';
+import ButtonType from '../../../widgets/ButtonType';
+import ReorderButton from './widgets/ReorderButton';
+import TrainingList from './widgets/TrainingList';
+import SavingOrderButton from './widgets/SavingOrderButton';
 
 export default function TrainingsSection() {
 	const navigate = useNavigate();
@@ -34,13 +34,6 @@ export default function TrainingsSection() {
 		deleteTraining,
 		saveOrderToServer
 	} = useTrainings(BASE_URL, userToken);
-
-	const sensors = useSensors(
-		useSensor(PointerSensor),
-		useSensor(KeyboardSensor, {
-			coordinateGetter: sortableKeyboardCoordinates,
-		})
-	);
 
 	// Загрузка тренировок при монтировании
 	useEffect(() => {
@@ -70,19 +63,6 @@ export default function TrainingsSection() {
 		});
 	};
 
-	const handleTrainingClick = (item) => {
-		if (editState) {
-			setState(prev => ({
-				...prev,
-				showEditPopup: true,
-				selectedTraining: item,
-				editName: item.name,
-				editText: item.text || ''
-			}));
-		} else {
-			loadScene(item);
-		}
-	};
 
 	const handleCreateSubmit = async () => {
 		try {
@@ -160,31 +140,7 @@ export default function TrainingsSection() {
 		}
 	};
 
-	const saveOrderToLocalStorage = (trainings) => {
-		const order = trainings.map(t => t._id);
-		localStorage.setItem('trainingOrder', JSON.stringify(order));
-	};
 
-	const handleDragEnd = (event) => {
-		const { active, over } = event;
-
-		if (active.id !== over.id) {
-			setState((prev) => {
-				const oldIndex = prev.trainingDays.findIndex((t) => t._id === active.id);
-				const newIndex = prev.trainingDays.findIndex((t) => t._id === over.id);
-
-				const newOrder = arrayMove(prev.trainingDays, oldIndex, newIndex);
-
-				// Сохраняем только в localStorage при перетаскивании
-				saveOrderToLocalStorage(newOrder);
-
-				return {
-					...prev,
-					trainingDays: newOrder,
-				};
-			});
-		}
-	};
 
 	// Обработчик сохранения порядка
 	const handleSaveReorder = async () => {
@@ -282,31 +238,11 @@ export default function TrainingsSection() {
 			</div>
 
 			{/* Кнопка Reorder показывается только если есть тренировки и включен editState */}
-			{editState && state.trainingDays.length > 1 && (
-				<div style={commonStyle.titleHeader}>
-					<button
-						onClick={handleToggleReorder} // 🚨 Используем обновленную функцию
-						disabled={state.isLoading}
-						style={{
-							...commonStyle.EditButton,
-							backgroundColor: state.isReordering ? colors.purple : 'transparent',
-							opacity: state.isLoading ? 0.5 : 1
-						}}
-					>
-						<span style={{
-							...commonStyle.EditButtonText,
-							color: state.isReordering ? colors.blueLight : '#fff',
-							opacity: state.isReordering ? 1 : 0.25
-						}}>
-							{state.isReordering ? 'Reordering...' : 'Reorder'}
-						</span>
-						{state.isReordering ?
-							<img src="/img/icons/editblue.png" alt="Edit icon" style={commonStyle.EditIcon} />
-							: <img src="/img/icons/edit.png" alt="Edit icon" style={commonStyle.EditIcon} />
-						}
-					</button>
-				</div>
-			)}
+			<ReorderButton
+				editState={editState}
+				state={state}
+				handleToggleReorder={handleToggleReorder}
+			/>
 
 			{/* Сообщение если тренировок нет */}
 			{state.trainingDays.length === 0 && !state.isLoading && (
@@ -318,75 +254,31 @@ export default function TrainingsSection() {
 			)}
 
 			{/* Список тренировок показывается только если они есть */}
-			{state.trainingDays.length > 0 && (
-				<>
-					{state.isReordering ? (
-						<DndContext
-							sensors={sensors}
-							collisionDetection={closestCenter}
-							onDragEnd={handleDragEnd}
-						>
-							<SortableContext
-								items={state.trainingDays.map(t => t._id)}
-								strategy={verticalListSortingStrategy}
-							>
-								<div style={homeStyle.trainingList}>
-									{state.trainingDays.map((item) => (
-										<SortableTrainingCard
-											key={item._id}
-											item={item}
-											editState={editState}
-											onEditClick={handleTrainingClick}
-										/>
-									))}
-								</div>
-							</SortableContext>
-						</DndContext>
-					) : (
-						<div style={homeStyle.trainingList}>
-							{state.trainingDays.map(item => (
-								<TrainingCard
-									key={item._id}
-									item={item}
-									editState={editState}
-									onClick={handleTrainingClick}
-								/>
-							))}
-						</div>
-					)}
-				</>
-			)}
+			<TrainingList
+				state={state}
+				setState={setState}
+				editState={editState}
+				loadScene={loadScene}
+			/>
 
 			{/* Кнопка добавления показывается всегда */}
 			{!editState && !state.isReordering && (
-				<button
-					onClick={() => setState(prev => ({
+				<ButtonType
+					functionOnClick={() => setState(prev => ({
 						...prev,
 						showCreatePopup: true
 					}))}
-					style={{
-						...commonStyle.button,
-						...homeStyle.trainingCardAddButton
-					}}
-				>
+					addStyle={homeStyle.trainingCardAddButton}>
 					+ Add Training
-				</button>
+				</ButtonType>
 			)}
 
 			{/* Кнопка сохранения порядка показывается только при перетаскивании */}
-			{editState && state.isReordering && (
-				<button
-					onClick={handleSaveReorder}
-					disabled={state.isLoading}
-					style={{
-						...commonStyle.button,
-						...homeStyle.trainingCardAddButton,
-						opacity: state.isLoading ? 0.7 : 1,
-					}}
-				>
-					{state.isLoading ? '💾 Saving...' : '💾 Save Order'}
-				</button>
-			)}
+			<SavingOrderButton
+				editState={editState}
+				state={state}
+				handleSaveReorder={handleSaveReorder}
+			/>
 
 			{/* Попапы */}
 			<TrainingPopup

@@ -1,19 +1,16 @@
 import React, { useContext } from 'react';
 import { GlobalContext } from '../../context/GlobalContext';
 import { createCommonStyle } from '../../styles/commonStyle';
+import { createPopupStyle } from './popupStyle';
 
 export default function Popup({
 	isOpen,
 	onClose,
 	children,
-	layerStyle,
-	contentStyle,
-	contentLayerStyle,
-	containerStyle,
 }) {
 	const { mainColor } = useContext(GlobalContext);
 	const commonStyle = createCommonStyle(mainColor);
-
+	const popupStyle = createPopupStyle(mainColor);
 	if (!isOpen) return null;
 
 	const handleClose = (event) => {
@@ -21,14 +18,16 @@ export default function Popup({
 	};
 
 	return (
-		<div style={commonStyle.popup} onClick={handleClose}>
-			<div style={layerStyle || commonStyle.popupLayer}></div>
+		<div style={popupStyle.popup} onClick={handleClose}>
+			<div style={popupStyle.popupLayer}></div>
 			<div
-				style={contentStyle || commonStyle.popupContent}
+				style={popupStyle.popupContent}
 				onClick={(event) => event.stopPropagation()}
 			>
-				<div style={contentLayerStyle || commonStyle.popupContentLayer}></div>
-				<div style={containerStyle || commonStyle.popupContentContainer}>{children}</div>
+				<div style={popupStyle.popupContentLayer}></div>
+				<div style={popupStyle.popupContentContainer}>
+					{children}
+				</div>
 			</div>
 		</div>
 	);

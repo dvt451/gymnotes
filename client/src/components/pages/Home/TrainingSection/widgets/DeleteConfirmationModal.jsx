@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import { createCommonStyle } from '../../../../styles/commonStyle';
-import { createHomeStyle } from '../homeStyles';
-import { GlobalContext } from '../../../../context/GlobalContext';
-import Popup from '../../../widgets/Popup';
+import { createCommonStyle } from '../../../../../styles/commonStyle';
+import { createHomeStyle } from '../../homeStyles';
+import { GlobalContext } from '../../../../../context/GlobalContext';
+import Popup from '../../../../widgets/Popup';
 
 function DeleteConfirmationModal({ isOpen, trainingName, isLoading, onConfirm, onCancel }) {
 	const { mainColor } = useContext(GlobalContext);

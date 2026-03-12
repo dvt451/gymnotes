@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { dateItemStyles } from './DateItemStyles';
 import DatePickerModal from './DatePickerModal';
-import { colors, createCommonStyle } from '../../../styles/commonStyle';
+import { colors, createCommonStyle, toRem } from '../../../styles/commonStyle';
 import { FaTrash } from "react-icons/fa";
 import { GlobalContext } from '../../../context/GlobalContext';
 
@@ -38,12 +38,17 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 		<>
 			<div
 				style={{
-					...dateItemStyles.container,
-					...(isToday && dateItemStyles.todayHighlight)
+					display: 'flex',
+					borderRadius: toRem(10),
+					overflow: 'hidden',
 				}}
 			>
 				<button
-					style={dateItemStyles.dateButton}
+					style={{
+						...commonStyle.label,
+						borderRadius: toRem(0),
+						...(isToday && dateItemStyles.todayHighlight)
+					}}
 					onClick={() => !editState ? onOpen(item.date) : handleEdit()}
 				>
 					<span style={{
@@ -54,7 +59,7 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 					</span>
 
 					{editState && (
-						<div style={{ ...commonStyle.EditButton, marginRight: '10px' }}>
+						<div style={{ ...commonStyle.EditButton, marginInline: '10px' }}>
 							<img src="/img/icons/editorange.png" alt="Edit" style={commonStyle.EditIcon} />
 						</div>
 					)}

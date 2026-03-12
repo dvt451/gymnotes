@@ -11,6 +11,8 @@ export const colors = {
 	white: '#FFFFFF',
 	black: '#000000',
 	inputBorder: '#BFBFBF',
+	popupBG: '#3A393D',
+	popupBorderColor: '#4E4D51'
 };
 
 export const toRem = (value) => {
@@ -41,32 +43,23 @@ export const createCommonStyle = (mainColor) => ({
 	},
 	button: {
 		width: '100%',
-		padding: toRem(20),
-		backgroundColor: mainColor || colors.green,
 		borderRadius: toRem(10),
 		fontWeight: 'bold',
-		color: colors.black,
 		textAlign: 'center',
 		cursor: 'pointer',
 		border: 'none',
-		'&:hover': {
-			opacity: 0.9,
-		},
-		'&:disabled': {
-			opacity: 0.5,
-			cursor: 'not-allowed',
-		}
 	},
-	popup: {
-		position: 'fixed',
-		top: 0,
-		left: 0,
-		width: '100%',
-		height: '100%',
-		zIndex: 1000,
+
+	label: {
 		display: 'flex',
-		justifyContent: 'center',
+		width: '100%',
 		alignItems: 'center',
+		backgroundColor: colors.labelBG,
+		borderRadius: toRem(12),
+		cursor: 'pointer',
+		transition: 'all 0.3s ease',
+		overflow: 'hidden',
+		padding: toRem(20) + ' ' + toRem(15),
 	},
 	popupLayer: {
 		position: 'absolute',
@@ -76,49 +69,6 @@ export const createCommonStyle = (mainColor) => ({
 		height: '100%',
 		backgroundColor: colors.blueDark,
 		opacity: 0.5,
-	},
-	popupContent: {
-		position: 'relative',
-		zIndex: 1,
-		color: colors.black,
-		borderRadius: toRem(10),
-		overflow: 'hidden',
-		maxWidth: toRem(378),
-		width: '100%',
-	},
-	popupContentLayer: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		width: '100%',
-		height: '100%',
-		backgroundColor: colors.white,
-		opacity: 0.9,
-	},
-	popupContentContainer: {
-		position: 'relative',
-		zIndex: 1,
-		padding: toRem(30),
-		display: 'flex',
-		flexDirection: 'column',
-		gap: toRem(30),
-	},
-	popupContentInputs: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: toRem(10),
-	},
-	popupInput: {
-		padding: toRem(5) + ' ' + toRem(10),
-		borderRadius: toRem(5),
-		border: `1px solid ${colors.inputBorder}`,
-		backgroundColor: colors.white,
-		color: colors.black,
-		fontSize: toRem(16),
-		'&:focus': {
-			outline: 'none',
-			borderColor: mainColor || colors.green,
-		}
 	},
 	popupCreateButton: {
 		padding: toRem(10),

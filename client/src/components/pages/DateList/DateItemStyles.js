@@ -2,32 +2,12 @@
 import { colors, toRem } from '../../../styles/commonStyle';
 
 export const dateItemStyles = {
-	// Контейнер элемента даты
-	container: {
-		display: 'flex',
-		alignItems: 'center',
-		backgroundColor: colors.labelBG,
-		borderRadius: toRem(12),
-		cursor: 'pointer',
-		transition: 'all 0.3s ease',
-		overflow: 'hidden',
-		height: toRem(60),
-	},
+
+
 
 	// Стиль для сегодняшней даты
 	todayHighlight: {
 		backgroundColor: colors.blueLight,
-	},
-
-	// Кнопка с датой
-	dateButton: {
-		cursor: 'pointer',
-		flex: 1,
-		display: 'flex',
-		alignItems: 'center',
-		gap: toRem(10),
-		paddingLeft: toRem(15),
-
 	},
 
 	// Текст даты
@@ -47,7 +27,6 @@ export const dateItemStyles = {
 		backgroundColor: colors.red,
 		paddingInline: toRem(20),
 		display: 'block',
-		height: '100%',
 	},
 
 	// Текст кнопки удаления

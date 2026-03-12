@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { createHomeStyle } from '../homeStyles';
+import { createHomeStyle } from '../../homeStyles';
+import { GlobalContext } from '../../../../../context/GlobalContext';
 
 function SortableTrainingCard({ item, editState, onEditClick, style }) {
 	const {

@@ -127,12 +127,6 @@ export const createDateListStyles = (mainColor) => ({
 		borderTop: `1px solid ${colors.labelBG}`,
 	},
 
-
-	// Кнопка выбора даты
-	pickerButton: {
-		backgroundColor: colors.orange,
-	},
-
 	// Сообщение об ошибке
 	errorMessage: {
 		color: colors.red,

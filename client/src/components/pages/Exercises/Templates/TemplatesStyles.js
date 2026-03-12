@@ -151,21 +151,8 @@ export const createTemplatesStyles = (mainColor) => ({
 	},
 
 	// Поля ввода
-	input: {
-		width: '100%',
-		marginBottom: toRem(15),
-	},
-
-	// Строка с вводом упражнения
-	exerciseInputRow: {
-		display: 'flex',
-		gap: toRem(10),
-		marginBottom: toRem(15),
-	},
-
-	exerciseInput: {
-		flex: 1,
-		marginBottom: 0,
+	borderStyle: {
+		borderBottom: `1px solid ${colors.popupBorderColor}`,
 	},
 
 	addExerciseButton: {
@@ -187,47 +174,10 @@ export const createTemplatesStyles = (mainColor) => ({
 		},
 	},
 
-	// Список упражнений в модалке
-	exerciseList: {
-		maxHeight: toRem(200),
-		overflowY: 'auto',
-		marginBottom: toRem(20),
-		backgroundColor: 'rgba(255, 255, 255, 0.9)',
-		borderRadius: toRem(8),
-		padding: toRem(10),
-	},
-
-	// Элемент упражнения в списке
-	exerciseItem: {
-		display: 'flex',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		padding: `${toRem(8)} ${toRem(12)}`,
-		backgroundColor: colors.white,
-		borderRadius: toRem(6),
-		marginBottom: toRem(5),
-		border: `1px solid ${colors.inputBorder}`,
-	},
-
 	exerciseName: {
 		color: colors.black,
 		fontSize: toRem(14),
 		fontWeight: '500',
-	},
-
-	removeExerciseButton: {
-		backgroundColor: 'transparent',
-		border: 'none',
-		color: colors.red,
-		fontSize: toRem(16),
-		cursor: 'pointer',
-		padding: toRem(4),
-		borderRadius: toRem(4),
-		transition: 'all 0.3s ease',
-		'&:hover': {
-			backgroundColor: 'rgba(227, 60, 63, 0.1)',
-			transform: 'scale(1.2)',
-		},
 	},
 
 	// ========== КНОПКИ МОДАЛЬНЫХ ОКОН ==========

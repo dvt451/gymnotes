@@ -8,6 +8,7 @@ import { createDateListStyles } from './DateListStyles';
 import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import DateListControls from './DateListControls';
 import { GlobalContext } from '../../../context/GlobalContext';
+import ButtonType from '../../widgets/ButtonType';
 
 export default function DateList() {
 	const location = useLocation();
@@ -105,27 +106,26 @@ export default function DateList() {
 					</div>
 
 					<div style={dateListStyles.buttonContainer}>
-						<button
-							style={{
-								...commonStyle.button,
-								...(todayExists && {
+						<ButtonType
+							addStyle={
+								todayExists && {
 									backgroundColor: colors.gray,
 									opacity: 0.5,
 									cursor: 'not-allowed',
-								})
-							}}
-							disabled={todayExists}
-							onClick={() => addDate(today)}
+								}
+							}
+							functionOnClick={() => addDate(today)}
 						>
 							{todayExists ? 'Already added' : 'Add today'}
-						</button>
+						</ButtonType>
 
-						<button
-							style={{ ...commonStyle.button, ...dateListStyles.pickerButton }}
-							onClick={() => setShowPicker(true)}
+						<ButtonType
+							addStyle={dateListStyles.pickerButton}
+							functionOnClick={() => setShowPicker(true)}
+							buttonType={4}
 						>
 							Choose date
-						</button>
+						</ButtonType>
 					</div>
 				</div>
 

@@ -111,41 +111,41 @@ export default function AddReps({
 			</button>
 
 			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-							<h3 style={commonStyle.title}>
-								Добавить подход
-							</h3>
+				<h3 style={commonStyle.title}>
+					Добавить подход
+				</h3>
 
-							<div style={commonStyle.popupContentInputs}>
-								<input
-									type="number"
-									value={repsInput}
-									onChange={(e) => setRepsInput(e.target.value)}
-									onKeyPress={handleKeyPress}
-									placeholder="Количество повторений"
-									style={commonStyle.popupInput}
-									autoFocus
-									min="1"
-									disabled={isSubmitting}
-								/>
-							</div>
+				<div style={commonStyle.popupContentInputs}>
+					<input
+						type="number"
+						value={repsInput}
+						onChange={(e) => setRepsInput(e.target.value)}
+						onKeyPress={handleKeyPress}
+						placeholder="Количество повторений"
+						style={commonStyle.popupInput}
+						autoFocus
+						min="1"
+						disabled={isSubmitting}
+					/>
+				</div>
 
-							<div style={commonStyle.popupButtons}>
-								<button
-									onClick={handleSubmit}
-									style={commonStyle.popupCreateButton}
-									disabled={!repsInput.trim() || isSubmitting}
-								>
-									{isSubmitting ? 'Добавление...' : 'Добавить'}
-								</button>
+				<div style={commonStyle.popupButtons}>
+					<button
+						onClick={handleSubmit}
+						style={commonStyle.popupCreateButton}
+						disabled={!repsInput.trim() || isSubmitting}
+					>
+						{isSubmitting ? 'Добавление...' : 'Добавить'}
+					</button>
 
-								<button
-									onClick={handleCancel}
-									style={commonStyle.popupCancelButton}
-									disabled={isSubmitting}
-								>
-									Отмена
-								</button>
-							</div>
+					<button
+						onClick={handleCancel}
+						style={commonStyle.popupCancelButton}
+						disabled={isSubmitting}
+					>
+						Отмена
+					</button>
+				</div>
 			</Popup>
 		</>
 	);
