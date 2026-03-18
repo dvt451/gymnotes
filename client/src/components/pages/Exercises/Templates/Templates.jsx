@@ -2,18 +2,15 @@ import React, { useContext, useEffect, useState } from 'react';
 import { createTemplatesStyles } from './TemplatesStyles';
 import { getToken } from '../../../utils/getToken';
 import { AuthContext } from '../../../../context/AuthContext';
-import { colors, createCommonStyle } from '../../../../styles/commonStyle';
+import { colors } from '../../../../styles/commonStyle';
 import { GlobalContext } from '../../../../context/GlobalContext';
-import Popup from '../../../widgets/Popup';
 import {
-	handleCreateExercise,
 	filterExercisesByName,
 	findExactExerciseMatch,
 	normalizeExerciseName,
 } from '../../exerciseLibrary/handleCreateExercise';
 import CreateTemplatePopup from './CreateTemplatePopup';
-import { createPopupStyle } from '../../../widgets/popupStyle';
-import ButtonType from '../../../widgets/ButtonType';
+import EditTemplatePopup from './EditTemplatePopup';
 
 export default function Templates({ setExercises, trainingId, date, existingExercises = [] }) {
 	const { BASE_URL } = useContext(AuthContext);
@@ -37,16 +34,7 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 	const [userExercises, setUserExercises] = useState([]);
 	const filteredExistingExercises = filterExercisesByName(userExercises, newExerciseName);
 	const exactMatch = findExactExerciseMatch(userExercises, newExerciseName);
-
-	const commonStyle = createCommonStyle(mainColor);
 	const templatesStyles = createTemplatesStyles(mainColor);
-	const popupStyle = createPopupStyle(mainColor);
-	const errorStyle = {
-		backgroundColor: colors.red,
-		color: '#fff',
-		borderRadius: '8px',
-		fontSize: '14px',
-	};
 
 	const addExerciseNameToList = (list, name) => {
 		const normalized = normalizeExerciseName(name);
@@ -225,80 +213,6 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 	};
 
 
-
-	// Save edited template
-	const saveEditedTemplate = async () => {
-		if (!editingTemplateName.trim()) {
-			alert('Enter template name');
-			return;
-		}
-
-		const updated = {
-			name: editingTemplateName.trim(),
-			exercises: editingExercises.map(name => ({ name })),
-		};
-
-		try {
-			const token = await getToken();
-			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/templates/${editingTemplateId}`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify(updated),
-			});
-
-			if (!res.ok) {
-				const text = await res.text();
-				console.error('Server error editing template:', res.status, text);
-				showNotificationMessage(`❌ Error updating template: ${text}`);
-				return;
-			}
-
-			const updatedTemplate = await res.json();
-			setTemplates(prev =>
-				prev.map(t => t._id === updatedTemplate._id ? updatedTemplate : t)
-			);
-
-			setEditModalVisible(false);
-			showNotificationMessage('✅ Template updated successfully!');
-		} catch (err) {
-			console.error('Error editing template:', err);
-			showNotificationMessage(`❌ Error: ${err.message}`);
-		}
-	};
-
-	const deleteTemplate = async () => {
-		if (!window.confirm('Delete template? This action cannot be undone.')) return;
-
-		try {
-			const token = await getToken();
-			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/templates/${editingTemplateId}`, {
-				method: 'DELETE',
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			if (!res.ok) {
-				const text = await res.text();
-				console.error('Server error deleting template:', res.status, text);
-				showNotificationMessage(`❌ Error deleting template: ${text}`);
-				return;
-			}
-
-			setTemplates(prev => prev.filter(t => t._id !== editingTemplateId));
-			setEditModalVisible(false);
-			showNotificationMessage('🗑️ Template deleted');
-		} catch (err) {
-			console.error('Error deleting template:', err);
-			showNotificationMessage(`❌ Error: ${err.message}`);
-		}
-	};
-
-
-
 	// Open edit template modal
 	const openEditModal = (template) => {
 		setEditingTemplateId(template._id);
@@ -309,74 +223,6 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 		setEditModalVisible(true);
 	};
 
-	// Remove exercise from editing template
-	const removeExerciseFromEditing = (name) => {
-		setEditingExercises((prev) => prev.filter((ex) => ex !== name));
-	};
-
-	// Add exercise based on current input (shared logic)
-	const addExerciseFromInput = async (mode) => {
-		const normalizedInput = normalizeExerciseName(newExerciseName);
-		if (!normalizedInput || isCreatingExercise) return;
-
-		setIsCreatingExercise(true);
-		setModalError('');
-
-		try {
-			const existing = findExactExerciseMatch(userExercises, normalizedInput);
-			if (existing) {
-				addExerciseToTemplateList(existing.name || normalizedInput, mode);
-				setNewExerciseName('');
-				return;
-
-			}
-
-			const createResult = await handleCreateExercise({
-				BASE_URL,
-				exerciseName: normalizedInput,
-				existingExercises: userExercises,
-
-			});
-
-			if (!createResult.success) {
-				setModalError(createResult.message || 'Не удалось создать упражнение');
-				return;
-
-			}
-
-			const matchedExercise =
-				createResult.exercise || findExactExerciseMatch(userExercises, normalizedInput);
-
-			if (createResult.exercise) {
-				setUserExercises((prev) => {
-					const existsById = prev.some(
-						(item) => String(item._id || item.id) === String(createResult.exercise._id || createResult.exercise.id)
-					);
-					if (existsById) return prev;
-
-					return [...prev, createResult.exercise].sort((a, b) =>
-						(a.name || '').localeCompare(b.name || '')
-					);
-
-				});
-
-			}
-
-			addExerciseToTemplateList(matchedExercise?.name || normalizedInput, mode);
-			setNewExerciseName('');
-
-		} finally {
-			setIsCreatingExercise(false);
-
-		}
-
-	};
-
-	// Add new exercise to editing template
-	const addExerciseToEditing = async () => {
-		await addExerciseFromInput('edit');
-	};
-
 	const openCreateModal = () => {
 		setNewTemplateName('');
 		setNewTemplateExercises([]);
@@ -385,36 +231,6 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 		setModalVisible(true);
 	};
 
-	// Notification styles
-	const notificationStyles = {
-		notification: {
-			position: 'fixed',
-			top: '80px',
-			right: '20px',
-			backgroundColor: '#4CAF50',
-			color: 'white',
-			padding: '15px 20px',
-			borderRadius: '8px',
-			boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-			zIndex: 9999,
-			maxWidth: '400px',
-			transform: showNotification ? 'translateX(0)' : 'translateX(120%)',
-			transition: 'transform 0.3s ease-in-out',
-			display: 'flex',
-			alignItems: 'center',
-			gap: '10px',
-		},
-		notificationError: {
-			backgroundColor: '#f44336',
-		},
-		notificationIcon: {
-			fontSize: '20px',
-		},
-		notificationMessage: {
-			fontSize: '14px',
-			fontWeight: '500',
-		}
-	};
 
 	// Проверяем, доступны ли шаблоны
 	const isLoading = templates === null;
@@ -497,125 +313,43 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 				/>
 
 				{/* Edit template modal */}
-				<Popup
-					isOpen={editModalVisible}
-					onClose={() => setEditModalVisible(false)}
-					contentStyle={{ ...templatesStyles.modalContent, ...commonStyle.popupContent }}
-					contentLayerStyle={{ ...templatesStyles.modalContentLayer, ...commonStyle.popupContentLayer }}
-					containerStyle={{ ...templatesStyles.modalContentContainer, ...commonStyle.popupContentContainer }}
-				>
-					<h3 style={popupStyle.title}>Edit Template</h3>
-
-					<div style={popupStyle.popupBodyContent}>
-						<input
-							type="text"
-							placeholder="Template name"
-							value={editingTemplateName}
-							onChange={(e) => setEditingTemplateName(e.target.value)}
-							style={popupStyle.popupInput}
-						/>
-						<div style={popupStyle.popupContentInputs}>
-							<input
-								type="text"
-								placeholder="Add exercise"
-								value={newExerciseName}
-								onChange={(e) => setNewExerciseName(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === 'Enter') {
-										e.preventDefault();
-										addExerciseToEditing();
-									}
-								}}
-								style={popupStyle.popupInput}
-							/>
-							<ButtonType
-								addStyle={{ width: 'auto', flex: '1 1 auto', whiteSpace: 'nowrap' }}
-								buttonType={7}
-								functionOnClick={addExerciseToEditing}
-							>
-								+ Exercise
-							</ButtonType>
-						</div>
-
-						{exactMatch && (
-							<p style={{ ...errorStyle, margin: '0 0 12px 0', padding: '10px' }}>
-								Exercise already exists: {exactMatch.name}
-							</p>
-						)}
-
-						{modalError && (
-							<p style={{ ...errorStyle, margin: '0 0 12px 0', padding: '10px' }}>
-								{modalError}
-							</p>
-						)}
-						<div style={popupStyle.popupLibraryBlock}>
-							<h3 style={popupStyle.title}>Library</h3>
-							<div style={popupStyle.libraryList}>
-								{userExercises.length === 0 && (
-									<span style={{ color: '#c7d1db', fontSize: '14px' }}>Empty</span>
-								)}
-								{userExercises.length > 0 && filteredExistingExercises.length === 0 && (
-									<span style={{ color: '#c7d1db', fontSize: '14px' }}>No matches</span>
-								)}
-								{filteredExistingExercises.map((item) => (
-									<button
-										key={item._id || item.id || item.name}
-										type="button"
-										onClick={() => addExistingExerciseToTemplate(item, 'edit')}
-										style={popupStyle.libraryItem}
-									>
-										{item.name}
-									</button>
-								))}
-							</div>
-						</div>
-
-						<div style={popupStyle.popupLibraryBlock}>
-							<h3 style={popupStyle.title}>List</h3>
-							<div style={popupStyle.libraryList}>
-								{editingExercises.map((ex, i) => (
-									<div key={`${ex}_${i}`}>
-										<div style={popupStyle.ListItems}>
-											<span style={popupStyle.ListItem}>{ex}</span>
-											<button
-												style={popupStyle.removeExerciseButton}
-												onClick={() => removeExerciseFromEditing(ex)}
-											>
-												✖
-											</button>
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-					</div>
-					<div style={templatesStyles.modalButtonsHorizontal}>
-						<button
-							style={{ ...templatesStyles.deleteButton, ...commonStyle.popupDeleteButton }}
-							onClick={deleteTemplate}
-						>
-							Delete
-						</button>
-						<button
-							style={templatesStyles.saveButton}
-							onClick={saveEditedTemplate}
-						>
-							Save
-						</button>
-					</div>
-				</Popup>
+				<EditTemplatePopup
+					editModalVisible={editModalVisible}
+					editingTemplateName={editingTemplateName}
+					newExerciseName={newExerciseName}
+					exactMatch={exactMatch}
+					filteredExistingExercises={filteredExistingExercises}
+					editingExercises={editingExercises}
+					setEditModalVisible={setEditModalVisible}
+					setEditingTemplateName={setEditingTemplateName}
+					setEditingExercises={setEditingExercises}
+					setNewExerciseName={setNewExerciseName}
+					editingTemplateId={editingTemplateId}
+					modalError={modalError}
+					userExercises={userExercises}
+					showNotificationMessage={showNotificationMessage}
+					trainingId={trainingId}
+					setTemplates={setTemplates}
+					addExistingExerciseToTemplate={addExistingExerciseToTemplate}
+					setIsCreatingExercise={setIsCreatingExercise}
+					setModalError={setModalError}
+					isCreatingExercise={isCreatingExercise}
+					setUserExercises={setUserExercises}
+					addExerciseToTemplateList={addExerciseToTemplateList}
+				/>
 			</div>
 
 			{/* Notification */}
 			{showNotification && (
 				<div style={{
-					...notificationStyles.notification,
-					...(notificationMessage.includes('❌') && notificationStyles.notificationError)
+					...templatesStyles.notification,
+					...(notificationMessage.includes('❌') && templatesStyles.notificationError),
+					transform: showNotification ? 'translateX(0)' : 'translateX(120%)',
 				}}>
-					<span style={notificationStyles.notificationIcon}>
+					<span style={templatesStyles.notificationIcon}>
 						{notificationMessage.includes('✅') ? '✅' : notificationMessage.includes('🗑️') ? '🗑️' : '❌'}
 					</span>
-					<span style={notificationStyles.notificationMessage}>
+					<span style={templatesStyles.notificationMessage}>
 						{notificationMessage.replace(/[✅🗑️❌]/g, '').trim()}
 					</span>
 				</div>

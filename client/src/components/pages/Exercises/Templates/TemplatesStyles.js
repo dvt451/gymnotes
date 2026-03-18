@@ -213,4 +213,30 @@ export const createTemplatesStyles = (mainColor) => ({
 			transform: 'translateY(-2px)',
 		},
 	},
+	notification: {
+		position: 'fixed',
+		top: '80px',
+		right: '20px',
+		backgroundColor: '#4CAF50',
+		color: 'white',
+		padding: '15px 20px',
+		borderRadius: '8px',
+		boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+		zIndex: 9999,
+		maxWidth: '400px',
+		transition: 'transform 0.3s ease-in-out',
+		display: 'flex',
+		alignItems: 'center',
+		gap: '10px',
+	},
+	notificationError: {
+		backgroundColor: '#f44336',
+	},
+	notificationIcon: {
+		fontSize: '20px',
+	},
+	notificationMessage: {
+		fontSize: '14px',
+		fontWeight: '500',
+	}
 });

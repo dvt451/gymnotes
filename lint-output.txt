@@ -1,0 +1,160 @@
+
+> client@0.0.0 lint
+> eslint .
+
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\DateList\DateListControls.jsx
+  1:17  error  'use' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\DateList\DatePickerModal.jsx
+  21:24  error  React Hook "useContext" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\AddExercisePopup.jsx
+    5:10  error    'colors' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                no-unused-vars
+  251:5   warning  React Hook useEffect has a missing dependency: 'setExercises'. Either include it or remove the dependency array. If 'setExercises' changes too often, find the parent component that defines it and wrap that definition in useCallback                                                      react-hooks/exhaustive-deps
+  274:5   warning  React Hook useEffect has a missing dependency: 'setUserExercises'. Either include it or remove the dependency array. If 'setUserExercises' changes too often, find the parent component that defines it and wrap that definition in useCallback                                              react-hooks/exhaustive-deps
+  341:5   warning  React Hook useEffect has missing dependencies: 'setPreviousDateKey' and 'setPreviousExercisesByLibraryId'. Either include them or remove the dependency array. If 'setPreviousDateKey' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\ExerciseItem\PrevWeights.jsx
+  20:53  error  'previousDate' is assigned a value but never used  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\Exercises.jsx
+  1:17  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  4:10  error  'getToken' is defined but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  6:8   error  'axios' is defined but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\ExercisesList.jsx
+  4:10  error  'colors' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\ExersicesStyles.js
+  168:2  error  Duplicate key 'container'    no-dupe-keys
+  174:2  error  Duplicate key 'header'       no-dupe-keys
+  180:2  error  Duplicate key 'title'        no-dupe-keys
+  188:2  error  Duplicate key 'date'         no-dupe-keys
+  196:2  error  Duplicate key 'noExercises'  no-dupe-keys
+  207:2  error  Duplicate key 'error'        no-dupe-keys
+  435:2  error  Duplicate key 'modalTitle'   no-dupe-keys
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\Templates\Templates.jsx
+  654:39  error  Unexpected surrogate pair in character class. Use 'u' flag  no-misleading-character-class
+  654:40  error  Unexpected combined character in character class            no-misleading-character-class
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Exercises\Templates\TemplatesStyles.js
+  85:3  error  Duplicate key 'textAlign'  no-dupe-keys
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Home\TrainingSection\TrainingsSection.jsx
+   9:10  error  'colors' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+  11:8   error  'axios' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+  47:4   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  45 | 		if (state.trainingDays.length === 0 && (editState || state.isReordering)) {
+  46 | 			console.log('🔄 No trainings left, resetting edit states');
+> 47 | 			setEditState(false);
+     | 			^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  48 | 			setState(prev => ({
+  49 | 				...prev,
+  50 | 				isReordering: false,  react-hooks/set-state-in-effect
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Home\TrainingSection\hooks\useTrainings.jsx
+  92:5  warning  React Hook useCallback has a missing dependency: 'state.trainingDays.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Home\TrainingSection\widgets\SortableTrainingCard.jsx
+  7:50  error  'onEditClick' is defined but never used  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Home\TrainingSection\widgets\TrainingControls.jsx
+   7:2  error  'isReordering' is defined but never used   no-unused-vars
+   8:2  error  'isLoading' is defined but never used      no-unused-vars
+  10:2  error  'onSaveReorder' is defined but never used  no-unused-vars
+  11:2  error  'onAddTraining' is defined but never used  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Home\TrainingSection\widgets\TrainingPopup.jsx
+  9:2  error  'training' is assigned a value but never used  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\Home\nutritions\Nutritions.jsx
+   3:10  error    'colors' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                       no-unused-vars
+   3:18  error    'toRem' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                        no-unused-vars
+  30:5   warning  React Hook useEffect has a missing dependency: 'fetchNutritions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\exerciseLibrary\ExersicesStyles.js
+  203:2  error  Duplicate key 'container'    no-dupe-keys
+  208:2  error  Duplicate key 'header'       no-dupe-keys
+  214:2  error  Duplicate key 'title'        no-dupe-keys
+  222:2  error  Duplicate key 'date'         no-dupe-keys
+  230:2  error  Duplicate key 'noExercises'  no-dupe-keys
+  241:2  error  Duplicate key 'error'        no-dupe-keys
+  436:2  error  Duplicate key 'modalTitle'   no-dupe-keys
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\profile\Profile.jsx
+   17:4   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 | 	useEffect(() => {
+  16 | 		if (message) {
+> 17 | 			setIsVisible(true);
+     | 			^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 | 			const timer = setTimeout(() => {
+  19 | 				setIsVisible(false);
+  20 | 				setTimeout(onClose, 300); // Даем время на анимацию исчезновения  react-hooks/set-state-in-effect
+  124:10  error  'updated' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+  171:10  error  'updated' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\profile\ProfileMainColorSelector.jsx
+  6:21  error  'setMainColor' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  8:8   error  'presetColors' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\pages\profile\profileStyles.js
+  131:2  error  Duplicate key 'infoEditRow'   no-dupe-keys
+  138:2  error  Duplicate key 'submitButton'  no-dupe-keys
+  150:2  error  Duplicate key 'cancelButton'  no-dupe-keys
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\widgets\ButtonType.jsx
+  3:10  error  'createHomeStyle' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\widgets\Header.jsx
+  12:9   error  'showUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  12:19  error  'setShowUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+  17:3   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  15 | 	useEffect(() => {
+  16 | 		// Проверяем, не находимся ли мы на странице /home
+> 17 | 		setShowBackButton(location.pathname !== '/home' && location.pathname !== '/profile');
+     | 		^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 | 	}, [location.pathname]);
+  19 |
+  20 | 	const handleGoBack = () => {  react-hooks/set-state-in-effect
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\widgets\Popup.jsx
+  12:8  error  'commonStyle' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\widgets\headerStyle.js
+  1:10  error  'tr' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\components\widgets\popupStyle.js
+  1:10  error  'tr' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\context\AuthContext.jsx
+   6:14  error    Fast refresh only works when a file only exports components. Move your React context(s) to a separate file   react-refresh/only-export-components
+  53:5   warning  React Hook useEffect has a missing dependency: 'BASE_URL'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Coding\Projects\On work\gymnotesv2\client\src\context\GlobalContext.jsx
+  4:14  error  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file  react-refresh/only-export-components
+
+✖ 59 problems (53 errors, 6 warnings)
+

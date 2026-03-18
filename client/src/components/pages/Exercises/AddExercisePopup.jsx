@@ -1,17 +1,22 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react';
 import Popup from '../../widgets/Popup';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { createExercisesStyles } from './ExersicesStyles';
-import { colors, createCommonStyle } from '../../../styles/commonStyle';
+import { createCommonStyle } from '../../../styles/commonStyle';
 import {
 	handleCreateExercise,
 	filterExercisesByName,
 	findExactExerciseMatch,
 	normalizeExerciseName,
 } from '../exerciseLibrary/handleCreateExercise';
+import {
+	DEFAULT_MUSCLE_GROUP,
+	normalizeExerciseMuscleGroup,
+} from '../exerciseLibrary/muscleGroups';
 import { createPopupStyle } from '../../widgets/popupStyle';
 import axios from 'axios';
 import { getToken } from '../../../components/utils/getToken';
+import MuscleGroupSelect from '../../widgets/MuscleGroupSelect';
 
 const normalizeExercisePayload = (ex) => ({
 	...ex,
@@ -70,9 +75,10 @@ export default function AddExercisePopup({
 	setModalError,
 	setUserExercises,
 	setPreviousDateKey,
-	setPreviousExercisesByLibraryId
+	setPreviousExercisesByLibraryId,
 }) {
 	const [newExerciseName, setNewExerciseName] = useState('');
+	const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(DEFAULT_MUSCLE_GROUP);
 	const [isCreatingExercise, setIsCreatingExercise] = useState(false);
 
 	const { mainColor } = useContext(GlobalContext);
@@ -98,6 +104,13 @@ export default function AddExercisePopup({
 		});
 	};
 
+	const closeModal = () => {
+		setModalVisible(false);
+		setNewExerciseName('');
+		setSelectedMuscleGroup(DEFAULT_MUSCLE_GROUP);
+		setModalError('');
+	};
+
 	const isExerciseAlreadyInDay = ({ name, exerciseUserLibraryId }) => {
 		const normalizedName = normalizeExerciseName(name).toLowerCase();
 		const normalizedLibraryId = exerciseUserLibraryId ? String(exerciseUserLibraryId) : '';
@@ -112,9 +125,10 @@ export default function AddExercisePopup({
 			return Boolean(normalizedName && itemName && itemName === normalizedName);
 		});
 	};
+
 	const addExerciseToCurrentDay = async ({ name, exerciseUserLibraryId }) => {
 		if (isExerciseAlreadyInDay({ name, exerciseUserLibraryId })) {
-			return { success: false, message: 'Упражнение уже в списке' };
+			return { success: false, message: 'Exercise is already in the list' };
 		}
 
 		try {
@@ -137,10 +151,14 @@ export default function AddExercisePopup({
 			mergeExerciseToDayList(response.data);
 			return { success: true };
 		} catch (err) {
-			const message = err?.response?.data?.message || err.message || 'Ошибка добавления упражнения в день';
+			const message =
+				err?.response?.data?.message ||
+				err.message ||
+				'Failed to add exercise to the day';
 			return { success: false, message };
 		}
 	};
+
 	const createExerciseFromModal = async () => {
 		const normalizedInput = normalizeExerciseName(newExerciseName);
 		if (!normalizedInput) return;
@@ -150,7 +168,7 @@ export default function AddExercisePopup({
 
 		try {
 			if (isExerciseAlreadyInDay({ name: normalizedInput })) {
-				setModalError('Упражнение уже в списке');
+				setModalError('Exercise is already in the list');
 				return;
 			}
 
@@ -158,10 +176,11 @@ export default function AddExercisePopup({
 				BASE_URL,
 				exerciseName: normalizedInput,
 				existingExercises: userExercises,
+				muscleGroup: selectedMuscleGroup,
 			});
 
 			if (!createResult.success) {
-				setModalError(createResult.message || 'Не удалось создать упражнение');
+				setModalError(createResult.message || 'Failed to create exercise');
 				return;
 			}
 
@@ -171,7 +190,9 @@ export default function AddExercisePopup({
 			if (createResult.exercise) {
 				setUserExercises((prev) => {
 					const existsById = prev.some(
-						(item) => String(item._id || item.id) === String(createResult.exercise._id || createResult.exercise.id)
+						(item) =>
+							String(item._id || item.id) ===
+							String(createResult.exercise._id || createResult.exercise.id)
 					);
 					if (existsById) return prev;
 
@@ -187,13 +208,11 @@ export default function AddExercisePopup({
 			});
 
 			if (!addResult.success) {
-				setModalError(addResult.message || 'Не удалось добавить упражнение в день');
+				setModalError(addResult.message || 'Failed to add exercise to the day');
 				return;
 			}
 
-			setModalVisible(false);
-			setNewExerciseName('');
-			setModalError('');
+			closeModal();
 		} finally {
 			setIsCreatingExercise(false);
 		}
@@ -204,10 +223,16 @@ export default function AddExercisePopup({
 
 		setIsCreatingExercise(true);
 		setModalError('');
+		setSelectedMuscleGroup(normalizeExerciseMuscleGroup(exercise.muscleGroup));
 
 		try {
-			if (isExerciseAlreadyInDay({ name: exercise.name, exerciseUserLibraryId: exercise._id || exercise.id })) {
-				setModalError('Упражнение уже в списке');
+			if (
+				isExerciseAlreadyInDay({
+					name: exercise.name,
+					exerciseUserLibraryId: exercise._id || exercise.id,
+				})
+			) {
+				setModalError('Exercise is already in the list');
 				return;
 			}
 
@@ -217,16 +242,16 @@ export default function AddExercisePopup({
 			});
 
 			if (!addResult.success) {
-				setModalError(addResult.message || 'Не удалось добавить упражнение в день');
+				setModalError(addResult.message || 'Failed to add exercise to the day');
 				return;
 			}
 
-			setModalVisible(false);
-			setNewExerciseName('');
+			closeModal();
 		} finally {
 			setIsCreatingExercise(false);
 		}
 	};
+
 	useEffect(() => {
 		const loadExercises = async () => {
 			try {
@@ -243,12 +268,12 @@ export default function AddExercisePopup({
 				const exercisesArray = res.data.exercises || [];
 				setExercises(exercisesArray.map(normalizeExercisePayload));
 			} catch (err) {
-				console.error('Ошибка при загрузке упражнений:', err);
+				console.error('Error loading exercises:', err);
 			}
 		};
 
 		loadExercises();
-	}, [trainingId, date, BASE_URL]);
+	}, [trainingId, date, BASE_URL, setExercises]);
 
 	useEffect(() => {
 		const loadUserLibrary = async () => {
@@ -266,12 +291,12 @@ export default function AddExercisePopup({
 				const data = await response.json();
 				setUserExercises(Array.isArray(data.userExercises) ? data.userExercises : []);
 			} catch (err) {
-				console.error('Ошибка загрузки библиотеки упражнений:', err);
+				console.error('Error loading exercise library:', err);
 			}
 		};
 
 		loadUserLibrary();
-	}, [BASE_URL]);
+	}, [BASE_URL, setUserExercises]);
 
 	useEffect(() => {
 		let isActive = true;
@@ -326,7 +351,7 @@ export default function AddExercisePopup({
 				setPreviousDateKey(previousDate);
 				setPreviousExercisesByLibraryId(groupedByLibraryId);
 			} catch (err) {
-				console.error('Ошибка загрузки предыдущей даты для упражнений:', err);
+				console.error('Error loading previous date exercises:', err);
 				if (!isActive) return;
 				setPreviousDateKey('');
 				setPreviousExercisesByLibraryId({});
@@ -338,21 +363,22 @@ export default function AddExercisePopup({
 		return () => {
 			isActive = false;
 		};
-	}, [trainingId, date, BASE_URL]);
-
+	}, [trainingId, date, BASE_URL, setPreviousDateKey, setPreviousExercisesByLibraryId]);
 
 	const filteredExistingExercises = filterExercisesByName(userExercises, newExerciseName);
 	const exactMatch = findExactExerciseMatch(userExercises, newExerciseName);
+	const normalizedInput = normalizeExerciseName(newExerciseName);
+	const shouldCreateExercise = Boolean(normalizedInput) && !exactMatch;
 
 	return (
-		<Popup isOpen={modalVisible} onClose={() => setModalVisible(false)}>
+		<Popup isOpen={modalVisible} onClose={closeModal}>
 			<h2 style={popupStyle.title}>New Exercise</h2>
 
 			<div style={popupStyle.popupBodyContent}>
 				<input
 					type="text"
 					style={popupStyle.popupInput}
-					placeholder="Название упражнения"
+					placeholder="Exercise name"
 					value={newExerciseName}
 					onChange={(e) => {
 						setModalError('');
@@ -360,24 +386,36 @@ export default function AddExercisePopup({
 					}}
 					autoFocus
 				/>
+
+				{shouldCreateExercise && (
+					<MuscleGroupSelect
+						style={popupStyle.popupInput}
+						value={selectedMuscleGroup}
+						onChange={setSelectedMuscleGroup}
+						disabled={isCreatingExercise}
+					/>
+				)}
+
 				{exactMatch && (
 					<p style={{ ...styles.noExercises, margin: '0 0 8px 0', padding: '8px' }}>
-						Уже есть в библиотеке: {exactMatch.name}
+						Already in library: {exactMatch.name}
 					</p>
 				)}
 
 				{modalError && (
-					<p style={{ ...styles.error, margin: '0 0 8px 0', padding: '8px' }}>{modalError}</p>
+					<p style={{ ...styles.error, margin: '0 0 8px 0', padding: '8px' }}>
+						{modalError}
+					</p>
 				)}
 
 				<div style={popupStyle.popupLibraryBlock}>
 					<h3 style={popupStyle.title}>Library</h3>
 					<div style={popupStyle.libraryList}>
 						{userExercises.length === 0 && (
-							<span style={{ color: '#c7d1db', fontSize: '14px' }}>Библиотека пользователя пуста</span>
+							<span style={{ color: '#c7d1db', fontSize: '14px' }}>Library is empty</span>
 						)}
 						{userExercises.length > 0 && filteredExistingExercises.length === 0 && (
-							<span style={{ color: '#c7d1db', fontSize: '14px' }}>Совпадений не найдено</span>
+							<span style={{ color: '#c7d1db', fontSize: '14px' }}>No matches found</span>
 						)}
 						{filteredExistingExercises.map((item) => (
 							<button
@@ -400,16 +438,20 @@ export default function AddExercisePopup({
 					onClick={createExerciseFromModal}
 					disabled={!newExerciseName.trim() || isCreatingExercise}
 				>
-					{isCreatingExercise ? 'Сохранение...' : 'Сохранить'}
+					{isCreatingExercise
+						? 'Saving...'
+						: shouldCreateExercise
+							? 'Create Exercise'
+							: 'Add Exercise'}
 				</button>
 				<button
 					style={commonStyle.popupCancelButton}
-					onClick={() => setModalVisible(false)}
+					onClick={closeModal}
 					disabled={isCreatingExercise}
 				>
-					Отмена
+					Cancel
 				</button>
 			</div>
 		</Popup>
-	)
+	);
 }

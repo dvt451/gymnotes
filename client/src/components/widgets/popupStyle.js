@@ -1,4 +1,3 @@
-import { tr } from 'date-fns/locale';
 import { colors, toRem } from '../../styles/commonStyle';
 
 export const createPopupStyle = (mainColor) => ({

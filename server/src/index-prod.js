@@ -38,6 +38,7 @@ import weightRoutes from './routes/weights.js';
 import repRoutes from './routes/reps.js';
 import nutritionRoutes from './routes/nutritions.js';
 import exerciseLibraryRoutes from './routes/exerciseLibrary.js';
+import progressRoutes from './routes/progress.js';
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/trainings', trainingRoutes); // Основные операции с тренировками
 app.use('/api/nutritions', nutritionRoutes);
 app.use('/api/exercise-library', exerciseLibraryRoutes);
+app.use('/api/progress', progressRoutes);
 
 // Роутеры для работы с датами, упражнениями, весами и повторениями
 // Эти роутеры должны быть ПОДКЛЮЧЕНЫ ТОЛЬКО ОДИН РАЗ и в правильном порядке
@@ -101,6 +103,7 @@ app.get('/', (req, res) => {
 			templates: '/api/trainings/:fileId/templates',
 			nutritions: '/api/nutritions',
 			exercise_library: '/api/exercise-library',
+			progress: '/api/progress',
 			test_weights: '/api/test-weights',
 			health: '/health'
 		}

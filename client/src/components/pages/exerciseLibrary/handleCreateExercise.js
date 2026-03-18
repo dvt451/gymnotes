@@ -29,10 +29,11 @@ export const handleCreateExercise = async ({
 	BASE_URL,
 	exerciseName,
 	existingExercises = [],
+	muscleGroup,
 }) => {
 	const normalized = normalizeExerciseName(exerciseName);
 	if (!normalized) {
-		return { success: false, message: 'Введите название упражнения' };
+		return { success: false, message: 'Enter exercise name' };
 	}
 
 	const exactMatch = findExactExerciseMatch(existingExercises, normalized);
@@ -42,14 +43,14 @@ export const handleCreateExercise = async ({
 			alreadyExists: true,
 			created: false,
 			exercise: exactMatch,
-			message: 'Упражнение уже существует',
+			message: 'Exercise already exists',
 		};
 	}
 
 	try {
 		const token = getToken();
 		if (!token) {
-			return { success: false, message: 'Требуется авторизация' };
+			return { success: false, message: 'Authorization required' };
 		}
 
 		const response = await fetch(`${BASE_URL}/api/exercise-library`, {
@@ -58,7 +59,10 @@ export const handleCreateExercise = async ({
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
-			body: JSON.stringify({ name: normalized }),
+			body: JSON.stringify({
+				name: normalized,
+				...(muscleGroup ? { muscleGroup } : {}),
+			}),
 		});
 
 		const contentType = response.headers.get('content-type') || '';
@@ -73,13 +77,13 @@ export const handleCreateExercise = async ({
 					alreadyExists: true,
 					created: false,
 					exercise: data?.existingExercise || null,
-					message: data?.message || 'Упражнение уже существует',
+					message: data?.message || 'Exercise already exists',
 				};
 			}
 
 			return {
 				success: false,
-				message: data?.message || 'Не удалось создать упражнение',
+				message: data?.message || 'Failed to create exercise',
 			};
 		}
 
@@ -92,7 +96,7 @@ export const handleCreateExercise = async ({
 	} catch (err) {
 		return {
 			success: false,
-			message: err.message || 'Не удалось создать упражнение',
+			message: err.message || 'Failed to create exercise',
 		};
 	}
 };

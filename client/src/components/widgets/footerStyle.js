@@ -15,9 +15,15 @@ export const createFooterStyle = (mainColor) => ({
 		alignItems: 'center',
 		justifyContent: 'center',
 		gap: toRem(5),
+		flex: 1,
+		textAlign: 'center',
 	},
 	footerLinkIcon: {
 		fontSize: toRem(30),
+	},
+	footerLinkText: {
+		fontSize: toRem(12),
+		lineHeight: 1.2,
 	},
 	footerLinkTextActive: {
 

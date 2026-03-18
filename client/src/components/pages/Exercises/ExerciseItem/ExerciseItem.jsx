@@ -9,6 +9,8 @@ import { getToken } from '../../../utils/getToken';
 import { FaPen } from 'react-icons/fa';
 import PrevWeights from './PrevWeights';
 import { createPopupStyle } from '../../../widgets/popupStyle';
+import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
+import { normalizeExerciseMuscleGroup } from '../../exerciseLibrary/muscleGroups';
 
 export default function ExerciseItem({
 	item,
@@ -27,6 +29,9 @@ export default function ExerciseItem({
 	const commonStyle = createCommonStyle(mainColor);
 	const [showRenamePopup, setShowRenamePopup] = useState(false);
 	const [renameValue, setRenameValue] = useState(item.name || '');
+	const [renameMuscleGroup, setRenameMuscleGroup] = useState(
+		normalizeExerciseMuscleGroup(item.muscleGroup)
+	);
 	const [renameError, setRenameError] = useState('');
 	const [isRenaming, setIsRenaming] = useState(false);
 	const popupStyle = createPopupStyle(mainColor);
@@ -42,12 +47,14 @@ export default function ExerciseItem({
 	const openRenamePopup = (e) => {
 		e.stopPropagation();
 		setRenameValue(item.name || '');
+		setRenameMuscleGroup(normalizeExerciseMuscleGroup(item.muscleGroup));
 		setRenameError('');
 		setShowRenamePopup(true);
 	};
 
 	const closeRenamePopup = () => {
 		setShowRenamePopup(false);
+		setRenameMuscleGroup(normalizeExerciseMuscleGroup(item.muscleGroup));
 		setRenameError('');
 	};
 
@@ -67,7 +74,10 @@ export default function ExerciseItem({
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({ name: nextName }),
+				body: JSON.stringify({
+					name: nextName,
+					muscleGroup: renameMuscleGroup,
+				}),
 			});
 
 			const data = (response.headers.get('content-type') || '').includes('application/json')
@@ -144,7 +154,7 @@ export default function ExerciseItem({
 			/>
 
 			<Popup isOpen={showRenamePopup} onClose={closeRenamePopup}>
-				<h2 style={popupStyle.title}>New Exercise</h2>
+				<h2 style={popupStyle.title}>Rename Exercise</h2>
 				<div style={popupStyle.popupBodyContent}>
 					<input
 						type="text"
@@ -156,6 +166,12 @@ export default function ExerciseItem({
 						}}
 						placeholder="Новое название"
 						autoFocus
+					/>
+					<MuscleGroupSelect
+						style={popupStyle.popupInput}
+						value={renameMuscleGroup}
+						onChange={setRenameMuscleGroup}
+						disabled={isRenaming}
 					/>
 				</div>
 				{renameError && (

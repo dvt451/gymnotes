@@ -1,9 +1,12 @@
 import React, { useContext, useState } from 'react';
-import { createTemplatesStyles } from './TemplatesStyles';
-import { GlobalContext } from '../../../../context/GlobalContext';
-import { colors, createCommonStyle } from '../../../../styles/commonStyle';
-import { getToken } from '../../../utils/getToken';
 import Popup from '../../../widgets/Popup';
+import { createPopupStyle } from '../../../widgets/popupStyle';
+import { createCommonStyle, colors } from '../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../context/GlobalContext';
+import { createTemplatesStyles } from './TemplatesStyles';
+import ButtonType from '../../../widgets/ButtonType';
+import { AuthContext } from '../../../../context/AuthContext';
+import { getToken } from '../../../utils/getToken';
 import {
 	handleCreateExercise,
 	findExactExerciseMatch,
@@ -13,39 +16,37 @@ import {
 	DEFAULT_MUSCLE_GROUP,
 	normalizeExerciseMuscleGroup,
 } from '../../exerciseLibrary/muscleGroups';
-import { createPopupStyle } from '../../../widgets/popupStyle';
-import ButtonType from '../../../widgets/ButtonType';
 import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
-import { FaTrash } from 'react-icons/fa';
 
-export default function CreateTemplatePopup({
-	modalVisible,
-	setModalVisible,
-	newTemplateName,
-	newTemplateExercises,
-	setNewTemplateName,
-	setNewTemplateExercises,
+export default function EditTemplatePopup({
+	editModalVisible,
+	editingTemplateName,
 	newExerciseName,
-	setNewExerciseName,
-	userExercises,
-	setTemplates,
-	BASE_URL,
-	trainingId,
-	showNotificationMessage,
-	addExistingExerciseToTemplate,
-	isCreatingExercise,
-	setIsCreatingExercise,
 	exactMatch,
 	filteredExistingExercises,
+	editingExercises,
+	setEditModalVisible,
+	setEditingTemplateName,
+	setEditingExercises,
+	setNewExerciseName,
+	editingTemplateId,
 	modalError,
+	userExercises,
+	showNotificationMessage,
+	trainingId,
+	setTemplates,
+	addExistingExerciseToTemplate,
+	setIsCreatingExercise,
+	isCreatingExercise,
 	setModalError,
 	setUserExercises,
 	addExerciseToTemplateList,
 }) {
+	const { BASE_URL } = useContext(AuthContext);
 	const { mainColor } = useContext(GlobalContext);
 	const commonStyle = createCommonStyle(mainColor);
-	const templatesStyles = createTemplatesStyles(mainColor);
 	const popupStyle = createPopupStyle(mainColor);
+	const templatesStyles = createTemplatesStyles(mainColor);
 	const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(DEFAULT_MUSCLE_GROUP);
 	const errorStyle = {
 		backgroundColor: colors.red,
@@ -58,53 +59,104 @@ export default function CreateTemplatePopup({
 	const shouldCreateExercise = Boolean(normalizedInput) && !exactMatch;
 
 	const closeModal = () => {
-		setModalVisible(false);
+		setEditModalVisible(false);
 		setSelectedMuscleGroup(DEFAULT_MUSCLE_GROUP);
 		setModalError('');
 		setNewExerciseName('');
 	};
 
-	const saveNewTemplate = async () => {
-		if (!newTemplateName.trim()) {
+	const saveEditedTemplate = async () => {
+		if (!editingTemplateName.trim()) {
 			alert('Enter template name');
 			return;
 		}
 
-		const newTemplate = {
-			name: newTemplateName.trim(),
-			exercises: newTemplateExercises.map((name) => ({ name })),
+		const updated = {
+			name: editingTemplateName.trim(),
+			exercises: editingExercises.map((name) => ({ name })),
 		};
 
 		try {
 			const token = await getToken();
-			const res = await fetch(`${BASE_URL}/api/trainings/${trainingId}/templates`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify(newTemplate),
-			});
+			const res = await fetch(
+				`${BASE_URL}/api/trainings/${trainingId}/templates/${editingTemplateId}`,
+				{
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify(updated),
+				}
+			);
 
 			if (!res.ok) {
 				const text = await res.text();
-				console.error('Server error saving template:', res.status, text);
-				showNotificationMessage(`Error saving template: ${text}`);
+				console.error('Server error editing template:', res.status, text);
+				showNotificationMessage(`Error updating template: ${text}`);
 				return;
 			}
 
-			const saved = await res.json();
-			setTemplates((prev) => [...prev, saved]);
-			setModalVisible(false);
-			setNewTemplateName('');
-			setNewTemplateExercises([]);
-			setNewExerciseName('');
-			setSelectedMuscleGroup(DEFAULT_MUSCLE_GROUP);
-			showNotificationMessage('Template saved successfully');
+			const updatedTemplate = await res.json();
+			setTemplates((prev) =>
+				prev.map((t) => (t._id === updatedTemplate._id ? updatedTemplate : t))
+			);
+
+			closeModal();
+			showNotificationMessage('Template updated successfully');
 		} catch (err) {
-			console.error('Error saving template:', err);
+			console.error('Error editing template:', err);
 			showNotificationMessage(`Error: ${err.message}`);
 		}
+	};
+
+	const deleteTemplate = async () => {
+		if (!window.confirm('Delete template? This action cannot be undone.')) return;
+
+		try {
+			const token = await getToken();
+			const res = await fetch(
+				`${BASE_URL}/api/trainings/${trainingId}/templates/${editingTemplateId}`,
+				{
+					method: 'DELETE',
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (!res.ok) {
+				const text = await res.text();
+				console.error('Server error deleting template:', res.status, text);
+				showNotificationMessage(`Error deleting template: ${text}`);
+				return;
+			}
+
+			setTemplates((prev) => prev.filter((t) => t._id !== editingTemplateId));
+			closeModal();
+			showNotificationMessage('Template deleted');
+		} catch (err) {
+			console.error('Error deleting template:', err);
+			showNotificationMessage(`Error: ${err.message}`);
+		}
+	};
+
+	const removeExerciseFromEditing = (name) => {
+		setEditingExercises((prev) => prev.filter((ex) => ex !== name));
+	};
+
+	const moveExerciseInEditingList = (index, direction) => {
+		setEditingExercises((prev) => {
+			const next = [...prev];
+			const newIndex = index + direction;
+			if (newIndex < 0 || newIndex >= next.length) return prev;
+			[next[index], next[newIndex]] = [next[newIndex], next[index]];
+			return next;
+		});
+	};
+
+	const addExerciseToEditing = async () => {
+		await addExerciseFromInput('edit');
 	};
 
 	const addExerciseFromInput = async (mode) => {
@@ -160,39 +212,24 @@ export default function CreateTemplatePopup({
 		}
 	};
 
-	const moveExerciseInNewTemplate = (index, direction) => {
-		setNewTemplateExercises((prev) => {
-			const next = [...prev];
-			const newIndex = index + direction;
-			if (newIndex < 0 || newIndex >= next.length) return prev;
-			[next[index], next[newIndex]] = [next[newIndex], next[index]];
-			return next;
-		});
-	};
-
-	const addExerciseToNewTemplate = async () => {
-		await addExerciseFromInput('new');
-	};
-
 	return (
 		<Popup
-			isOpen={modalVisible}
+			isOpen={editModalVisible}
 			onClose={closeModal}
 			contentStyle={{ ...templatesStyles.modalContent, ...commonStyle.popupContent }}
 			contentLayerStyle={{ ...templatesStyles.modalContentLayer, ...commonStyle.popupContentLayer }}
 			containerStyle={{ ...templatesStyles.modalContentContainer, ...commonStyle.popupContentContainer }}
 		>
-			<h3 style={popupStyle.title}>New Template</h3>
+			<h3 style={popupStyle.title}>Edit Template</h3>
 
 			<div style={popupStyle.popupBodyContent}>
 				<input
 					type="text"
 					placeholder="Template name"
-					value={newTemplateName}
-					onChange={(e) => setNewTemplateName(e.target.value)}
+					value={editingTemplateName}
+					onChange={(e) => setEditingTemplateName(e.target.value)}
 					style={popupStyle.popupInput}
 				/>
-
 				<div style={popupStyle.popupContentInputs}>
 					<input
 						type="text"
@@ -202,7 +239,7 @@ export default function CreateTemplatePopup({
 						onKeyDown={(e) => {
 							if (e.key === 'Enter') {
 								e.preventDefault();
-								addExerciseToNewTemplate();
+								addExerciseToEditing();
 							}
 						}}
 						style={popupStyle.popupInput}
@@ -210,7 +247,7 @@ export default function CreateTemplatePopup({
 					<ButtonType
 						addStyle={{ width: 'auto', flex: '1 1 auto', whiteSpace: 'nowrap' }}
 						buttonType={7}
-						functionOnClick={addExerciseToNewTemplate}
+						functionOnClick={addExerciseToEditing}
 					>
 						{shouldCreateExercise ? 'Create Exercise' : '+ Exercise'}
 					</ButtonType>
@@ -236,7 +273,6 @@ export default function CreateTemplatePopup({
 						{modalError}
 					</p>
 				)}
-
 				<div style={popupStyle.popupLibraryBlock}>
 					<h3 style={popupStyle.title}>Library</h3>
 					<div style={popupStyle.libraryList}>
@@ -254,7 +290,7 @@ export default function CreateTemplatePopup({
 									setSelectedMuscleGroup(
 										normalizeExerciseMuscleGroup(item.muscleGroup)
 									);
-									addExistingExerciseToTemplate(item, 'new');
+									addExistingExerciseToTemplate(item, 'edit');
 								}}
 								style={popupStyle.libraryItem}
 							>
@@ -263,52 +299,52 @@ export default function CreateTemplatePopup({
 						))}
 					</div>
 				</div>
+
 				<div style={popupStyle.popupLibraryBlock}>
 					<h3 style={popupStyle.title}>List</h3>
 					<div style={popupStyle.libraryList}>
-						{newTemplateExercises.map((ex, i) => (
-							<div
-								key={`${ex}_${i}`}
-								style={{
-									...popupStyle.ListItems,
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'space-between',
-								}}
-							>
-								<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-									<button
-										type="button"
-										style={{
-											...popupStyle.removeExerciseButton,
-											padding: '4px 8px',
-										}}
-										onClick={() => moveExerciseInNewTemplate(i, -1)}
-										disabled={i === 0}
-									>
-										Up
-									</button>
-									<button
-										type="button"
-										style={{
-											...popupStyle.removeExerciseButton,
-											padding: '4px 8px',
-										}}
-										onClick={() => moveExerciseInNewTemplate(i, 1)}
-										disabled={i === newTemplateExercises.length - 1}
-									>
-										Down
-									</button>
-									<span style={popupStyle.ListItem}>{ex}</span>
-								</div>
-								<button
-									style={popupStyle.removeExerciseButton}
-									onClick={() =>
-										setNewTemplateExercises((prev) => prev.filter((e) => e !== ex))
-									}
+						{editingExercises.map((ex, i) => (
+							<div key={`${ex}_${i}`}>
+								<div
+									style={{
+										...popupStyle.ListItems,
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'space-between',
+									}}
 								>
-									<FaTrash />
-								</button>
+									<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+										<button
+											type="button"
+											style={{
+												...popupStyle.removeExerciseButton,
+												padding: '4px 8px',
+											}}
+											onClick={() => moveExerciseInEditingList(i, -1)}
+											disabled={i === 0}
+										>
+											Up
+										</button>
+										<button
+											type="button"
+											style={{
+												...popupStyle.removeExerciseButton,
+												padding: '4px 8px',
+											}}
+											onClick={() => moveExerciseInEditingList(i, 1)}
+											disabled={i === editingExercises.length - 1}
+										>
+											Down
+										</button>
+										<span style={popupStyle.ListItem}>{ex}</span>
+									</div>
+									<button
+										style={popupStyle.removeExerciseButton}
+										onClick={() => removeExerciseFromEditing(ex)}
+									>
+										Remove
+									</button>
+								</div>
 							</div>
 						))}
 					</div>
@@ -316,15 +352,12 @@ export default function CreateTemplatePopup({
 			</div>
 			<div style={templatesStyles.modalButtonsHorizontal}>
 				<button
-					style={{ ...templatesStyles.cancelButton, ...commonStyle.popupCancelButton }}
-					onClick={closeModal}
+					style={{ ...templatesStyles.deleteButton, ...commonStyle.popupDeleteButton }}
+					onClick={deleteTemplate}
 				>
-					Cancel
+					Delete
 				</button>
-				<button
-					style={{ ...templatesStyles.saveButton, ...commonStyle.popupCreateButton }}
-					onClick={saveNewTemplate}
-				>
+				<button style={templatesStyles.saveButton} onClick={saveEditedTemplate}>
 					Save
 				</button>
 			</div>

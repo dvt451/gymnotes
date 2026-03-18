@@ -3,8 +3,12 @@ import mongoose from 'mongoose';
 import TrainingFile from '../models/TrainingFile.js';
 import TrainingDate from '../models/TrainingDate.js';
 import ExerciseEntry from '../models/ExerciseEntry.js';
-import ExerciseUserLibrary from '../models/ExerciseUserLibrary.js';
+import ExerciseUserLibrary, {
+  normalizeMuscleGroup,
+} from '../models/ExerciseUserLibrary.js';
+import UserMuscleGroup from '../models/UserMuscleGroup.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { DEFAULT_MUSCLE_GROUPS } from '../utils/muscleGroups.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -34,23 +38,81 @@ const findTrainingDate = async (userId, fileId, date) => {
   });
 };
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const ensureUserMuscleGroup = async (userId, rawGroupName) => {
+  const normalizedGroup = normalizeMuscleGroup(rawGroupName);
+
+  if (!normalizedGroup) {
+    return normalizeMuscleGroup();
+  }
+
+  if (
+    DEFAULT_MUSCLE_GROUPS.some(
+      (group) => group.toLowerCase() === normalizedGroup.toLowerCase()
+    )
+  ) {
+    return normalizeMuscleGroup(normalizedGroup, DEFAULT_MUSCLE_GROUPS);
+  }
+
+  const existing = await UserMuscleGroup.findOne({
+    userId,
+    name: { $regex: `^${escapeRegex(normalizedGroup)}$`, $options: 'i' },
+  });
+
+  if (existing) return existing.name;
+
+  try {
+    const created = await UserMuscleGroup.create({
+      userId,
+      name: normalizedGroup,
+    });
+
+    return created.name;
+  } catch (err) {
+    if (err?.code === 11000) {
+      const duplicate = await UserMuscleGroup.findOne({
+        userId,
+        name: { $regex: `^${escapeRegex(normalizedGroup)}$`, $options: 'i' },
+      });
+
+      return duplicate?.name || normalizedGroup;
+    }
+
+    throw err;
+  }
+};
+
 const mapEntriesToExercises = async (entries) => {
   const libraryIds = entries.map((e) => e.exerciseUserLibraryId.toString());
   const uniqueIds = [...new Set(libraryIds)];
   const libs = uniqueIds.length
-    ? await ExerciseUserLibrary.find({ _id: { $in: uniqueIds } }).select('name')
+    ? await ExerciseUserLibrary.find({ _id: { $in: uniqueIds } }).select('name muscleGroup')
     : [];
 
-  const nameById = new Map(libs.map((l) => [l._id.toString(), l.name]));
+  const libraryById = new Map(
+    libs.map((l) => [
+      l._id.toString(),
+      {
+        name: l.name,
+        muscleGroup: normalizeMuscleGroup(l.muscleGroup),
+      },
+    ])
+  );
 
-  return entries.map((entry) => ({
-    _id: entry._id,
-    exerciseUserLibraryId: entry.exerciseUserLibraryId,
-    name: nameById.get(entry.exerciseUserLibraryId.toString()) || 'Unknown exercise',
-    weights: entry.weights || [],
-    createdAt: entry.createdAt,
-    updatedAt: entry.updatedAt,
-  }));
+  return entries.map((entry) => {
+    const libraryExercise = libraryById.get(entry.exerciseUserLibraryId.toString());
+
+    return {
+      _id: entry._id,
+      exerciseUserLibraryId: entry.exerciseUserLibraryId,
+      name: libraryExercise?.name || 'Unknown exercise',
+      muscleGroup: libraryExercise?.muscleGroup || normalizeMuscleGroup(),
+      weights: entry.weights || [],
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+    };
+  });
 };
 
 const ensureFile = async (userId, fileId) => {
@@ -112,7 +174,10 @@ router.post('/', async (req, res) => {
       });
 
       if (!libraryExercise) {
-        libraryExercise = await ExerciseUserLibrary.create({ userId: req.userId, name: normalizedName });
+        libraryExercise = await ExerciseUserLibrary.create({
+          userId: req.userId,
+          name: normalizedName,
+        });
       }
     }
 
@@ -217,7 +282,7 @@ router.post('/apply-template', async (req, res) => {
 
 router.put('/:exerciseId', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, muscleGroup } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ message: 'Имя упражнения обязательно' });
 
     const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
@@ -244,7 +309,11 @@ router.put('/:exerciseId', async (req, res) => {
       targetLibrary = await ExerciseUserLibrary.create({
         userId: req.userId,
         name: normalizedName,
+        muscleGroup: await ensureUserMuscleGroup(req.userId, muscleGroup),
       });
+    } else if (muscleGroup !== undefined) {
+      targetLibrary.muscleGroup = await ensureUserMuscleGroup(req.userId, muscleGroup);
+      await targetLibrary.save();
     }
 
     const duplicateEntry = await ExerciseEntry.findOne({

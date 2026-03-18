@@ -1,9 +1,17 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import ExerciseUserLibrary from '../models/ExerciseUserLibrary.js';
+import ExerciseUserLibrary, {
+	DEFAULT_MUSCLE_GROUP,
+	normalizeMuscleGroup,
+} from '../models/ExerciseUserLibrary.js';
+import UserMuscleGroup from '../models/UserMuscleGroup.js';
 import ExerciseEntry from '../models/ExerciseEntry.js';
 import Template from '../models/Template.js';
 import { authMiddleware } from '../middleware/auth.js';
+import {
+	buildMuscleGroupList,
+	DEFAULT_MUSCLE_GROUPS,
+} from '../utils/muscleGroups.js';
 
 const router = express.Router();
 
@@ -18,16 +26,81 @@ const APP_LIBRARY = [
 ];
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const getUserMuscleGroups = async (userId) => {
+	const customGroups = await UserMuscleGroup.find({ userId }).sort({ name: 1 }).select('name').lean();
+	return buildMuscleGroupList(customGroups.map((item) => item.name));
+};
+
+const getCustomMuscleGroups = async (userId) => {
+	const customGroups = await UserMuscleGroup.find({ userId }).sort({ name: 1 }).select('name').lean();
+	return customGroups.map((item) => item.name);
+};
+
+const ensureUserMuscleGroup = async (userId, rawGroupName) => {
+	const normalizedGroup = normalizeMuscleGroup(rawGroupName);
+
+	if (!normalizedGroup) {
+		return DEFAULT_MUSCLE_GROUP;
+	}
+
+	if (
+		DEFAULT_MUSCLE_GROUPS.some(
+			(group) => group.toLowerCase() === normalizedGroup.toLowerCase()
+		)
+	) {
+		return normalizeMuscleGroup(normalizedGroup, DEFAULT_MUSCLE_GROUPS);
+	}
+
+	const existing = await UserMuscleGroup.findOne({
+		userId,
+		name: { $regex: `^${escapeRegex(normalizedGroup)}$`, $options: 'i' },
+	});
+
+	if (existing) {
+		return existing.name;
+	}
+
+	try {
+		const created = await UserMuscleGroup.create({
+			userId,
+			name: normalizedGroup,
+		});
+
+		return created.name;
+	} catch (err) {
+		if (err?.code === 11000) {
+			const duplicate = await UserMuscleGroup.findOne({
+				userId,
+				name: { $regex: `^${escapeRegex(normalizedGroup)}$`, $options: 'i' },
+			});
+
+			return duplicate?.name || normalizedGroup;
+		}
+
+		throw err;
+	}
+};
+
+const mapExerciseWithMuscleGroup = (exercise) => ({
+	...exercise.toObject(),
+	muscleGroup: normalizeMuscleGroup(exercise?.muscleGroup),
+});
 
 router.get('/', async (req, res) => {
 	try {
-		const userExercises = await ExerciseUserLibrary.find({ userId: req.userId })
-			.sort({ name: 1, createdAt: 1 })
-			.select('_id name createdAt updatedAt');
+		const [userExercises, muscleGroups] = await Promise.all([
+			ExerciseUserLibrary.find({ userId: req.userId })
+				.sort({ name: 1, createdAt: 1 })
+				.select('_id name muscleGroup createdAt updatedAt'),
+			getUserMuscleGroups(req.userId),
+		]);
+		const customMuscleGroups = await getCustomMuscleGroups(req.userId);
 
 		res.json({
 			appExercises: APP_LIBRARY,
-			userExercises,
+			userExercises: userExercises.map(mapExerciseWithMuscleGroup),
+			muscleGroups,
+			customMuscleGroups,
 		});
 	} catch (err) {
 		res.status(500).json({
@@ -37,9 +110,124 @@ router.get('/', async (req, res) => {
 	}
 });
 
+router.get('/muscle-groups', async (req, res) => {
+	try {
+		const [muscleGroups, customMuscleGroups] = await Promise.all([
+			getUserMuscleGroups(req.userId),
+			getCustomMuscleGroups(req.userId),
+		]);
+		res.json({ success: true, muscleGroups, customMuscleGroups });
+	} catch (err) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to load muscle groups',
+		});
+	}
+});
+
+router.post('/muscle-groups', async (req, res) => {
+	try {
+		const rawName = req.body?.name;
+		if (!rawName || typeof rawName !== 'string' || !rawName.trim()) {
+			return res.status(400).json({
+				success: false,
+				message: 'Muscle group name is required',
+			});
+		}
+
+		const muscleGroup = await ensureUserMuscleGroup(req.userId, rawName);
+		const [muscleGroups, customMuscleGroups] = await Promise.all([
+			getUserMuscleGroups(req.userId),
+			getCustomMuscleGroups(req.userId),
+		]);
+
+		res.status(201).json({
+			success: true,
+			muscleGroup,
+			muscleGroups,
+			customMuscleGroups,
+		});
+	} catch (err) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to create muscle group',
+		});
+	}
+});
+
+router.put('/muscle-groups/:groupName', async (req, res) => {
+	try {
+		const currentGroupName = decodeURIComponent(req.params.groupName || '').trim();
+		const nextGroupName = req.body?.name;
+
+		if (!currentGroupName) {
+			return res.status(400).json({
+				success: false,
+				message: 'Current muscle group is required',
+			});
+		}
+
+		if (!nextGroupName || typeof nextGroupName !== 'string' || !nextGroupName.trim()) {
+			return res.status(400).json({
+				success: false,
+				message: 'New muscle group name is required',
+			});
+		}
+
+		const currentGroup = await UserMuscleGroup.findOne({
+			userId: req.userId,
+			name: { $regex: `^${escapeRegex(currentGroupName)}$`, $options: 'i' },
+		});
+
+		if (!currentGroup) {
+			return res.status(404).json({
+				success: false,
+				message: 'Only custom muscle groups can be renamed',
+			});
+		}
+
+		const targetGroupName = await ensureUserMuscleGroup(req.userId, nextGroupName);
+
+		if (currentGroup.name.toLowerCase() !== targetGroupName.toLowerCase()) {
+			await ExerciseUserLibrary.updateMany(
+				{
+					userId: req.userId,
+					muscleGroup: { $regex: `^${escapeRegex(currentGroup.name)}$`, $options: 'i' },
+				},
+				{ $set: { muscleGroup: targetGroupName } }
+			);
+		}
+
+		if (currentGroup.name.toLowerCase() === targetGroupName.toLowerCase()) {
+			currentGroup.name = targetGroupName;
+			await currentGroup.save();
+		} else {
+			await UserMuscleGroup.deleteOne({ _id: currentGroup._id, userId: req.userId });
+		}
+
+		const [muscleGroups, customMuscleGroups] = await Promise.all([
+			getUserMuscleGroups(req.userId),
+			getCustomMuscleGroups(req.userId),
+		]);
+
+		res.json({
+			success: true,
+			muscleGroup: targetGroupName,
+			muscleGroups,
+			customMuscleGroups,
+		});
+	} catch (err) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to rename muscle group',
+		});
+	}
+});
+
 router.post('/', async (req, res) => {
 	try {
 		const rawName = req.body?.name;
+		const rawMuscleGroup = await ensureUserMuscleGroup(req.userId, req.body?.muscleGroup);
 		if (!rawName || typeof rawName !== 'string' || !rawName.trim()) {
 			return res.status(400).json({
 				success: false,
@@ -56,25 +244,26 @@ router.post('/', async (req, res) => {
 		if (duplicate) {
 			return res.status(409).json({
 				success: false,
-				message: 'Упражнение уже существует',
-				existingExercise: duplicate,
+				message: 'Exercise already exists',
+				existingExercise: mapExerciseWithMuscleGroup(duplicate),
 			});
 		}
 
 		const created = await ExerciseUserLibrary.create({
 			userId: req.userId,
 			name: normalizedName,
+			muscleGroup: rawMuscleGroup,
 		});
 
 		res.status(201).json({
 			success: true,
-			exercise: created,
+			exercise: mapExerciseWithMuscleGroup(created),
 		});
 	} catch (err) {
 		if (err?.code === 11000) {
 			return res.status(409).json({
 				success: false,
-				message: 'Упражнение уже существует',
+				message: 'Exercise already exists',
 			});
 		}
 
@@ -89,6 +278,10 @@ router.put('/:exerciseId', async (req, res) => {
 	try {
 		const { exerciseId } = req.params;
 		const rawName = req.body?.name;
+		const rawMuscleGroup =
+			req.body?.muscleGroup !== undefined
+				? await ensureUserMuscleGroup(req.userId, req.body?.muscleGroup)
+				: undefined;
 
 		if (!exerciseId || !mongoose.isValidObjectId(exerciseId)) {
 			return res.status(400).json({
@@ -126,23 +319,28 @@ router.put('/:exerciseId', async (req, res) => {
 		if (duplicate) {
 			return res.status(409).json({
 				success: false,
-				message: 'Упражнение уже существует',
-				existingExercise: duplicate,
+				message: 'Exercise already exists',
+				existingExercise: mapExerciseWithMuscleGroup(duplicate),
 			});
 		}
 
 		exercise.name = normalizedName;
+		if (rawMuscleGroup !== undefined) {
+			exercise.muscleGroup = rawMuscleGroup;
+		} else if (!exercise.muscleGroup) {
+			exercise.muscleGroup = DEFAULT_MUSCLE_GROUP;
+		}
 		await exercise.save();
 
 		res.json({
 			success: true,
-			exercise,
+			exercise: mapExerciseWithMuscleGroup(exercise),
 		});
 	} catch (err) {
 		if (err?.code === 11000) {
 			return res.status(409).json({
 				success: false,
-				message: 'Упражнение уже существует',
+				message: 'Exercise already exists',
 			});
 		}
 

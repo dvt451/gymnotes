@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaRegUser } from "react-icons/fa";
+import { FaChartLine, FaRegUser } from "react-icons/fa";
 import { createFooterStyle } from './footerStyle.js'
 import { MdHomeFilled } from "react-icons/md";
 import { GlobalContext } from '../../context/GlobalContext.jsx';
@@ -33,6 +33,23 @@ export default function Footer() {
 					}}></span>
 				</Link>
 				<Link
+					to="/progress"
+					style={{
+						...footerStyle.footerLink,
+						...(location === '/progress' && footerStyle.footerLinkActive)
+					}}
+				>
+					<FaChartLine style={{
+						...footerStyle.footerLinkIcon,
+						...(location === '/progress' && footerStyle.footerLinkActive)
+					}} />
+					<span style={footerStyle.footerLinkText}>Progress</span>
+					<span style={{
+						...footerStyle.footerLink,
+						...(location === '/progress' && footerStyle.footerLinkActive)
+					}}></span>
+				</Link>
+				<Link
 					to="/exercise-library"
 					style={{
 						...footerStyle.footerLink,
@@ -43,7 +60,7 @@ export default function Footer() {
 						...footerStyle.footerLinkIcon,
 						...(location === '/exercise-library' && footerStyle.footerLinkActive)
 					}} />
-					<span style={footerStyle.footerLinkText}>Exercise Library</span>
+					<span style={footerStyle.footerLinkText}>Library</span>
 					<span style={{
 						...footerStyle.footerLink,
 						...(location === '/exercise-library' && footerStyle.footerLinkActive)

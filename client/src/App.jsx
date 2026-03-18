@@ -11,10 +11,10 @@ import Exercises from './components/pages/Exercises/Exercises';
 import Profile from './components/pages/profile/Profile';
 import { GlobalProvider } from './context/GlobalContext';
 import ExerciseLibrary from './components/pages/exerciseLibrary/ExerciseLibrary';
+import Progress from './components/pages/Progress/Progress';
 
 function App() {
 	return (
-
 		<div className="wrapper">
 			{/* <GlobalStyles /> */}
 			<BrowserRouter>
@@ -28,6 +28,7 @@ function App() {
 							<Route element={<DateList />} path='/date-list/:trainingId' />
 							<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
 							<Route element={<ExerciseLibrary />} path='/exercise-library' />
+							<Route element={<Progress />} path='/progress' />
 						</Routes>
 					</AuthProvider>
 				</GlobalProvider>

@@ -14,7 +14,7 @@ export default function Header() {
 
 	useEffect(() => {
 		// Проверяем, не находимся ли мы на странице /home
-		setShowBackButton(location.pathname !== '/home' && location.pathname !== '/profile');
+		setShowBackButton(!['/home', '/profile', '/progress'].includes(location.pathname));
 	}, [location.pathname]);
 
 	const handleGoBack = () => {

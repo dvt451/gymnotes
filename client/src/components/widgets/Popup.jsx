@@ -1,6 +1,5 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { GlobalContext } from '../../context/GlobalContext';
-import { createCommonStyle } from '../../styles/commonStyle';
 import { createPopupStyle } from './popupStyle';
 
 export default function Popup({
@@ -9,8 +8,23 @@ export default function Popup({
 	children,
 }) {
 	const { mainColor } = useContext(GlobalContext);
-	const commonStyle = createCommonStyle(mainColor);
 	const popupStyle = createPopupStyle(mainColor);
+
+	useEffect(() => {
+		if (!isOpen) return undefined;
+
+		const previousBodyOverflow = document.body.style.overflow;
+		const previousHtmlOverflow = document.documentElement.style.overflow;
+
+		document.body.style.overflow = 'hidden';
+		document.documentElement.style.overflow = 'hidden';
+
+		return () => {
+			document.body.style.overflow = previousBodyOverflow;
+			document.documentElement.style.overflow = previousHtmlOverflow;
+		};
+	}, [isOpen]);
+
 	if (!isOpen) return null;
 
 	const handleClose = (event) => {
