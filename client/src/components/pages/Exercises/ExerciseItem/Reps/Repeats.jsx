@@ -233,9 +233,9 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 
 					<div style={popupStyle.popupBodyContent}>
 						<input
-							type="number"
-							min="0"
-							step="1"
+							type="text"
+							inputMode="decimal"
+							pattern="[0-9]*\.?[0-9]*"
 							value={newRepsInput}
 							onChange={(e) => setNewRepsInput(e.target.value)}
 							onKeyPress={handleKeyPress}

@@ -113,12 +113,12 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 			</div>
 
 			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-				<h2 style={popupStyle.title}>New Exercise</h2>
+				<h2 style={popupStyle.title}>Add Weight</h2>
 				<div style={popupStyle.popupBodyContent}>
 					<input
 						type="number"
-						step="0.1"
-						min="0.1"
+						inputMode="decimal"
+						pattern="[0-9]*\.?[0-9]*"
 						value={weightInput}
 						onChange={(e) => setWeightInput(e.target.value)}
 						onKeyPress={handleKeyPress}

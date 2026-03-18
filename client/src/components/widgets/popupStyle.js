@@ -47,6 +47,10 @@ export const createPopupStyle = (mainColor) => ({
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(20),
+		overflowY: 'auto',
+
+		maxHeight: "90vh",
+
 	},
 	title: {
 		color: colors.white,
@@ -75,18 +79,21 @@ export const createPopupStyle = (mainColor) => ({
 		maxHeight: toRem(170),
 		overflowY: 'auto',
 	},
+	ListItemsWrapper: {
+	},
 	ListItems: {
 		display: 'flex',
 		borderRadius: toRem(10),
 		overflow: 'hidden',
 	},
 	ListItem: {
+		backgroundColor: '#181E23',
+		width: '100%',
 		textAlign: 'left',
 		padding: toRem(8) + ' ' + toRem(15),
 		fontWeight: 'bold',
-		backgroundColor: '#181E23',
-		color: '#fff',
-		width: '100%',
+		color: colors.white,
+		display: 'block',
 	},
 	removeExerciseButton: {
 		color: colors.white,

@@ -114,10 +114,12 @@ export default function AddReps({
 			</button>
 
 			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-				<h2 style={popupStyle.title}>Добавить подход</h2>
+				<h2 style={popupStyle.title}>Add Approach</h2>
 				<div style={popupStyle.popupBodyContent}>
 					<input
 						type="number"
+						inputMode="decimal"
+						pattern="[0-9]*\.?[0-9]*"
 						value={repsInput}
 						onChange={(e) => setRepsInput(e.target.value)}
 						onKeyPress={handleKeyPress}

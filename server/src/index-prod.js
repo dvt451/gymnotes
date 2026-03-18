@@ -43,7 +43,7 @@ const app = express();
 
 // CORS настройка
 app.use(cors({
-	origin: process.env.CLIENT_URL || 'http://localhost:5173',
+	origin: process.env.CLIENT_URL,
 	credentials: true,
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization'],
@@ -187,7 +187,7 @@ const startServer = async () => {
 	app.listen(PORT, () => {
 		console.log(`\n🚀 Server running on port ${PORT}`);
 		console.log(`📁 Окружение: ${env}`);
-		console.log(`🌐 Client URL: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
+		console.log(`🌐 Client URL: ${process.env.CLIENT_URL}`);
 		console.log(`🔗 MongoDB: ${dbConnected ? 'Connected' : 'Not connected'}`);
 		console.log(`\n✅ API доступно по адресу: http://localhost:${PORT}`);
 	});

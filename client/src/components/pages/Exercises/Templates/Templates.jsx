@@ -314,6 +314,64 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 		setEditingExercises((prev) => prev.filter((ex) => ex !== name));
 	};
 
+	// Add exercise based on current input (shared logic)
+	const addExerciseFromInput = async (mode) => {
+		const normalizedInput = normalizeExerciseName(newExerciseName);
+		if (!normalizedInput || isCreatingExercise) return;
+
+		setIsCreatingExercise(true);
+		setModalError('');
+
+		try {
+			const existing = findExactExerciseMatch(userExercises, normalizedInput);
+			if (existing) {
+				addExerciseToTemplateList(existing.name || normalizedInput, mode);
+				setNewExerciseName('');
+				return;
+
+			}
+
+			const createResult = await handleCreateExercise({
+				BASE_URL,
+				exerciseName: normalizedInput,
+				existingExercises: userExercises,
+
+			});
+
+			if (!createResult.success) {
+				setModalError(createResult.message || 'Не удалось создать упражнение');
+				return;
+
+			}
+
+			const matchedExercise =
+				createResult.exercise || findExactExerciseMatch(userExercises, normalizedInput);
+
+			if (createResult.exercise) {
+				setUserExercises((prev) => {
+					const existsById = prev.some(
+						(item) => String(item._id || item.id) === String(createResult.exercise._id || createResult.exercise.id)
+					);
+					if (existsById) return prev;
+
+					return [...prev, createResult.exercise].sort((a, b) =>
+						(a.name || '').localeCompare(b.name || '')
+					);
+
+				});
+
+			}
+
+			addExerciseToTemplateList(matchedExercise?.name || normalizedInput, mode);
+			setNewExerciseName('');
+
+		} finally {
+			setIsCreatingExercise(false);
+
+		}
+
+	};
+
 	// Add new exercise to editing template
 	const addExerciseToEditing = async () => {
 		await addExerciseFromInput('edit');
@@ -516,20 +574,21 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 							<h3 style={popupStyle.title}>List</h3>
 							<div style={popupStyle.libraryList}>
 								{editingExercises.map((ex, i) => (
-									<div key={`${ex}_${i}`} style={popupStyle.ListItems}>
-										<span style={popupStyle.ListItem}>{ex}</span>
-										<button
-											style={popupStyle.removeExerciseButton}
-											onClick={() => removeExerciseFromEditing(ex)}
-										>
-											✖
-										</button>
+									<div key={`${ex}_${i}`}>
+										<div style={popupStyle.ListItems}>
+											<span style={popupStyle.ListItem}>{ex}</span>
+											<button
+												style={popupStyle.removeExerciseButton}
+												onClick={() => removeExerciseFromEditing(ex)}
+											>
+												✖
+											</button>
+										</div>
 									</div>
 								))}
 							</div>
 						</div>
 					</div>
-
 					<div style={templatesStyles.modalButtonsHorizontal}>
 						<button
 							style={{ ...templatesStyles.deleteButton, ...commonStyle.popupDeleteButton }}

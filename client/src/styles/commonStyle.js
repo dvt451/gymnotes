@@ -40,7 +40,7 @@ export const createCommonStyle = (mainColor) => ({
 		position: 'fixed',
 		right: toRem(20),
 		bottom: toRem(120),
-		zIndex: 1000,
+		zIndex: 10,
 		borderRadius: '50%',
 		border: '2px solid ' + colors.orange,
 		width: toRem(50),

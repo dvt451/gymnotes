@@ -168,8 +168,8 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 					<div style={commonStyle.popupContentInputs}>
 						<input
 							type="number"
-							step="0.1"
-							min="1"
+							inputMode="decimal"
+							pattern="[0-9]*\.?[0-9]*"
 							value={newWeightInput}
 							onChange={(e) => setNewWeightInput(e.target.value)}
 							onKeyPress={handleKeyPress}
