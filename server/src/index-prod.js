@@ -39,21 +39,19 @@ import repRoutes from './routes/reps.js';
 import nutritionRoutes from './routes/nutritions.js';
 import exerciseLibraryRoutes from './routes/exerciseLibrary.js';
 import progressRoutes from './routes/progress.js';
+import adminRoutes from './routes/admin.js';
+import { createCorsOptions } from './utils/cors.js';
 
 const app = express();
 
 // CORS настройка
-app.use(cors({
-	origin: process.env.CLIENT_URL,
-	credentials: true,
-	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-	allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(cors(createCorsOptions()));
 
 app.use(express.json());
 
 // Маршруты
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Основные роутеры
 app.use('/api/trainings', trainingRoutes); // Основные операции с тренировками
@@ -104,6 +102,7 @@ app.get('/', (req, res) => {
 			nutritions: '/api/nutritions',
 			exercise_library: '/api/exercise-library',
 			progress: '/api/progress',
+			admin: '/api/admin',
 			test_weights: '/api/test-weights',
 			health: '/health'
 		}

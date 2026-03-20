@@ -1,3 +1,4 @@
+import User from '../models/User.js';
 import { verifyToken } from '../utils/jwt.js';
 
 export const authMiddleware = (req, res, next) => {
@@ -30,6 +31,7 @@ export const authMiddleware = (req, res, next) => {
 		}
 
 		req.userId = decoded.userId;
+		req.userRole = decoded.role || null;
 		next();
 	} catch (error) {
 		return res.status(401).json({
@@ -39,5 +41,40 @@ export const authMiddleware = (req, res, next) => {
 	}
 };
 
-// Экспортируем по умолчанию для совместимости
+export const requireAdmin = async (req, res, next) => {
+	if (!req.userId) {
+		return res.status(401).json({
+			success: false,
+			message: 'Authentication required',
+		});
+	}
+
+	try {
+		const user = await User.findById(req.userId).select('name email role');
+
+		if (!user) {
+			return res.status(401).json({
+				success: false,
+				message: 'User not found',
+			});
+		}
+
+		if (user.role !== 'admin') {
+			return res.status(403).json({
+				success: false,
+				message: 'Admin access required',
+			});
+		}
+
+		req.currentUser = user;
+		req.userRole = user.role;
+		next();
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: 'Failed to verify admin access',
+		});
+	}
+};
+
 export default authMiddleware;

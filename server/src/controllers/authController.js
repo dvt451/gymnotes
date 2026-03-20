@@ -1,6 +1,15 @@
-﻿import User from '../models/User.js';
+import User from '../models/User.js';
 import TrainingFile from '../models/TrainingFile.js';
 import { generateToken } from '../utils/jwt.js';
+
+const serializeUser = (user, extra = {}) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  weight: user.weight,
+  role: user.role || 'user',
+  ...extra,
+});
 
 export const register = async (req, res) => {
   try {
@@ -17,18 +26,13 @@ export const register = async (req, res) => {
     const user = new User({ name, weight, email, password });
     await user.save();
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        weight: user.weight,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     res.status(500).json({
@@ -58,18 +62,13 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.json({
       success: true,
       message: 'Logged in successfully',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        weight: user.weight,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -95,14 +94,10 @@ export const getProfile = async (req, res) => {
 
     res.json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        weight: user.weight,
+      user: serializeUser(user, {
         trainingfiles,
         trainingOrder: trainingfiles.map((f) => f._id.toString()),
-      },
+      }),
     });
   } catch (error) {
     res.status(500).json({
@@ -132,10 +127,7 @@ export const updateProfile = async (req, res) => {
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      user: {
-        name: user.name,
-        weight: user.weight,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     res.status(500).json({

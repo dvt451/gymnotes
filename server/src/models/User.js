@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema(
 			trim: true,
 			match: [/^\S+@\S+\.\S+$/, 'Некорректный email'],
 		},
+		role: {
+			type: String,
+			enum: ['user', 'admin'],
+			default: 'user',
+			index: true,
+		},
 		password: {
 			type: String,
 			required: [true, 'Пароль обязателен'],
