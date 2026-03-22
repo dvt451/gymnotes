@@ -252,7 +252,7 @@ export default function ExerciseLibrary() {
 				sortUserExercises(
 					prev.map((item) =>
 						normalizeExerciseMuscleGroup(item.muscleGroup, nextMuscleGroups).toLowerCase() ===
-						currentName.toLowerCase()
+							currentName.toLowerCase()
 							? { ...item, muscleGroup: nextGroupName }
 							: item
 					),
@@ -442,15 +442,15 @@ export default function ExerciseLibrary() {
 										{customMuscleGroups.some(
 											(item) => item.toLowerCase() === group.toLowerCase()
 										) && !isDefaultMuscleGroup(group) && (
-											<button
-												type="button"
-												style={styles.muscleGroupEditButton}
-												onClick={() => openRenameMuscleGroupModal(group)}
-												aria-label={`Rename ${group}`}
-											>
-												<FaPen />
-											</button>
-										)}
+												<button
+													type="button"
+													style={styles.muscleGroupEditButton}
+													onClick={() => openRenameMuscleGroupModal(group)}
+													aria-label={`Rename ${group}`}
+												>
+													<FaPen />
+												</button>
+											)}
 									</div>
 									<span style={styles.muscleGroupCardCount}>
 										{exercises.length} exercise{exercises.length !== 1 ? 's' : ''}

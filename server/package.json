@@ -7,6 +7,7 @@
 		"start": "node src/index-prod.js",
 		"dev": "nodemon src/index-dev.js",
 		"migrate:legacy": "node src/scripts/migrateLegacyUsersToV2.js",
+		"users:purge-deleted": "node src/scripts/purgeDeletedUsers.js",
 		"user:role": "node src/scripts/setUserRole.js",
 		"vercel-build": "echo 'No build needed for Express'"
 	},

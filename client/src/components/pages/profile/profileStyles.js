@@ -7,6 +7,7 @@ export const createProfileStyles = (mainColor) => ({
 		marginBottom: '30px',
 		paddingBottom: '20px',
 		padding: '18px',
+		paddingBottom: '95px'
 	},
 	editSection: {
 		marginBottom: '25px',

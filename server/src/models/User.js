@@ -38,6 +38,37 @@ const userSchema = new mongoose.Schema(
 			default: 'user',
 			index: true,
 		},
+		accountStatus: {
+			type: String,
+			enum: ['active', 'suspended'],
+			default: 'active',
+			index: true,
+		},
+		suspendedAt: {
+			type: Date,
+			default: null,
+		},
+		suspensionReason: {
+			type: String,
+			default: '',
+			trim: true,
+			maxlength: [300, 'Причина блокировки не может быть длиннее 300 символов'],
+		},
+		isDeleted: {
+			type: Boolean,
+			default: false,
+			index: true,
+		},
+		deletedAt: {
+			type: Date,
+			default: null,
+		},
+		deletionReason: {
+			type: String,
+			default: '',
+			trim: true,
+			maxlength: [300, 'Причина удаления не может быть длиннее 300 символов'],
+		},
 		password: {
 			type: String,
 			required: [true, 'Пароль обязателен'],

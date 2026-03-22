@@ -12,6 +12,7 @@ export default function MuscleGroupSelect({
 	value = DEFAULT_MUSCLE_GROUP,
 	onChange,
 	style,
+	styles,
 	disabled = false,
 	options,
 }) {
@@ -68,6 +69,7 @@ export default function MuscleGroupSelect({
 			value={normalizeExerciseMuscleGroup(value, selectOptions)}
 			onChange={onChange}
 			style={style}
+			styles={styles}
 			disabled={disabled}
 		/>
 	);

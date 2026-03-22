@@ -8,6 +8,12 @@ const serializeUser = (user, extra = {}) => ({
   email: user.email,
   weight: user.weight,
   role: user.role || 'user',
+  accountStatus: user.accountStatus || 'active',
+  suspendedAt: user.suspendedAt || null,
+  suspensionReason: user.suspensionReason || '',
+  isDeleted: user.isDeleted || false,
+  deletedAt: user.deletedAt || null,
+  deletionReason: user.deletionReason || '',
   ...extra,
 });
 
@@ -59,6 +65,20 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
+      });
+    }
+
+    if (user.isDeleted) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account has been deleted',
+      });
+    }
+
+    if (user.accountStatus === 'suspended') {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is suspended',
       });
     }
 

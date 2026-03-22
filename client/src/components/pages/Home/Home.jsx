@@ -17,6 +17,7 @@ export default function Home() {
 					display: 'flex',
 					flexDirection: 'column',
 					gap: '20px',
+					paddingBottom: '95px'
 				}
 			}}>
 				<Nutritions />

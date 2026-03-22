@@ -65,14 +65,18 @@ export default function ProgressEllipseVisual({
 				>
 					{showPercentSign ? formatPercent(progressPercent) : formatPercent(progressPercent)}
 				</strong>
-				<span
-					style={{
-						...progressStyles.ellipseProgressLabel,
-						fontSize: labelFontSize,
-					}}
-				>
-					{label}
-				</span>
+				{
+					label &&
+					<span
+						style={{
+							...progressStyles.ellipseProgressLabel,
+							fontSize: labelFontSize,
+						}}
+					>
+						{label}
+					</span>
+				}
+
 			</div>
 		</div>
 	);

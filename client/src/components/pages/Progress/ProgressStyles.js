@@ -6,7 +6,7 @@ export const createProgressStyles = (mainColor) => ({
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(20),
-		paddingBottom: toRem(28),
+		paddingBottom: toRem(123),
 	},
 	section: {
 		display: 'flex',
@@ -97,7 +97,7 @@ export const createProgressStyles = (mainColor) => ({
 		border: `1px solid ${mainColor || colors.green}22`,
 	},
 	muscleGroupName: {
-		fontSize: toRem(16),
+		fontSize: toRem(18),
 		fontWeight: 700,
 	},
 	progressBarSectionValue: {
@@ -119,7 +119,7 @@ export const createProgressStyles = (mainColor) => ({
 	},
 	exerciseStatLayout: {
 		display: 'grid',
-		gridTemplateColumns: 'minmax(0, 1fr) auto',
+		gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)',
 		gap: toRem(16),
 		alignItems: 'center',
 	},
@@ -142,9 +142,7 @@ export const createProgressStyles = (mainColor) => ({
 	},
 	exerciseVisualBlock: {
 		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexShrink: 0,
+		justifyContent: 'end',
 	},
 	exerciseRange: {
 		fontSize: toRem(16),

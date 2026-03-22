@@ -3,8 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
-
-const VALID_ROLES = ['user', 'admin'];
+import { deleteUserData } from '../utils/deleteUserData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,20 +15,11 @@ const resolveEnv = () => {
 	dotenv.config();
 };
 
-const [emailArg, roleArg = 'admin'] = process.argv.slice(2);
-const email = String(emailArg || '').trim().toLowerCase();
-const role = String(roleArg || 'admin').trim().toLowerCase();
+const rawDays = Number(process.argv[2] || 30);
+const days = Number.isFinite(rawDays) ? Math.max(rawDays, 0) : 30;
 
 const main = async () => {
 	resolveEnv();
-
-	if (!email) {
-		throw new Error('Email argument is required. Example: npm run user:role -- admin@example.com admin');
-	}
-
-	if (!VALID_ROLES.includes(role)) {
-		throw new Error(`Role must be one of: ${VALID_ROLES.join(', ')}`);
-	}
 
 	if (!process.env.MONGO_URI) {
 		throw new Error('MONGO_URI is not configured');
@@ -40,15 +30,19 @@ const main = async () => {
 		useUnifiedTopology: true,
 	});
 
-	const user = await User.findOne({ email });
-	if (!user) {
-		throw new Error(`User with email ${email} was not found`);
+	const threshold = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+	const deletedUsers = await User.find({
+		isDeleted: true,
+		deletedAt: { $lte: threshold },
+	}).select('_id email deletedAt');
+
+	for (const user of deletedUsers) {
+		await deleteUserData(user._id);
+		await User.deleteOne({ _id: user._id });
+		console.log(`Purged deleted user ${user.email}`);
 	}
 
-	user.role = role;
-	await user.save();
-
-	console.log(`Updated ${user.email} to role "${user.role}"`);
+	console.log(`Purged ${deletedUsers.length} deleted users older than ${days} days`);
 };
 
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';

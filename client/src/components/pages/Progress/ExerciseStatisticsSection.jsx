@@ -3,6 +3,7 @@ import {
 	formatWeight,
 } from './progressUtils';
 import ProgressEllipseVisual from './ProgressEllipseVisual';
+import { colors } from '../../../styles/commonStyle';
 
 export default function ExerciseStatisticsSection({
 	commonStyle,
@@ -21,26 +22,24 @@ export default function ExerciseStatisticsSection({
 						style={progressStyles.exerciseStatCard}
 					>
 						<div style={progressStyles.exerciseStatLayout}>
-							<div style={progressStyles.exerciseStatContent}>
-								<div style={progressStyles.exerciseStatHeader}>
-									<div style={progressStyles.exerciseStatNameBlock}>
-										<h3 style={progressStyles.muscleGroupName}>{exercise.name}</h3>
-										<p style={progressStyles.subtitle}>{exercise.muscleGroup}</p>
-									</div>
+							<div style={progressStyles.exerciseStatHeader}>
+								<div style={progressStyles.exerciseStatNameBlock}>
+									<h3 style={progressStyles.muscleGroupName}>{exercise.name}</h3>
+									<p style={progressStyles.subtitle}>{exercise.muscleGroup}</p>
 								</div>
-								<p style={progressStyles.exerciseRange}>
-									{formatWeight(exercise.startingWeight)} - {formatWeight(exercise.currentWeight)}
-								</p>
 							</div>
+							<p style={progressStyles.exerciseRange}>
+								<span style={{ color: colors.blueLight }}>{formatWeight(exercise.startingWeight)}</span> - <span style={{ color: colors.green }}>{formatWeight(exercise.currentWeight)}</span>
+							</p>
 							<div style={progressStyles.exerciseVisualBlock}>
 								<ProgressEllipseVisual
 									progressPercent={exercise.progressPercent}
 									progressStyles={progressStyles}
-									label="Exercise"
-									size={116}
-									stroke={12}
-									valueFontSize={20}
-									labelFontSize={12}
+									label={null}
+									size={80}
+									stroke={8}
+									valueFontSize={12}
+									labelFontSize={6}
 								/>
 							</div>
 						</div>

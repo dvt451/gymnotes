@@ -1,0 +1,56 @@
+GymNotes Admin Capabilities
+
+Authentication and access
+- Admin-only login via the dedicated admin app
+- Admin role enforcement on protected admin routes
+- Suspended and deleted accounts are blocked from logging in
+
+Dashboard
+- View totals for users, deleted users, admins, active users, suspended users
+- View totals for training plans, training dates, exercise logs, templates, and audit events
+
+User management
+- Browse users with server-side pagination
+- Search users by name or email
+- Filter users by status
+- Include or exclude deleted users from the list
+- Open a dedicated Admins tab filtered to admin accounts
+- View user account details in a detail panel
+- Change user roles between user and admin
+- Suspend and reactivate accounts
+- Soft delete users with typed email confirmation
+
+User detail view
+- Inspect account status, creation date, and update date
+- View counts for trainings, dates, exercise logs, templates, custom exercises, and audit events
+- View recent trainings
+- View recent templates
+- View recent audit events for the selected user
+
+Audit logging
+- Log successful admin logins
+- Log role changes
+- Log suspensions
+- Log reactivations
+- Log soft deletions
+- Browse audit logs with server-side pagination
+- Search audit logs by action or email
+
+Safety rules
+- Prevent removing the last admin role
+- Prevent suspending the last active admin
+- Prevent deleting the last admin account
+- Prevent self-suspension
+- Prevent self-deletion
+- Prevent modifying already deleted users
+
+Soft delete workflow
+- Soft delete keeps the user record for audit/history
+- Deleted users are marked and hidden by default from the main user list
+- Deleted users can be purged later with the server purge script
+
+Related maintenance commands
+- Promote user to admin:
+  npm run user:role --prefix server -- your@email.com admin
+- Purge deleted users older than 30 days:
+  npm run users:purge-deleted --prefix server -- 30

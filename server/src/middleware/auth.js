@@ -1,7 +1,9 @@
 import User from '../models/User.js';
 import { verifyToken } from '../utils/jwt.js';
 
-export const authMiddleware = (req, res, next) => {
+const selectAuthenticatedUser = 'name email weight role accountStatus suspendedAt suspensionReason isDeleted deletedAt deletionReason createdAt updatedAt';
+
+export const authMiddleware = async (req, res, next) => {
 	const authHeader = req.headers.authorization;
 
 	if (!authHeader) {
@@ -30,8 +32,32 @@ export const authMiddleware = (req, res, next) => {
 			});
 		}
 
-		req.userId = decoded.userId;
-		req.userRole = decoded.role || null;
+		const user = await User.findById(decoded.userId).select(selectAuthenticatedUser);
+
+		if (!user) {
+			return res.status(401).json({
+				success: false,
+				message: 'User not found'
+			});
+		}
+
+		if (user.isDeleted) {
+			return res.status(403).json({
+				success: false,
+				message: 'Account has been deleted',
+			});
+		}
+
+		if (user.accountStatus === 'suspended') {
+			return res.status(403).json({
+				success: false,
+				message: 'Account is suspended',
+			});
+		}
+
+		req.userId = user._id;
+		req.userRole = user.role || decoded.role || null;
+		req.currentUser = user;
 		next();
 	} catch (error) {
 		return res.status(401).json({
@@ -50,12 +76,28 @@ export const requireAdmin = async (req, res, next) => {
 	}
 
 	try {
-		const user = await User.findById(req.userId).select('name email role');
+		const user =
+			req.currentUser ||
+			await User.findById(req.userId).select(selectAuthenticatedUser);
 
 		if (!user) {
 			return res.status(401).json({
 				success: false,
 				message: 'User not found',
+			});
+		}
+
+		if (user.isDeleted) {
+			return res.status(403).json({
+				success: false,
+				message: 'Account has been deleted',
+			});
+		}
+
+		if (user.accountStatus === 'suspended') {
+			return res.status(403).json({
+				success: false,
+				message: 'Account is suspended',
 			});
 		}
 

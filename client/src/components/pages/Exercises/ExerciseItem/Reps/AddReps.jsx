@@ -117,7 +117,7 @@ export default function AddReps({
 				<h2 style={popupStyle.title}>Add Approach</h2>
 				<div style={popupStyle.popupBodyContent}>
 					<input
-						type="number"
+						type="text"
 						inputMode="decimal"
 						pattern="[0-9]*\.?[0-9]*"
 						value={repsInput}

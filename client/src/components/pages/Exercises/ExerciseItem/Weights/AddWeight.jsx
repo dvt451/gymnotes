@@ -116,7 +116,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 				<h2 style={popupStyle.title}>Add Weight</h2>
 				<div style={popupStyle.popupBodyContent}>
 					<input
-						type="number"
+						type="text"
 						inputMode="decimal"
 						pattern="[0-9]*\.?[0-9]*"
 						value={weightInput}

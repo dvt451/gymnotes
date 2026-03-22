@@ -303,6 +303,7 @@ export const createExercisesStyles = (mainColor) => ({
 	container: {
 		backgroundColor: colors.blueDark,
 		padding: toRem(20),
+		paddingBottom: toRem(95),
 	},
 
 	header: {

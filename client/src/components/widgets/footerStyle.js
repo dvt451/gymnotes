@@ -2,7 +2,19 @@ import { colors, toRem } from '../../styles/commonStyle';
 
 export const createFooterStyle = (mainColor) => ({
 	footer: {
+		position: 'fixed',
+		bottom: 0,
+		left: 0,
+		zIndex: 100,
+		width: '100%',
+	},
+	footerContainer: {
+		maxWidth: toRem(1200),
+		margin: '0 auto',
+		backgroundColor: colors.labelBG,
 		padding: toRem(20),
+		borderRadius: `${toRem(30)} ${toRem(30)} 0 0`,
+		boxShadow: '0px 0px 4px #000',
 	},
 	linkList: {
 		display: 'flex',
