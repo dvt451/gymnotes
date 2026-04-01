@@ -1,7 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { GoogleLogin } from '@react-oauth/google';
 import { AuthContext } from '../../../context/AuthContext';
+import GoogleAuthButton from './GoogleAuthButton';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -9,15 +9,16 @@ export default function Register() {
 		name: '',
 		weight: '',
 		email: '',
-		password: ''
+		password: '',
 	});
 	const [message, setMessage] = useState({ text: '', type: '' });
-	const { BASE_URL } = useContext(AuthContext);
+	const { BASE_URL, login } = useContext(AuthContext);
 	const navigate = useNavigate();
+	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
-		setFormData(prev => ({ ...prev, [name]: value }));
+		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
 	const handleRegister = async (e) => {
@@ -31,41 +32,49 @@ export default function Register() {
 				body: JSON.stringify(formData),
 			});
 
+			const contentType = res.headers.get('content-type') || '';
+			const data = contentType.includes('application/json')
+				? await res.json()
+				: { message: await res.text() };
+
 			if (!res.ok) {
-				const errorData = await res.json();
-				throw new Error(errorData.message || 'Ошибка регистрации');
+				throw new Error(data.message || 'Registration failed');
 			}
 
-			setMessage({ text: 'Вы успешно зарегистрированы!', type: 'success' });
+			setMessage({ text: 'Account created successfully', type: 'success' });
 			setTimeout(() => navigate('/'), 1500);
 		} catch (error) {
 			setMessage({ text: error.message, type: 'error' });
 		}
 	};
 
-	// const handleGoogleRegister = async (credentialResponse) => {
-	// 	try {
-	// 		const res = await fetch(`${BASE_URL}/api/auth/google`, {
-	// 			method: 'POST',
-	// 			headers: { 'Content-Type': 'application/json' },
-	// 			body: JSON.stringify({ token: credentialResponse.credential }),
-	// 		});
+	const handleGoogleRegister = async (googleToken) => {
+		setMessage({ text: '', type: '' });
 
-	// 		if (!res.ok) throw new Error('Ошибка Google-регистрации');
+		try {
+			const response = await fetch(`${BASE_URL}/api/auth/google`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: googleToken }),
+			});
 
-	// 		const data = await res.json();
-	// 		localStorage.setItem('token', data.token);
+			const contentType = response.headers.get('content-type') || '';
+			const data = contentType.includes('application/json')
+				? await response.json()
+				: { message: await response.text() };
 
-	// 		setMessage({ text: 'Вы вошли через Google', type: 'success' });
-	// 		setTimeout(() => navigate('/home'), 1500);
-	// 	} catch (error) {
-	// 		setMessage({ text: 'Не удалось войти через Google', type: 'error' });
-	// 	}
-	// };
+			if (!response.ok) throw new Error(data.message || 'Google sign up failed');
+			if (!data?.token) throw new Error('Token was not returned by the server');
+
+			await login(data.token);
+		} catch (error) {
+			setMessage({ text: error.message, type: 'error' });
+		}
+	};
 
 	return (
 		<div className={styles.container}>
-			<h1 className={styles.title}>Регистрация</h1>
+			<h1 className={styles.title}>Register</h1>
 
 			<form onSubmit={handleRegister} className={styles.form}>
 				<input
@@ -98,14 +107,14 @@ export default function Register() {
 				<input
 					type="password"
 					name="password"
-					placeholder="Пароль"
+					placeholder="Password"
 					value={formData.password}
 					onChange={handleChange}
 					required
 					className={styles.input}
 				/>
 				<button type="submit" className={styles.button}>
-					Зарегистрироваться
+					Create account
 				</button>
 			</form>
 
@@ -117,27 +126,30 @@ export default function Register() {
 				</div>
 			)}
 
-			{/* <div className={styles.divider}>
-        <div className={styles.dividerLine}></div>
-        <span className={styles.dividerText}>или</span>
-        <div className={styles.dividerLine}></div>
-      </div>
+			{googleClientId && (
+				<div className={styles.divider}>
+					<div className={styles.dividerLine}></div>
+					<span className={styles.dividerText}>or</span>
+					<div className={styles.dividerLine}></div>
+				</div>
+			)}
 
-      <div className={styles.googleContainer}>
-        <GoogleLogin
-          onSuccess={handleGoogleRegister}
-          onError={() => setMessage({ text: 'Ошибка входа через Google', type: 'error' })}
-          text="signup_with"
-          shape="rectangular"
-          size="large"
-        />
-      </div> */}
+			<div className={styles.googleContainer}>
+				<GoogleAuthButton
+					clientId={googleClientId}
+					text="signup_with"
+					onCredential={handleGoogleRegister}
+					onError={(error) =>
+						setMessage({
+							text: error?.message || 'Failed to sign up with Google',
+							type: 'error',
+						})
+					}
+				/>
+			</div>
 
-			<button
-				onClick={() => navigate('/')}
-				className={styles.link}
-			>
-				Уже есть аккаунт? Войти
+			<button onClick={() => navigate('/')} className={styles.link}>
+				Already have an account? Sign in
 			</button>
 		</div>
 	);

@@ -1,11 +1,12 @@
 import User from '../models/User.js';
 import TrainingFile from '../models/TrainingFile.js';
-import { generateToken } from '../utils/jwt.js';
+import { generateToken, verifyGoogleToken } from '../utils/jwt.js';
 
 const serializeUser = (user, extra = {}) => ({
   id: user._id,
   name: user.name,
   email: user.email,
+  avatar: user.avatar || '',
   weight: user.weight,
   role: user.role || 'user',
   accountStatus: user.accountStatus || 'active',
@@ -16,6 +17,26 @@ const serializeUser = (user, extra = {}) => ({
   deletionReason: user.deletionReason || '',
   ...extra,
 });
+
+const ensureActiveUser = (user, res) => {
+  if (user.isDeleted) {
+    res.status(403).json({
+      success: false,
+      message: 'Account has been deleted',
+    });
+    return false;
+  }
+
+  if (user.accountStatus === 'suspended') {
+    res.status(403).json({
+      success: false,
+      message: 'Account is suspended',
+    });
+    return false;
+  }
+
+  return true;
+};
 
 export const register = async (req, res) => {
   try {
@@ -68,19 +89,7 @@ export const login = async (req, res) => {
       });
     }
 
-    if (user.isDeleted) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account has been deleted',
-      });
-    }
-
-    if (user.accountStatus === 'suspended') {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is suspended',
-      });
-    }
+    if (!ensureActiveUser(user, res)) return;
 
     const token = generateToken(user);
 
@@ -95,6 +104,81 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error during login',
+    });
+  }
+};
+
+export const loginWithGoogle = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+
+    if (!googleClientId) {
+      return res.status(500).json({
+        success: false,
+        message: 'Google auth is not configured on the server',
+      });
+    }
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google token is required',
+      });
+    }
+
+    const googleProfile = await verifyGoogleToken(token, googleClientId);
+    if (!googleProfile?.email || !googleProfile?.googleId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google token',
+      });
+    }
+
+    let user = await User.findOne({
+      $or: [
+        { googleId: googleProfile.googleId },
+        { email: googleProfile.email.toLowerCase() },
+      ],
+    }).select('+password');
+
+    if (user) {
+      if (!ensureActiveUser(user, res)) return;
+
+      if (!user.googleId) {
+        user.googleId = googleProfile.googleId;
+      }
+      if (!user.avatar && googleProfile.picture) {
+        user.avatar = googleProfile.picture;
+      }
+      if (!user.name && googleProfile.name) {
+        user.name = googleProfile.name;
+      }
+
+      await user.save();
+    } else {
+      const fallbackName = googleProfile.name?.trim() || googleProfile.email.split('@')[0];
+      user = await User.create({
+        name: fallbackName,
+        email: googleProfile.email.toLowerCase(),
+        googleId: googleProfile.googleId,
+        avatar: googleProfile.picture || '',
+      });
+    }
+
+    const authToken = generateToken(user);
+
+    res.json({
+      success: true,
+      message: 'Logged in with Google successfully',
+      token: authToken,
+      user: serializeUser(user),
+    });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during Google login',
     });
   }
 };

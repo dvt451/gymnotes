@@ -71,9 +71,19 @@ const userSchema = new mongoose.Schema(
 		},
 		password: {
 			type: String,
-			required: [true, 'Пароль обязателен'],
 			minlength: [6, 'Пароль должен быть минимум 6 символов'],
 			select: false,
+		},
+		googleId: {
+			type: String,
+			unique: true,
+			sparse: true,
+			index: true,
+		},
+		avatar: {
+			type: String,
+			default: '',
+			trim: true,
 		},
 		nutritions: {
 			type: nutritionSchema,
@@ -88,6 +98,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
+	if (!this.password) return next();
 	if (!this.isModified('password')) return next();
 	const salt = await bcrypt.genSalt(10);
 	this.password = await bcrypt.hash(this.password, salt);

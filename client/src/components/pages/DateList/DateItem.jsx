@@ -33,6 +33,7 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 		setShowEditPicker(false);
 		setLocalError(null); // очищаем ошибку при закрытии
 	};
+	const exerciseCount = Number(item.exerciseCount ?? item.exercises?.length ?? 0);
 
 	return (
 		<>
@@ -64,13 +65,14 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 						</div>
 					)}
 					{isToday && <span style={dateItemStyles.todayBadge}>Today</span>}
+					{exerciseCount > 0 && (
+						<span style={{ ...dateItemStyles.exercisesCount, ...(isToday && { color: colors.white, fontWeight: '700' }) }}>
+							{exerciseCount} ex.
+						</span>
+					)}
 				</button>
 
-				{item.exercises?.length > 0 && (
-					<span style={{ ...dateItemStyles.exercisesCount, ...(isToday && { color: colors.blueDark }) }}>
-						{item.exercises.length} ex.
-					</span>
-				)}
+
 
 				{editState && <button
 					style={dateItemStyles.deleteButton}

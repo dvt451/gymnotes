@@ -28,6 +28,30 @@ const ensureFile = async (userId, fileId) => {
   return TrainingFile.findOne({ _id: fileId, userId });
 };
 
+const loadExerciseCountsByDateId = async (userId, fileId, trainingDateIds) => {
+  if (!Array.isArray(trainingDateIds) || trainingDateIds.length === 0) {
+    return new Map();
+  }
+
+  const counts = await ExerciseEntry.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        trainingFileId: new mongoose.Types.ObjectId(fileId),
+        trainingDateId: { $in: trainingDateIds.map((id) => new mongoose.Types.ObjectId(id)) },
+      },
+    },
+    {
+      $group: {
+        _id: '$trainingDateId',
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  return new Map(counts.map((item) => [String(item._id), item.count]));
+};
+
 const mapEntriesToExercises = async (entries) => {
   const libraryIds = entries.map((e) => e.exerciseUserLibraryId);
   const libs = await ExerciseUserLibrary.find({ _id: { $in: libraryIds } }).select('name');
@@ -52,6 +76,11 @@ router.get('/', async (req, res) => {
       userId: req.userId,
       trainingFileId: req.params.fileId,
     }).sort({ date: 1, createdAt: 1 });
+    const exerciseCountsByDateId = await loadExerciseCountsByDateId(
+      req.userId,
+      req.params.fileId,
+      dates.map((dateItem) => dateItem._id)
+    );
 
     res.json(
       dates.map((d) => ({
@@ -59,6 +88,7 @@ router.get('/', async (req, res) => {
         userId: d.userId,
         trainingFileId: d.trainingFileId,
         date: normalizeDateString(d.date),
+        exerciseCount: exerciseCountsByDateId.get(String(d._id)) || 0,
         createdAt: d.createdAt,
         updatedAt: d.updatedAt,
       }))
@@ -129,6 +159,11 @@ router.post('/', async (req, res) => {
       userId: req.userId,
       trainingFileId: req.params.fileId,
     }).sort({ date: 1, createdAt: 1 });
+    const exerciseCountsByDateId = await loadExerciseCountsByDateId(
+      req.userId,
+      req.params.fileId,
+      dates.map((dateItem) => dateItem._id)
+    );
 
     res.status(201).json({
       dates: dates.map((d) => ({
@@ -136,6 +171,7 @@ router.post('/', async (req, res) => {
         userId: d.userId,
         trainingFileId: d.trainingFileId,
         date: normalizeDateString(d.date),
+        exerciseCount: exerciseCountsByDateId.get(String(d._id)) || 0,
         createdAt: d.createdAt,
         updatedAt: d.updatedAt,
       })),
@@ -181,6 +217,7 @@ router.put('/:dateId', async (req, res) => {
         userId: dateEntry.userId,
         trainingFileId: dateEntry.trainingFileId,
         date: normalizeDateString(dateEntry.date),
+        exerciseCount: 0,
         createdAt: dateEntry.createdAt,
         updatedAt: dateEntry.updatedAt,
       },

@@ -83,6 +83,52 @@ const ensureUserMuscleGroup = async (userId, rawGroupName) => {
   }
 };
 
+const compareExerciseEntries = (a, b) => {
+  const hasAOrder = Number.isFinite(a.order);
+  const hasBOrder = Number.isFinite(b.order);
+
+  if (hasAOrder && hasBOrder && a.order !== b.order) {
+    return a.order - b.order;
+  }
+
+  if (hasAOrder !== hasBOrder) {
+    return hasAOrder ? -1 : 1;
+  }
+
+  const aCreatedAt = new Date(a.createdAt || 0).getTime();
+  const bCreatedAt = new Date(b.createdAt || 0).getTime();
+
+  if (aCreatedAt !== bCreatedAt) {
+    return aCreatedAt - bCreatedAt;
+  }
+
+  return String(a._id).localeCompare(String(b._id));
+};
+
+const normalizeExerciseEntryOrder = async (entries) => {
+  const orderedEntries = [...entries].sort(compareExerciseEntries);
+  const needsNormalization = orderedEntries.some((entry, index) => entry.order !== index);
+
+  if (!needsNormalization || orderedEntries.length === 0) {
+    return orderedEntries;
+  }
+
+  await ExerciseEntry.bulkWrite(
+    orderedEntries.map((entry, index) => ({
+      updateOne: {
+        filter: { _id: entry._id },
+        update: { $set: { order: index } },
+      },
+    }))
+  );
+
+  orderedEntries.forEach((entry, index) => {
+    entry.order = index;
+  });
+
+  return orderedEntries;
+};
+
 const mapEntriesToExercises = async (entries) => {
   const libraryIds = entries.map((e) => e.exerciseUserLibraryId.toString());
   const uniqueIds = [...new Set(libraryIds)];
@@ -108,6 +154,7 @@ const mapEntriesToExercises = async (entries) => {
       exerciseUserLibraryId: entry.exerciseUserLibraryId,
       name: libraryExercise?.name || 'Unknown exercise',
       muscleGroup: libraryExercise?.muscleGroup || normalizeMuscleGroup(),
+      order: Number.isFinite(entry.order) ? entry.order : 0,
       weights: entry.weights || [],
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -134,7 +181,8 @@ router.get('/', async (req, res) => {
       trainingDateId: dateEntry._id,
     });
 
-    const exercises = await mapEntriesToExercises(entries);
+    const orderedEntries = await normalizeExerciseEntryOrder(entries);
+    const exercises = await mapEntriesToExercises(orderedEntries);
     res.json({ exercises });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -193,11 +241,19 @@ router.post('/', async (req, res) => {
       return res.status(200).json(mapped);
     }
 
+    const currentEntries = await ExerciseEntry.find({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
+    const orderedEntries = await normalizeExerciseEntryOrder(currentEntries);
+
     const entry = await ExerciseEntry.create({
       userId: req.userId,
       trainingFileId: req.params.fileId,
       trainingDateId: dateEntry._id,
       exerciseUserLibraryId: libraryExercise._id,
+      order: orderedEntries.length,
       weights: [],
     });
 
@@ -226,6 +282,13 @@ router.post('/apply-template', async (req, res) => {
     const dateEntry = await findTrainingDate(req.userId, fileId, date);
     if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
 
+    const currentEntries = await ExerciseEntry.find({
+      userId: req.userId,
+      trainingFileId: fileId,
+      trainingDateId: dateEntry._id,
+    });
+    const orderedEntries = await normalizeExerciseEntryOrder(currentEntries);
+    let nextOrder = orderedEntries.length;
     const createdOrFound = [];
 
     for (const exercise of templateExercises) {
@@ -263,8 +326,11 @@ router.post('/apply-template', async (req, res) => {
           trainingFileId: fileId,
           trainingDateId: dateEntry._id,
           exerciseUserLibraryId: libraryExercise._id,
+          order: nextOrder,
           weights: [],
         });
+
+        nextOrder += 1;
       }
 
       createdOrFound.push(entry);
@@ -277,6 +343,66 @@ router.post('/apply-template', async (req, res) => {
       message: err.message,
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     });
+  }
+});
+
+router.post('/reorder', async (req, res) => {
+  try {
+    const { order } = req.body;
+
+    if (!Array.isArray(order) || order.length === 0) {
+      return res.status(400).json({ message: 'Order must be a non-empty array of exercise ids' });
+    }
+
+    const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+    if (!dateEntry) return res.status(404).json({ message: 'Дата не найдена' });
+
+    const entries = await ExerciseEntry.find({
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
+    const orderedEntries = await normalizeExerciseEntryOrder(entries);
+    const existingIds = orderedEntries.map((entry) => String(entry._id));
+    const requestedIds = order.map((id) => String(id));
+    const requestedIdSet = new Set(requestedIds);
+
+    const isInvalidOrder =
+      existingIds.length !== requestedIds.length ||
+      requestedIdSet.size !== requestedIds.length ||
+      existingIds.some((id) => !requestedIdSet.has(id));
+
+    if (isInvalidOrder) {
+      return res.status(400).json({ message: 'Order must include all exercises exactly once' });
+    }
+
+    await ExerciseEntry.bulkWrite(
+      requestedIds.map((id, index) => ({
+        updateOne: {
+          filter: {
+            _id: id,
+            userId: req.userId,
+            trainingFileId: req.params.fileId,
+            trainingDateId: dateEntry._id,
+          },
+          update: { $set: { order: index } },
+        },
+      }))
+    );
+
+    const entryById = new Map(orderedEntries.map((entry) => [String(entry._id), entry]));
+    const reorderedEntries = requestedIds
+      .map((id, index) => {
+        const entry = entryById.get(id);
+        if (entry) entry.order = index;
+        return entry;
+      })
+      .filter(Boolean);
+
+    const exercises = await mapEntriesToExercises(reorderedEntries);
+    res.json({ exercises });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

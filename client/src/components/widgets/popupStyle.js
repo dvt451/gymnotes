@@ -81,9 +81,12 @@ export const createPopupStyle = (mainColor) => ({
 	ListItemsWrapper: {
 	},
 	ListItems: {
-		display: 'flex',
 		borderRadius: toRem(10),
 		overflow: 'hidden',
+		display: 'flex',
+		justifyContent: 'space-between',
+		backgroundColor: colors.labelBG,
+		borderRadius: '4px',
 	},
 	ListItem: {
 		backgroundColor: '#181E23',
@@ -96,7 +99,6 @@ export const createPopupStyle = (mainColor) => ({
 	},
 	removeExerciseButton: {
 		color: colors.white,
-		backgroundColor: colors.red,
 		padding: toRem(0) + ' ' + toRem(14),
 	},
 	popupBodyContent: {

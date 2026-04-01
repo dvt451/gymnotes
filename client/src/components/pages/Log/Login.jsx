@@ -1,12 +1,13 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
+import GoogleAuthButton from './GoogleAuthButton';
 import styles from './Login.module.css';
-// import { GoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
 	const { login, BASE_URL } = useContext(AuthContext);
 	const navigate = useNavigate();
+	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',
@@ -24,7 +25,7 @@ export default function Login() {
 		setMessage({ text: '', type: '' });
 
 		if (!/\S+@\S+\.\S+/.test(formData.email)) {
-			setMessage({ text: 'Введите корректный email', type: 'error' });
+			setMessage({ text: 'Enter a valid email address', type: 'error' });
 			return;
 		}
 
@@ -43,8 +44,32 @@ export default function Login() {
 				? await response.json()
 				: { message: await response.text() };
 
-			if (!response.ok) throw new Error(data.message || 'Ошибка входа');
-			if (!data?.token) throw new Error('Токен не получен от сервера');
+			if (!response.ok) throw new Error(data.message || 'Login failed');
+			if (!data?.token) throw new Error('Token was not returned by the server');
+
+			await login(data.token);
+		} catch (error) {
+			setMessage({ text: error.message, type: 'error' });
+		}
+	};
+
+	const handleGoogleLogin = async (googleToken) => {
+		setMessage({ text: '', type: '' });
+
+		try {
+			const response = await fetch(`${BASE_URL}/api/auth/google`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: googleToken }),
+			});
+
+			const contentType = response.headers.get('content-type') || '';
+			const data = contentType.includes('application/json')
+				? await response.json()
+				: { message: await response.text() };
+
+			if (!response.ok) throw new Error(data.message || 'Google login failed');
+			if (!data?.token) throw new Error('Token was not returned by the server');
 
 			await login(data.token);
 		} catch (error) {
@@ -54,7 +79,7 @@ export default function Login() {
 
 	return (
 		<div className={styles.container}>
-			<h1 className={styles.title}>Вход</h1>
+			<h1 className={styles.title}>Login</h1>
 
 			<form onSubmit={handleSubmit} className={styles.form}>
 				<input
@@ -71,7 +96,7 @@ export default function Login() {
 					<input
 						type={formData.showPassword ? 'text' : 'password'}
 						name="password"
-						placeholder="Пароль"
+						placeholder="Password"
 						value={formData.password}
 						onChange={handleChange}
 						required
@@ -79,7 +104,9 @@ export default function Login() {
 					/>
 					<button
 						type="button"
-						onClick={() => setFormData((prev) => ({ ...prev, showPassword: !prev.showPassword }))}
+						onClick={() =>
+							setFormData((prev) => ({ ...prev, showPassword: !prev.showPassword }))
+						}
 						className={styles.passwordToggle}
 					>
 						{formData.showPassword ? 'Hide' : 'Show'}
@@ -87,22 +114,42 @@ export default function Login() {
 				</div>
 
 				<button type="submit" className={styles.loginButton}>
-					Войти
+					Sign in
 				</button>
 			</form>
 
 			{message.text && (
 				<div className={`${styles.messageContainer} ${styles[`${message.type}Message`]}`}>
-					<span className={`${styles.messageText} ${styles[`${message.type}Text`]}`}>{message.text}</span>
+					<span className={`${styles.messageText} ${styles[`${message.type}Text`]}`}>
+						{message.text}
+					</span>
+				</div>
+			)}
+
+			{googleClientId && (
+				<div className={styles.divider}>
+					<div className={styles.dividerLine}></div>
+					<span className={styles.dividerText}>or</span>
+					<div className={styles.dividerLine}></div>
 				</div>
 			)}
 
 			<div className={styles.googleContainer}>
-				{/* Google Login компонент */}
+				<GoogleAuthButton
+					clientId={googleClientId}
+					text="signin_with"
+					onCredential={handleGoogleLogin}
+					onError={(error) =>
+						setMessage({
+							text: error?.message || 'Failed to sign in with Google',
+							type: 'error',
+						})
+					}
+				/>
 			</div>
 
 			<button onClick={() => navigate('/register')} className={styles.registerLink}>
-				Нет аккаунта? Зарегистрируйтесь
+				No account yet? Create one
 			</button>
 		</div>
 	);

@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { createExercisesStyles } from './ExersicesStyles';
 import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import ExerciseItem from './ExerciseItem/ExerciseItem';
+import { getToken } from '../../utils/getToken';
 
 export default function ExercisesList({
 	exercises,
@@ -12,20 +13,109 @@ export default function ExercisesList({
 	BASE_URL,
 	previousExercisesByLibraryId,
 	previousDateKey,
-	editState
+	editState,
 }) {
 	const { mainColor } = useContext(GlobalContext);
 	const styles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
 	const [expandedExerciseId, setExpandedExerciseId] = useState(null);
+	const [isReordering, setIsReordering] = useState(false);
+	const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+	useEffect(() => {
+		if (editState) return;
+		setIsReordering(false);
+		setExpandedExerciseId(null);
+	}, [editState]);
+
+	useEffect(() => {
+		if (exercises.length > 1) return;
+		setIsReordering(false);
+	}, [exercises.length]);
+
+	const moveExerciseInList = async (index, direction) => {
+		if (isSavingOrder) return;
+
+		const newIndex = index + direction;
+		if (newIndex < 0 || newIndex >= exercises.length) return;
+
+		const previousExercises = [...exercises];
+		const nextExercises = [...exercises];
+		[nextExercises[index], nextExercises[newIndex]] = [nextExercises[newIndex], nextExercises[index]];
+
+		setExpandedExerciseId(null);
+		setExercises(nextExercises);
+		setIsSavingOrder(true);
+
+		try {
+			const token = await getToken();
+			const response = await fetch(
+				`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/reorder`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({
+						order: nextExercises.map((exercise) => exercise._id || exercise.id),
+					}),
+				}
+			);
+
+			if (!response.ok) {
+				const message = await response.text();
+				throw new Error(message || 'Failed to save exercise order');
+			}
+		} catch (err) {
+			console.error('Error saving exercise order:', err);
+			setExercises(previousExercises);
+		} finally {
+			setIsSavingOrder(false);
+		}
+	};
 
 	return (
 		<>
 			<div style={commonStyle.titleHeader}>
 				<h2 style={commonStyle.title}>Exercises</h2>
+				{editState && exercises.length > 1 && (
+					<button
+						type="button"
+						onClick={() => {
+							setExpandedExerciseId(null);
+							setIsReordering((prev) => !prev);
+						}}
+						style={{
+							...commonStyle.EditButton,
+							backgroundColor: isReordering ? colors.orange : 'transparent',
+							border: 'none',
+							borderRadius: '8px',
+							padding: '8px 12px',
+							cursor: 'pointer',
+							opacity: isSavingOrder ? 0.7 : 1,
+						}}
+						disabled={isSavingOrder}
+					>
+						<span
+							style={{
+								...commonStyle.EditButtonText,
+								color: isReordering ? colors.black : colors.blueLight,
+								opacity: 1,
+								fontSize: '16px',
+							}}
+						>
+							{isSavingOrder
+								? 'Saving order...'
+								: isReordering
+									? 'Reordering...'
+									: 'Reorder'}
+						</span>
+					</button>
+				)}
 			</div>
 			{exercises.length === 0 && (
-				<p style={styles.noExercises}>Нет упражнений. Добавьте новое ниже.</p>
+				<p style={styles.noExercises}>No exercises yet. Add a new one below.</p>
 			)}
 			<div style={styles.list}>
 				{Array.isArray(exercises) ? (
@@ -41,14 +131,21 @@ export default function ExercisesList({
 							expandedExerciseId={expandedExerciseId}
 							setExpandedExerciseId={setExpandedExerciseId}
 							editState={editState}
-							prevWeights={previousExercisesByLibraryId[String(item.exerciseUserLibraryId || '')] || []}
+							isReordering={isReordering}
+							index={index}
+							exercisesCount={exercises.length}
+							moveExerciseInList={moveExerciseInList}
+							isSavingOrder={isSavingOrder}
+							prevWeights={
+								previousExercisesByLibraryId[String(item.exerciseUserLibraryId || '')] || []
+							}
 							previousDate={previousDateKey}
 						/>
 					))
 				) : (
-					<p style={styles.error}>Невозможно отобразить упражнения</p>
+					<p style={styles.error}>Unable to display exercises.</p>
 				)}
 			</div>
 		</>
-	)
+	);
 }

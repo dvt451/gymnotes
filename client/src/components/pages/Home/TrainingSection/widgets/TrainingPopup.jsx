@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 function TrainingPopup({
 	isOpen,
@@ -17,6 +18,7 @@ function TrainingPopup({
 	onDelete
 }) {
 	const { mainColor } = useContext(GlobalContext);
+	const popupStyle = createPopupStyle(mainColor);
 
 	const commonStyle = createCommonStyle(mainColor);
 
@@ -27,26 +29,26 @@ function TrainingPopup({
 
 	return (
 		<Popup isOpen={isOpen} onClose={onClose}>
-			<h3 style={commonStyle.title}>{title}</h3>
+			<h3 style={popupStyle.title}>{title}</h3>
 
-			<div style={commonStyle.popupContentInputs}>
+			<div style={popupStyle.popupContentInputs}>
 				<input
 					type="text"
 					placeholder="Name"
 					value={name}
 					onChange={onNameChange}
-					style={commonStyle.popupInput}
+					style={popupStyle.popupInput}
 				/>
 				<input
 					type="text"
 					placeholder="Description (optional)"
 					value={text}
 					onChange={onTextChange}
-					style={commonStyle.popupInput}
+					style={popupStyle.popupInput}
 				/>
 			</div>
 
-			<div style={commonStyle.popupButtons}>
+			<div style={popupStyle.popupButtons}>
 				{mode === 'edit' && onDelete && (
 					<button
 						onClick={onDelete}

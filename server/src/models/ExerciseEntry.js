@@ -47,6 +47,11 @@ const exerciseEntrySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    order: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     weights: {
       type: [weightSetSchema],
       default: [],
@@ -57,5 +62,6 @@ const exerciseEntrySchema = new mongoose.Schema(
 
 exerciseEntrySchema.index({ trainingDateId: 1, exerciseUserLibraryId: 1 }, { unique: true });
 exerciseEntrySchema.index({ userId: 1, trainingFileId: 1, trainingDateId: 1 });
+exerciseEntrySchema.index({ trainingDateId: 1, order: 1 });
 
 export default mongoose.model('ExerciseEntry', exerciseEntrySchema);

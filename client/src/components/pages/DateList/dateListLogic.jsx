@@ -58,7 +58,8 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 				id: dateItem._id || dateItem.id,
 				_id: dateItem._id || dateItem.id,
 				date: dateItem.date ? dateItem.date.split('T')[0] : '',
-				exercises: dateItem.exercises || []
+				exercises: dateItem.exercises || [],
+				exerciseCount: Number(dateItem.exerciseCount) || 0,
 			}));
 
 			setDatesByTraining(prev => ({
@@ -135,7 +136,8 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 				id: dateItem._id || dateItem.id,
 				_id: dateItem._id || dateItem.id,
 				date: dateItem.date ? dateItem.date.split('T')[0] : '',
-				exercises: dateItem.exercises || []
+				exercises: dateItem.exercises || [],
+				exerciseCount: Number(dateItem.exerciseCount) || 0,
 			}));
 
 			setDatesByTraining(prev => ({

@@ -1,22 +1,24 @@
 import React, { useContext, useState } from 'react';
-import Popup from '../../../widgets/Popup';
-import { createPopupStyle } from '../../../widgets/popupStyle';
-import { createCommonStyle, colors } from '../../../../styles/commonStyle';
-import { GlobalContext } from '../../../../context/GlobalContext';
-import { createTemplatesStyles } from './TemplatesStyles';
-import ButtonType from '../../../widgets/ButtonType';
-import { AuthContext } from '../../../../context/AuthContext';
-import { getToken } from '../../../utils/getToken';
+import Popup from '../../../../widgets/Popup';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
+import { createCommonStyle, colors } from '../../../../../styles/commonStyle';
+import { GlobalContext } from '../../../../../context/GlobalContext';
+import { createTemplatesStyles } from './../TemplatesStyles';
+import ButtonType from '../../../../widgets/ButtonType';
+import { AuthContext } from '../../../../../context/AuthContext';
+import { getToken } from '../../../../utils/getToken';
 import {
 	handleCreateExercise,
 	findExactExerciseMatch,
 	normalizeExerciseName,
-} from '../../exerciseLibrary/handleCreateExercise';
+} from '../../../exerciseLibrary/handleCreateExercise';
 import {
 	DEFAULT_MUSCLE_GROUP,
 	normalizeExerciseMuscleGroup,
-} from '../../exerciseLibrary/muscleGroups';
-import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
+} from '../../../exerciseLibrary/muscleGroups';
+import MuscleGroupSelect from '../../../../widgets/MuscleGroupSelect';
+import { FaArrowDown, FaArrowUp, FaTrash } from 'react-icons/fa';
+import EditExerciseList from './EditExerciseList';
 
 export default function EditTemplatePopup({
 	editModalVisible,
@@ -300,55 +302,11 @@ export default function EditTemplatePopup({
 					</div>
 				</div>
 
-				<div style={popupStyle.popupLibraryBlock}>
-					<h3 style={popupStyle.title}>List</h3>
-					<div style={popupStyle.libraryList}>
-						{editingExercises.map((ex, i) => (
-							<div key={`${ex}_${i}`}>
-								<div
-									style={{
-										...popupStyle.ListItems,
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'space-between',
-									}}
-								>
-									<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-										<button
-											type="button"
-											style={{
-												...popupStyle.removeExerciseButton,
-												padding: '4px 8px',
-											}}
-											onClick={() => moveExerciseInEditingList(i, -1)}
-											disabled={i === 0}
-										>
-											Up
-										</button>
-										<button
-											type="button"
-											style={{
-												...popupStyle.removeExerciseButton,
-												padding: '4px 8px',
-											}}
-											onClick={() => moveExerciseInEditingList(i, 1)}
-											disabled={i === editingExercises.length - 1}
-										>
-											Down
-										</button>
-										<span style={popupStyle.ListItem}>{ex}</span>
-									</div>
-									<button
-										style={popupStyle.removeExerciseButton}
-										onClick={() => removeExerciseFromEditing(ex)}
-									>
-										Remove
-									</button>
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
+				<EditExerciseList
+					editingExercises={editingExercises}
+					removeExerciseFromEditing={removeExerciseFromEditing}
+					moveExerciseInEditingList={moveExerciseInEditingList}
+				/>
 			</div>
 			<div style={templatesStyles.modalButtonsHorizontal}>
 				<button

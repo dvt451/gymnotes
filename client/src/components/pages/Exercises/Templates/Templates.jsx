@@ -10,7 +10,8 @@ import {
 	normalizeExerciseName,
 } from '../../exerciseLibrary/handleCreateExercise';
 import CreateTemplatePopup from './CreateTemplatePopup';
-import EditTemplatePopup from './EditTemplatePopup';
+import EditTemplatePopup from './EditTemplatePopup/EditTemplatePopup';
+import { FaPen } from 'react-icons/fa';
 
 export default function Templates({ setExercises, trainingId, date, existingExercises = [] }) {
 	const { BASE_URL } = useContext(AuthContext);
@@ -28,6 +29,7 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 	const [editState, setEditState] = useState(false);
 	const [showNotification, setShowNotification] = useState(false);
 	const [notificationMessage, setNotificationMessage] = useState('');
+	const [notificationType, setNotificationType] = useState('success');
 	const [modalError, setModalError] = useState('');
 	const [isCreatingExercise, setIsCreatingExercise] = useState(false);
 
@@ -83,8 +85,6 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 		addExerciseToTemplateList(exercise.name || '', mode);
 		setNewExerciseName('');
 	};
-
-
 
 	useEffect(() => {
 		const fetchTemplates = async () => {
@@ -149,13 +149,16 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 	}, [BASE_URL]);
 
 	// Show notification
-	const showNotificationMessage = (message) => {
+	const showNotificationMessage = (message, type) => {
+		const resolvedType = type || (/^error\b/i.test(message) ? 'error' : 'success');
 		setNotificationMessage(message);
+		setNotificationType(resolvedType);
 		setShowNotification(true);
 
 		setTimeout(() => {
 			setShowNotification(false);
 			setNotificationMessage('');
+			setNotificationType('success');
 		}, 3000);
 	};
 
@@ -203,12 +206,15 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 			});
 
 			const exerciseCount = addedExercises.length;
-			const exerciseNames = addedExercises.map(ex => ex.name).join(', ');
-			showNotificationMessage(`✅ Added ${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}: ${exerciseNames}`);
+			const exerciseNames = addedExercises.map((ex) => ex.name).join(', ');
+			showNotificationMessage(
+				`Added ${exerciseCount} exercise${exerciseCount !== 1 ? 's' : ''}: ${exerciseNames}`,
+				'success'
+			);
 
 		} catch (err) {
 			console.error('Error applying template:', err);
-			showNotificationMessage(`❌ Error: ${err.message}`);
+			showNotificationMessage(`Error: ${err.message}`, 'error');
 		}
 	};
 
@@ -253,6 +259,7 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 						onClick={() => setEditState(!editState)}
 					>
 						{editState ? 'Editing...' : 'Edit'}
+						<FaPen />
 					</button>
 				</div>
 
@@ -343,14 +350,14 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 			{showNotification && (
 				<div style={{
 					...templatesStyles.notification,
-					...(notificationMessage.includes('❌') && templatesStyles.notificationError),
+					...(notificationType === 'error' && templatesStyles.notificationError),
 					transform: showNotification ? 'translateX(0)' : 'translateX(120%)',
 				}}>
 					<span style={templatesStyles.notificationIcon}>
-						{notificationMessage.includes('✅') ? '✅' : notificationMessage.includes('🗑️') ? '🗑️' : '❌'}
+						{notificationType === 'error' ? '❌' : '✅'}
 					</span>
 					<span style={templatesStyles.notificationMessage}>
-						{notificationMessage.replace(/[✅🗑️❌]/g, '').trim()}
+						{notificationMessage}
 					</span>
 				</div>
 			)}

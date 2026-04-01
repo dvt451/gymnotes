@@ -3,22 +3,24 @@ import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { createHomeStyle } from '../../homeStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
+import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 function DeleteConfirmationModal({ isOpen, trainingName, isLoading, onConfirm, onCancel }) {
 	const { mainColor } = useContext(GlobalContext);
 
 	const homeStyle = createHomeStyle(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
+	const popupStyle = createPopupStyle(mainColor);
 
 	return (
 		<Popup isOpen={isOpen} onClose={onCancel}>
-			<h3 style={commonStyle.title}>Confirm Deletion</h3>
-			<p>Delete training "{trainingName}"?</p>
+			<h3 style={popupStyle.title}>Confirm Deletion</h3>
+			<p style={{ color: '#fff' }}>Delete training "{trainingName}"?</p>
 			<p style={{ color: 'red', fontSize: '14px' }}>
 				This action cannot be undone.
 			</p>
 
-			<div style={homeStyle.popupButtons}>
+			<div style={popupStyle.popupButtons}>
 				<button
 					onClick={onCancel}
 					style={{ ...commonStyle.button, ...commonStyle.popupCancelButton }}

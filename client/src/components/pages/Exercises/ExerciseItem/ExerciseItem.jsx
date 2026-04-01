@@ -11,6 +11,7 @@ import PrevWeights from './PrevWeights';
 import { createPopupStyle } from '../../../widgets/popupStyle';
 import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
 import { normalizeExerciseMuscleGroup } from '../../exerciseLibrary/muscleGroups';
+import ExerciseItemMove from './ExerciseItemMove';
 
 export default function ExerciseItem({
 	item,
@@ -21,6 +22,11 @@ export default function ExerciseItem({
 	expandedExerciseId,
 	setExpandedExerciseId,
 	editState,
+	isReordering = false,
+	index = 0,
+	exercisesCount = 0,
+	moveExerciseInList = () => { },
+	isSavingOrder = false,
 	prevWeights = [],
 	previousDate = '',
 }) {
@@ -38,6 +44,7 @@ export default function ExerciseItem({
 
 	const toggleExpand = (e) => {
 		e.stopPropagation();
+		if (isReordering) return;
 		if (expandedExerciseId === item._id) return;
 		setExpandedExerciseId(item._id);
 	};
@@ -105,97 +112,109 @@ export default function ExerciseItem({
 	};
 
 	return (
-		<div
-			style={{ ...styles.exerciseBlock, ...(!isExpanded && { cursor: 'pointer' }) }}
-			onClick={toggleExpand}
-		>
-			<div style={styles.exerciseHeader}>
-				<div
-					style={{
-						...styles.exerciseTitle,
-						...(isExpanded && styles.exerciseTitleActive),
-					}}
-				>
-					{item.name}
-				</div>
-
-				{editState && isExpanded && (
-					<button
-						type="button"
-						onClick={openRenamePopup}
-						style={{ ...styles.deleteExerciseBtn, color: '#00C8FF' }}
-						aria-label="Переименовать упражнение"
-						title="Переименовать"
-					>
-						<FaPen />
-					</button>
-				)}
-
-				{editState && isExpanded && (
-					<DeleteExerciseItem
-						item={item}
-						setExercises={setExercises}
-						date={date}
-						trainingId={trainingId}
-						BASE_URL={BASE_URL}
-					/>
-				)}
-			</div>
-
-			<PrevWeights weights={prevWeights} previousDate={previousDate} />
-			<Weights
-				editState={editState}
-				item={item}
-				setExercises={setExercises}
-				date={date}
-				trainingId={trainingId}
-				BASE_URL={BASE_URL}
-				isExpanded={isExpanded}
-			/>
-
-			<Popup isOpen={showRenamePopup} onClose={closeRenamePopup}>
-				<h2 style={popupStyle.title}>Rename Exercise</h2>
-				<div style={popupStyle.popupBodyContent}>
-					<input
-						type="text"
-						style={popupStyle.popupInput}
-						value={renameValue}
-						onChange={(e) => {
-							setRenameError('');
-							setRenameValue(e.target.value);
+		<div style={{ display: 'flex', gap: '10px', position: 'relative' }} >
+			<div
+				style={{ ...styles.exerciseBlock, width: '100%', ...(!isExpanded && { cursor: 'pointer' }) }}
+				onClick={toggleExpand}
+			>
+				<div style={styles.exerciseHeader}>
+					<div
+						style={{
+							...styles.exerciseTitle,
+							...(isExpanded && styles.exerciseTitleActive),
 						}}
-						placeholder="Новое название"
-						autoFocus
-					/>
-					<MuscleGroupSelect
-						style={popupStyle.popupInput}
-						value={renameMuscleGroup}
-						onChange={setRenameMuscleGroup}
-						disabled={isRenaming}
-					/>
-				</div>
-				{renameError && (
-					<p style={{ ...styles.error, margin: 0, padding: '8px' }}>{renameError}</p>
-				)}
-				<div style={commonStyle.popupButtons}>
-					<button
-						type="button"
-						style={commonStyle.popupCreateButton}
-						onClick={submitRename}
-						disabled={!renameValue.trim() || isRenaming}
 					>
-						{isRenaming ? 'Сохранение...' : 'Сохранить'}
-					</button>
-					<button
-						type="button"
-						style={commonStyle.popupCancelButton}
-						onClick={closeRenamePopup}
-						disabled={isRenaming}
-					>
-						Отмена
-					</button>
+						{item.name}
+					</div>
+
+
+
+					{editState && isExpanded && !isReordering && (
+						<button
+							type="button"
+							onClick={openRenamePopup}
+							style={{ ...styles.deleteExerciseBtn, color: '#00C8FF' }}
+							aria-label="Переименовать упражнение"
+							title="Переименовать"
+						>
+							<FaPen />
+						</button>
+					)}
+
+					{editState && isExpanded && !isReordering && (
+						<DeleteExerciseItem
+							item={item}
+							setExercises={setExercises}
+							date={date}
+							trainingId={trainingId}
+							BASE_URL={BASE_URL}
+						/>
+					)}
 				</div>
-			</Popup>
-		</div>
+
+				<PrevWeights weights={prevWeights} previousDate={previousDate} />
+				<Weights
+					editState={editState}
+					item={item}
+					setExercises={setExercises}
+					date={date}
+					trainingId={trainingId}
+					BASE_URL={BASE_URL}
+					isExpanded={isExpanded && !isReordering}
+				/>
+
+				<Popup isOpen={showRenamePopup} onClose={closeRenamePopup}>
+					<h2 style={popupStyle.title}>Rename Exercise</h2>
+					<div style={popupStyle.popupBodyContent}>
+						<input
+							type="text"
+							style={popupStyle.popupInput}
+							value={renameValue}
+							onChange={(e) => {
+								setRenameError('');
+								setRenameValue(e.target.value);
+							}}
+							placeholder="Новое название"
+							autoFocus
+						/>
+						<MuscleGroupSelect
+							style={popupStyle.popupInput}
+							value={renameMuscleGroup}
+							onChange={setRenameMuscleGroup}
+							disabled={isRenaming}
+						/>
+					</div>
+					{renameError && (
+						<p style={{ ...styles.error, margin: 0, padding: '8px' }}>{renameError}</p>
+					)}
+					<div style={commonStyle.popupButtons}>
+						<button
+							type="button"
+							style={commonStyle.popupCreateButton}
+							onClick={submitRename}
+							disabled={!renameValue.trim() || isRenaming}
+						>
+							{isRenaming ? 'Сохранение...' : 'Сохранить'}
+						</button>
+						<button
+							type="button"
+							style={commonStyle.popupCancelButton}
+							onClick={closeRenamePopup}
+							disabled={isRenaming}
+						>
+							Отмена
+						</button>
+					</div>
+				</Popup>
+			</div>
+			{editState && isReordering && (
+				<ExerciseItemMove
+					index={index}
+					exercisesCount={exercisesCount}
+					moveExerciseInList={moveExerciseInList}
+					disabled={isSavingOrder}
+				/>
+			)}
+		</ div>
 	);
 }

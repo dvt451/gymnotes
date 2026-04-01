@@ -20,7 +20,8 @@ build
 dist
 dist-ssr
 *.local
-
+appAdminDetails.txt
+lint-output.txt
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

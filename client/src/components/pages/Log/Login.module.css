@@ -141,6 +141,9 @@
 	margin-top: 20px;
 	border-radius: 8px;
 	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	min-height: 44px;
 }
 
 .registerLink {

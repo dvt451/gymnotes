@@ -1,6 +1,6 @@
 .container {
 	max-width: 400px;
-	margin: 0 auto;
+	margin: auto;
 	padding: 40px 20px;
 	background-color: #121212;
 	border-radius: 12px;
@@ -107,6 +107,9 @@
 	margin-top: 20px;
 	border-radius: 8px;
 	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	min-height: 44px;
 }
 
 .link {

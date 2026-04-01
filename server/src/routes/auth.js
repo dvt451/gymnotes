@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import {
 	register,
 	login,
+	loginWithGoogle,
 	getProfile,
 	updateProfile,
 } from '../controllers/authController.js';
@@ -27,18 +28,6 @@ router.get('/users', authMiddleware, requireAdmin, async (req, res) => {
 	}
 });
 
-router.post('/google', async (req, res) => {
-	try {
-		res.status(501).json({
-			success: false,
-			message: 'Google authentication not implemented yet',
-		});
-	} catch (err) {
-		res.status(500).json({
-			success: false,
-			message: 'Server error',
-		});
-	}
-});
+router.post('/google', loginWithGoogle);
 
 export default router;

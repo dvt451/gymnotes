@@ -47,6 +47,9 @@ export const createTemplatesStyles = (mainColor) => ({
 		borderRadius: toRem(6),
 		opacity: 0.7,
 		transition: 'all 0.3s ease',
+		display: 'flex',
+		alignItems: 'center',
+		gap: toRem(5),
 	},
 	editButtonEditing: {
 		backgroundColor: colors.orange,
