@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import TrainingFile from '../models/TrainingFile.js';
 import { generateToken, verifyGoogleToken } from '../utils/jwt.js';
 
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
 const serializeUser = (user, extra = {}) => ({
   id: user._id,
   name: user.name,
@@ -40,7 +42,8 @@ const ensureActiveUser = (user, res) => {
 
 export const register = async (req, res) => {
   try {
-    const { name, weight, email, password } = req.body;
+    const { name, weight, password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -71,33 +74,47 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
+    const users = await User.find({ email }).select('+password').sort({ createdAt: 1, _id: 1 });
+    if (users.length === 0) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
       });
     }
 
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
+    let matchedUser = null;
+
+    for (const candidate of users) {
+      const isPasswordValid = await candidate.comparePassword(password);
+      if (isPasswordValid) {
+        matchedUser = candidate;
+        break;
+      }
+    }
+
+    if (!matchedUser) {
+      const hasGoogleOnlyAccount = users.some((user) => user.googleId && !user.password);
+
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials',
+        message: hasGoogleOnlyAccount
+          ? 'Invalid credentials. This email is also linked to Google Sign-In.'
+          : 'Invalid credentials',
       });
     }
 
-    if (!ensureActiveUser(user, res)) return;
+    if (!ensureActiveUser(matchedUser, res)) return;
 
-    const token = generateToken(user);
+    const token = generateToken(matchedUser);
 
     res.json({
       success: true,
       message: 'Logged in successfully',
       token,
-      user: serializeUser(user),
+      user: serializeUser(matchedUser),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -135,12 +152,19 @@ export const loginWithGoogle = async (req, res) => {
       });
     }
 
+    const normalizedGoogleEmail = normalizeEmail(googleProfile.email);
+
     let user = await User.findOne({
-      $or: [
-        { googleId: googleProfile.googleId },
-        { email: googleProfile.email.toLowerCase() },
-      ],
+      googleId: googleProfile.googleId,
     }).select('+password');
+
+    if (!user) {
+      const usersWithEmail = await User.find({ email: normalizedGoogleEmail }).select('+password').sort({ createdAt: 1, _id: 1 });
+
+      if (usersWithEmail.length > 0) {
+        user = usersWithEmail.find((candidate) => candidate.password) || usersWithEmail[0];
+      }
+    }
 
     if (user) {
       if (!ensureActiveUser(user, res)) return;
@@ -160,7 +184,7 @@ export const loginWithGoogle = async (req, res) => {
       const fallbackName = googleProfile.name?.trim() || googleProfile.email.split('@')[0];
       user = await User.create({
         name: fallbackName,
-        email: googleProfile.email.toLowerCase(),
+        email: normalizedGoogleEmail,
         googleId: googleProfile.googleId,
         avatar: googleProfile.picture || '',
       });

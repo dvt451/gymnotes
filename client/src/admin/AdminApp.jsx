@@ -8,6 +8,7 @@ import AdminTabs from './components/AdminTabs.jsx'
 import AdminUsersPanel from './components/AdminUsersPanel.jsx'
 import {
 	API_BASE_URL,
+	GOOGLE_CLIENT_ID,
 	TOKEN_STORAGE_KEY,
 	defaultAuditQuery,
 	defaultLoginForm,
@@ -41,6 +42,7 @@ export default function AdminApp() {
 	const [activeTab, setActiveTab] = useState('dashboard')
 	const [isBootstrapping, setIsBootstrapping] = useState(true)
 	const [isLoggingIn, setIsLoggingIn] = useState(false)
+	const [isGoogleLoggingIn, setIsGoogleLoggingIn] = useState(false)
 	const [isRefreshingSummary, setIsRefreshingSummary] = useState(false)
 	const [isUsersLoading, setIsUsersLoading] = useState(false)
 	const [isAuditLoading, setIsAuditLoading] = useState(false)
@@ -364,6 +366,29 @@ export default function AdminApp() {
 		resetSession(createMessage('success', 'Admin session closed'))
 	}
 
+	const handleGoogleLogin = async (credential) => {
+		setIsGoogleLoggingIn(true)
+		setMessage(null)
+
+		try {
+			const data = await fetchJson(`${API_BASE_URL}/api/admin/google`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: credential }),
+			})
+
+			localStorage.setItem(TOKEN_STORAGE_KEY, data.token)
+			setToken(data.token)
+			setAdminUser(data.user)
+			setLoginForm(defaultLoginForm)
+			setMessage(createMessage('success', 'Admin Google session started'))
+		} catch (error) {
+			setMessage(createMessage('error', error.message || 'Unable to log in with Google'))
+		} finally {
+			setIsGoogleLoggingIn(false)
+		}
+	}
+
 	const handleExportBackup = async () => {
 		if (!token) {
 			return
@@ -610,8 +635,12 @@ export default function AdminApp() {
 				loginForm={loginForm}
 				message={message}
 				isLoggingIn={isLoggingIn}
+				isGoogleLoggingIn={isGoogleLoggingIn}
+				googleClientId={GOOGLE_CLIENT_ID}
 				onSubmit={handleLogin}
 				onChange={handleLoginChange}
+				onGoogleCredential={handleGoogleLogin}
+				onGoogleError={(error) => setMessage(createMessage('error', error.message || 'Google sign-in failed'))}
 			/>
 		)
 	}

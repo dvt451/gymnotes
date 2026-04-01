@@ -8,7 +8,7 @@ import Template from '../models/Template.js';
 import ExerciseUserLibrary from '../models/ExerciseUserLibrary.js';
 import UserMuscleGroup from '../models/UserMuscleGroup.js';
 import AdminAuditLog from '../models/AdminAuditLog.js';
-import { generateToken } from '../utils/jwt.js';
+import { generateToken, verifyGoogleToken } from '../utils/jwt.js';
 import { authMiddleware, requireAdmin } from '../middleware/auth.js';
 import { validateLogin } from '../middleware/validation.js';
 import { logAdminAction } from '../utils/adminAudit.js';
@@ -34,6 +34,7 @@ const BACKUP_COLLECTIONS = [
 ];
 const RESTORE_DELETE_ORDER = [...BACKUP_COLLECTIONS].reverse();
 const RESTORE_INSERT_ORDER = BACKUP_COLLECTIONS;
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 const toPositiveInt = (value, fallback) => {
 	const parsed = Number(value);
@@ -232,11 +233,56 @@ const buildSort = (query) => {
 	return { [field]: sortOrder, _id: sortOrder };
 };
 
+const ensureActiveAdmin = (user, res) => {
+	if (user.isDeleted) {
+		res.status(403).json({
+			success: false,
+			message: 'Account has been deleted',
+		});
+		return false;
+	}
+
+	if (user.accountStatus === 'suspended') {
+		res.status(403).json({
+			success: false,
+			message: 'Account is suspended',
+		});
+		return false;
+	}
+
+	if (user.role !== 'admin') {
+		res.status(403).json({
+			success: false,
+			message: 'Admin access required',
+		});
+		return false;
+	}
+
+	return true;
+};
+
 router.post('/login', validateLogin, async (req, res) => {
 	try {
-		const { email, password } = req.body;
+		const email = normalizeEmail(req.body.email);
+		const { password } = req.body;
+		const users = await User.find({ email }).select('+password').sort({ createdAt: 1, _id: 1 });
+		if (users.length === 0) {
+			return res.status(401).json({
+				success: false,
+				message: 'Invalid credentials',
+			});
+		}
 
-		const user = await User.findOne({ email }).select('+password');
+		let user = null;
+
+		for (const candidate of users) {
+			const isPasswordValid = await candidate.comparePassword(password);
+			if (isPasswordValid) {
+				user = candidate;
+				break;
+			}
+		}
+
 		if (!user) {
 			return res.status(401).json({
 				success: false,
@@ -244,34 +290,7 @@ router.post('/login', validateLogin, async (req, res) => {
 			});
 		}
 
-		const isPasswordValid = await user.comparePassword(password);
-		if (!isPasswordValid) {
-			return res.status(401).json({
-				success: false,
-				message: 'Invalid credentials',
-			});
-		}
-
-		if (user.isDeleted) {
-			return res.status(403).json({
-				success: false,
-				message: 'Account has been deleted',
-			});
-		}
-
-		if (user.accountStatus === 'suspended') {
-			return res.status(403).json({
-				success: false,
-				message: 'Account is suspended',
-			});
-		}
-
-		if (user.role !== 'admin') {
-			return res.status(403).json({
-				success: false,
-				message: 'Admin access required',
-			});
-		}
+		if (!ensureActiveAdmin(user, res)) return;
 
 		const token = generateToken(user);
 		req.currentUser = user;
@@ -292,6 +311,88 @@ router.post('/login', validateLogin, async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: 'Server error during admin login',
+		});
+	}
+});
+
+router.post('/google', async (req, res) => {
+	try {
+		const { token } = req.body || {};
+		const googleClientId = process.env.GOOGLE_CLIENT_ID;
+
+		if (!googleClientId) {
+			return res.status(500).json({
+				success: false,
+				message: 'Google auth is not configured on the server',
+			});
+		}
+
+		if (!token) {
+			return res.status(400).json({
+				success: false,
+				message: 'Google token is required',
+			});
+		}
+
+		const googleProfile = await verifyGoogleToken(token, googleClientId);
+		if (!googleProfile?.email || !googleProfile?.googleId) {
+			return res.status(401).json({
+				success: false,
+				message: 'Invalid Google token',
+			});
+		}
+
+		const normalizedGoogleEmail = normalizeEmail(googleProfile.email);
+		let user = await User.findOne({ googleId: googleProfile.googleId }).select('+password');
+
+		if (!user) {
+			const usersWithEmail = await User.find({ email: normalizedGoogleEmail })
+				.select('+password')
+				.sort({ createdAt: 1, _id: 1 });
+			if (usersWithEmail.length > 0) {
+				user = usersWithEmail.find((candidate) => candidate.role === 'admin') || usersWithEmail[0];
+			}
+		}
+
+		if (!user) {
+			return res.status(403).json({
+				success: false,
+				message: 'No admin account is linked to this Google email',
+			});
+		}
+
+		if (!ensureActiveAdmin(user, res)) return;
+
+		if (!user.googleId) {
+			user.googleId = googleProfile.googleId;
+		}
+		if (!user.avatar && googleProfile.picture) {
+			user.avatar = googleProfile.picture;
+		}
+		if (!user.name && googleProfile.name) {
+			user.name = googleProfile.name;
+		}
+		await user.save();
+
+		const authToken = generateToken(user);
+		req.currentUser = user;
+		await logAdminAction({
+			req,
+			action: 'admin.login_google',
+			targetUser: user,
+			details: { result: 'success' },
+		});
+
+		res.json({
+			success: true,
+			message: 'Admin logged in with Google successfully',
+			token: authToken,
+			user: serializeAdminUser(user),
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Server error during admin Google login',
 		});
 	}
 });

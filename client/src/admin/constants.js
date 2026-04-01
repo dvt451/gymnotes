@@ -1,4 +1,5 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 export const TOKEN_STORAGE_KEY = 'gymnotes_admin_token'
 
 export const initialOverview = {
@@ -52,6 +53,7 @@ export const initialUserDetail = {
 
 export const actionLabels = {
 	'admin.login': 'Admin login',
+	'admin.login_google': 'Admin Google login',
 	'system.backup_exported': 'System backup exported',
 	'system.backup_restored': 'System backup restored',
 	'user.role_updated': 'Role updated',
