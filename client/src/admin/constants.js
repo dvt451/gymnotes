@@ -52,6 +52,8 @@ export const initialUserDetail = {
 
 export const actionLabels = {
 	'admin.login': 'Admin login',
+	'system.backup_exported': 'System backup exported',
+	'system.backup_restored': 'System backup restored',
 	'user.role_updated': 'Role updated',
 	'user.suspended': 'User suspended',
 	'user.reactivated': 'User reactivated',

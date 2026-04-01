@@ -6,6 +6,7 @@ import TrainingDate from '../models/TrainingDate.js';
 import ExerciseEntry from '../models/ExerciseEntry.js';
 import Template from '../models/Template.js';
 import ExerciseUserLibrary from '../models/ExerciseUserLibrary.js';
+import UserMuscleGroup from '../models/UserMuscleGroup.js';
 import AdminAuditLog from '../models/AdminAuditLog.js';
 import { generateToken } from '../utils/jwt.js';
 import { authMiddleware, requireAdmin } from '../middleware/auth.js';
@@ -19,6 +20,20 @@ const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_AUDIT_PAGE_SIZE = 25;
 const NOT_DELETED_MATCH = { $ne: true };
 const ACTIVE_ACCOUNT_MATCH = { $ne: 'suspended' };
+const BACKUP_FORMAT = 'gymnotes-backup';
+const BACKUP_VERSION = 1;
+const BACKUP_COLLECTIONS = [
+	{ key: 'users', model: User },
+	{ key: 'trainingFiles', model: TrainingFile },
+	{ key: 'trainingDates', model: TrainingDate },
+	{ key: 'exerciseEntries', model: ExerciseEntry },
+	{ key: 'templates', model: Template },
+	{ key: 'exerciseUserLibraries', model: ExerciseUserLibrary },
+	{ key: 'userMuscleGroups', model: UserMuscleGroup },
+	{ key: 'adminAuditLogs', model: AdminAuditLog },
+];
+const RESTORE_DELETE_ORDER = [...BACKUP_COLLECTIONS].reverse();
+const RESTORE_INSERT_ORDER = BACKUP_COLLECTIONS;
 
 const toPositiveInt = (value, fallback) => {
 	const parsed = Number(value);
@@ -32,6 +47,79 @@ const toPositiveInt = (value, fallback) => {
 const toBoolean = (value) => ['1', 'true', 'yes', 'on'].includes(String(value || '').toLowerCase());
 
 const escapeRegex = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const createBackupFilename = () => {
+	const safeTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+	return `gymnotes-backup-${safeTimestamp}.json`;
+};
+
+const buildBackupCounts = (collections) =>
+	Object.fromEntries(
+		BACKUP_COLLECTIONS.map(({ key }) => [key, collections[key]?.length || 0])
+	);
+
+const normalizeBackupPayload = (payload) => {
+	const backup = isPlainObject(payload?.backup) ? payload.backup : payload;
+
+	if (!isPlainObject(backup)) {
+		return {
+			error: 'Backup payload must be a JSON object',
+		};
+	}
+
+	if (backup.format && backup.format !== BACKUP_FORMAT) {
+		return {
+			error: 'Unsupported backup format',
+		};
+	}
+
+	if (backup.version && backup.version !== BACKUP_VERSION) {
+		return {
+			error: `Unsupported backup version: ${backup.version}`,
+		};
+	}
+
+	const source = isPlainObject(backup.data) ? backup.data : backup;
+	const collections = {};
+
+	for (const { key } of BACKUP_COLLECTIONS) {
+		const docs = source[key];
+		if (!Array.isArray(docs)) {
+			return {
+				error: `Backup is missing the "${key}" collection`,
+			};
+		}
+
+		collections[key] = docs.map((doc) => ({ ...doc }));
+	}
+
+	return {
+		backup,
+		collections,
+	};
+};
+
+const performRestore = async (collections, options = {}) => {
+	const dbOptions = options.session ? { session: options.session } : {};
+
+	for (const { model } of RESTORE_DELETE_ORDER) {
+		await model.deleteMany({}, dbOptions);
+	}
+
+	for (const { key, model } of RESTORE_INSERT_ORDER) {
+		const docs = collections[key] || [];
+		if (docs.length === 0) {
+			continue;
+		}
+
+		await model.insertMany(docs, {
+			...dbOptions,
+			ordered: true,
+		});
+	}
+};
 
 const getDisplayStatus = (user) => {
 	if (user?.isDeleted) {
@@ -438,6 +526,114 @@ router.get('/audit-logs', async (req, res) => {
 		res.status(500).json({
 			success: false,
 			message: 'Failed to load audit logs',
+		});
+	}
+});
+
+router.get('/system-backup', async (req, res) => {
+	try {
+		const filename = createBackupFilename();
+		const results = await Promise.all(
+			BACKUP_COLLECTIONS.map(async ({ key, model }) => [key, await model.find({}).lean()])
+		);
+		const collections = Object.fromEntries(results);
+		const backup = {
+			format: BACKUP_FORMAT,
+			version: BACKUP_VERSION,
+			exportedAt: new Date().toISOString(),
+			exportedBy: {
+				id: req.currentUser?._id?.toString?.() || null,
+				email: req.currentUser?.email || '',
+			},
+			counts: buildBackupCounts(collections),
+			data: collections,
+		};
+
+		await logAdminAction({
+			req,
+			action: 'system.backup_exported',
+			targetUser: req.currentUser,
+			details: {
+				filename,
+				counts: backup.counts,
+			},
+		});
+
+		res.setHeader('Content-Type', 'application/json');
+		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+		res.json({
+			success: true,
+			backup,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to export system backup',
+		});
+	}
+});
+
+router.post('/system-restore', async (req, res) => {
+	try {
+		const normalized = normalizeBackupPayload(req.body);
+		if (normalized.error) {
+			return res.status(400).json({
+				success: false,
+				message: normalized.error,
+			});
+		}
+
+		const { backup, collections } = normalized;
+		const counts = buildBackupCounts(collections);
+		let usedTransaction = true;
+
+		try {
+			const session = await mongoose.startSession();
+
+			try {
+				await session.withTransaction(async () => {
+					await performRestore(collections, { session });
+				});
+			} finally {
+				await session.endSession();
+			}
+		} catch (error) {
+			const message = String(error?.message || '');
+			const unsupportedTransactions =
+				message.includes('Transaction numbers are only allowed on a replica set member or mongos') ||
+				message.includes('Transaction not supported') ||
+				message.includes('does not support retryable writes');
+
+			if (!unsupportedTransactions) {
+				throw error;
+			}
+
+			usedTransaction = false;
+			await performRestore(collections);
+		}
+
+		await logAdminAction({
+			req,
+			action: 'system.backup_restored',
+			targetUser: req.currentUser,
+			details: {
+				backupVersion: backup.version || BACKUP_VERSION,
+				exportedAt: backup.exportedAt || null,
+				usedTransaction,
+				counts,
+			},
+		});
+
+		res.json({
+			success: true,
+			message: 'System backup restored successfully',
+			counts,
+			usedTransaction,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to restore system backup',
 		});
 	}
 });

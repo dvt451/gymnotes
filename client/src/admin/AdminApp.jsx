@@ -45,6 +45,8 @@ export default function AdminApp() {
 	const [isUsersLoading, setIsUsersLoading] = useState(false)
 	const [isAuditLoading, setIsAuditLoading] = useState(false)
 	const [isDetailLoading, setIsDetailLoading] = useState(false)
+	const [isExportingBackup, setIsExportingBackup] = useState(false)
+	const [isRestoringBackup, setIsRestoringBackup] = useState(false)
 	const [busyActionKey, setBusyActionKey] = useState('')
 	const [message, setMessage] = useState(null)
 
@@ -362,6 +364,105 @@ export default function AdminApp() {
 		resetSession(createMessage('success', 'Admin session closed'))
 	}
 
+	const handleExportBackup = async () => {
+		if (!token) {
+			return
+		}
+
+		setIsExportingBackup(true)
+		setMessage(null)
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/admin/system-backup`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			})
+			const contentType = response.headers.get('content-type') || ''
+			const data = contentType.includes('application/json')
+				? await response.json()
+				: { message: await response.text() }
+
+			if (!response.ok) {
+				throw new Error(data?.message || 'Unable to export backup')
+			}
+
+			const backup = data.backup || data
+			const contentDisposition = response.headers.get('content-disposition') || ''
+			const filenameMatch = contentDisposition.match(/filename="([^"]+)"/i)
+			const filename =
+				filenameMatch?.[1] ||
+				`gymnotes-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+
+			const blob = new Blob([JSON.stringify(backup, null, 2)], {
+				type: 'application/json',
+			})
+			const downloadUrl = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = downloadUrl
+			link.download = filename
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			window.URL.revokeObjectURL(downloadUrl)
+
+			setMessage(createMessage('success', 'System backup downloaded successfully'))
+		} catch (error) {
+			setMessage(createMessage('error', error.message || 'Unable to export backup'))
+		} finally {
+			setIsExportingBackup(false)
+		}
+	}
+
+	const handleRestoreBackup = async (file) => {
+		if (!token || !file) {
+			setMessage(createMessage('error', 'Choose a backup file first'))
+			return false
+		}
+
+		const confirmed = window.confirm(
+			'This will replace the current database with the selected backup. Continue?'
+		)
+
+		if (!confirmed) {
+			return false
+		}
+
+		setIsRestoringBackup(true)
+		setMessage(null)
+
+		try {
+			const rawBackup = await file.text()
+			let backup
+
+			try {
+				backup = JSON.parse(rawBackup)
+			} catch {
+				throw new Error('Backup file must contain valid JSON')
+			}
+
+			await fetchJson(`${API_BASE_URL}/api/admin/system-restore`, {
+				method: 'POST',
+				headers: authHeaders,
+				body: JSON.stringify({ backup }),
+			})
+
+			try {
+				await refreshCurrentView(token)
+				setMessage(createMessage('success', 'System backup restored successfully'))
+			} catch {
+				resetSession(createMessage('success', 'Backup restored. Please log in again.'))
+			}
+
+			return true
+		} catch (error) {
+			setMessage(createMessage('error', error.message || 'Unable to restore backup'))
+			return false
+		} finally {
+			setIsRestoringBackup(false)
+		}
+	}
+
 	const handleRoleDraftChange = (userId, role) => {
 		setDraftRoles((current) => ({
 			...current,
@@ -531,7 +632,15 @@ export default function AdminApp() {
 			<AdminTabs activeTab={activeTab} onChange={setActiveTab} />
 
 			<main className="admin-content">
-				{activeTab === 'dashboard' ? <AdminDashboardPanel overview={overview} /> : null}
+				{activeTab === 'dashboard' ? (
+					<AdminDashboardPanel
+						overview={overview}
+						isExportingBackup={isExportingBackup}
+						isRestoringBackup={isRestoringBackup}
+						onExportBackup={handleExportBackup}
+						onRestoreBackup={handleRestoreBackup}
+					/>
+				) : null}
 
 				{activeTab === 'users' || activeTab === 'admins' ? (
 					<AdminUsersPanel

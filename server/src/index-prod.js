@@ -47,7 +47,7 @@ const app = express();
 // CORS настройка
 app.use(cors(createCorsOptions()));
 
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
 
 // Маршруты
 app.use('/api/auth', authRoutes);
