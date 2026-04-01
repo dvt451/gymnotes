@@ -2,6 +2,11 @@ import React, { useEffect, useRef } from 'react';
 
 const GOOGLE_SCRIPT_ID = 'google-identity-services';
 let googleScriptPromise = null;
+let initializedClientId = null;
+const googleCallbackState = {
+	onCredential: null,
+	onError: null,
+};
 
 const loadGoogleScript = () => {
 	if (window.google?.accounts?.id) {
@@ -40,6 +45,12 @@ export default function GoogleAuthButton({
 	text = 'signin_with',
 }) {
 	const containerRef = useRef(null);
+	const renderedConfigRef = useRef('');
+
+	useEffect(() => {
+		googleCallbackState.onCredential = onCredential;
+		googleCallbackState.onError = onError;
+	}, [onCredential, onError]);
 
 	useEffect(() => {
 		if (!clientId || !containerRef.current) return undefined;
@@ -50,17 +61,30 @@ export default function GoogleAuthButton({
 			.then((google) => {
 				if (isDisposed || !google?.accounts?.id || !containerRef.current) return;
 
-				google.accounts.id.initialize({
-					client_id: clientId,
-					callback: (response) => {
-						if (!response?.credential) {
-							onError?.(new Error('Google did not return a credential'));
-							return;
-						}
+				if (initializedClientId !== clientId) {
+					google.accounts.id.initialize({
+						client_id: clientId,
+						callback: (response) => {
+							if (!response?.credential) {
+								googleCallbackState.onError?.(
+									new Error('Google did not return a credential')
+								);
+								return;
+							}
 
-						onCredential?.(response.credential);
-					},
+							googleCallbackState.onCredential?.(response.credential);
+						},
+					});
+
+					initializedClientId = clientId;
+				}
+
+				const renderConfig = JSON.stringify({
+					clientId,
+					text,
+					width: containerRef.current.offsetWidth || 320,
 				});
+				if (renderedConfigRef.current === renderConfig) return;
 
 				containerRef.current.innerHTML = '';
 				google.accounts.id.renderButton(containerRef.current, {
@@ -71,20 +95,21 @@ export default function GoogleAuthButton({
 					text,
 					width: containerRef.current.offsetWidth || 320,
 				});
+				renderedConfigRef.current = renderConfig;
 			})
 			.catch(() => {
 				if (!isDisposed) {
-					onError?.(new Error('Failed to load Google sign-in'));
+					googleCallbackState.onError?.(new Error('Failed to load Google sign-in'));
 				}
 			});
 
 		return () => {
 			isDisposed = true;
-			if (containerRef.current) {
+			if (containerRef.current && initializedClientId !== clientId) {
 				containerRef.current.innerHTML = '';
 			}
 		};
-	}, [clientId, onCredential, onError, text]);
+	}, [clientId, text]);
 
 	if (!clientId) return null;
 
