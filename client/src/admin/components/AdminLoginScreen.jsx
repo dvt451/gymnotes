@@ -17,12 +17,37 @@ export default function AdminLoginScreen({
 	return (
 		<div className="admin-screen">
 			<div className="admin-login-shell">
-				<section className="admin-login-card">
-					<p className="admin-eyebrow">Admin Access</p>
+				<section className="admin-login-aside">
+					<p className="admin-eyebrow">Console Access</p>
 					<h1>GymNotes control surface</h1>
 					<p className="admin-subtitle">
-						Use an account with the <code>admin</code> role. If this is the first admin,
-						promote one from the server with <code>npm run user:role --prefix server -- your@email admin</code>.
+						One place to review users, lock down permissions, restore backups, and trace admin activity with less friction.
+					</p>
+
+					<div className="admin-login-feature-list" aria-hidden="true">
+						<div className="admin-login-feature">
+							<span className="admin-login-feature-label">Accounts</span>
+							<strong>Moderate users and roles</strong>
+							<p>Handle access changes, suspensions, and restores without leaving the console.</p>
+						</div>
+						<div className="admin-login-feature">
+							<span className="admin-login-feature-label">Resilience</span>
+							<strong>Protect production data</strong>
+							<p>Export a clean JSON snapshot before risky changes and restore from it when needed.</p>
+						</div>
+						<div className="admin-login-feature">
+							<span className="admin-login-feature-label">Audit</span>
+							<strong>Keep decisions traceable</strong>
+							<p>Review the admin trail to confirm who changed access, data, and system state.</p>
+						</div>
+					</div>
+				</section>
+
+				<section className="admin-login-card">
+					<p className="admin-eyebrow">Secure Sign-In</p>
+					<h2 className="admin-login-title">Use a privileged account</h2>
+					<p className="admin-subtitle">
+						Use an account that has admin-console permissions. By default that includes <code>admin</code>, <code>moderator</code>, and <code>trainee</code>. If this is the first privileged account, promote one from the server with <code>npm run user:role --prefix server -- your@email admin</code>.
 					</p>
 
 					<form className="admin-login-form" onSubmit={onSubmit}>

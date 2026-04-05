@@ -35,22 +35,25 @@ export default function EditExerciseList({
 				{editingExercises.map((ex, i) => (
 					<div
 						key={`${ex}_${i}`}
-						style={popupStyle.ListItems}
 					>
-						<span style={popupStyle.ListItem}>{ex}</span>
-						{
-							reordrer ?
-								<EditExerciseListMove
-									i={i}
-									moveExerciseInEditingList={moveExerciseInEditingList}
-									editingExercises={editingExercises}
-								/>
-								:
-								<EditExerciseTrash
-									exercise={ex}
-									removeExerciseFromEditing={removeExerciseFromEditing}
-								/>
-						}
+						<div
+							style={popupStyle.ListItems}
+						>
+							<span style={popupStyle.ListItem}>{ex}</span>
+							{
+								reordrer ?
+									<EditExerciseListMove
+										i={i}
+										moveExerciseInEditingList={moveExerciseInEditingList}
+										editingExercises={editingExercises}
+									/>
+									:
+									<EditExerciseTrash
+										exercise={ex}
+										removeExerciseFromEditing={removeExerciseFromEditing}
+									/>
+							}
+						</div>
 					</div>
 				))}
 			</div>

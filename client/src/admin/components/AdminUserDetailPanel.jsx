@@ -5,15 +5,30 @@ export default function AdminUserDetailPanel({
 	selectedUserId,
 	selectedUserDetail,
 	isDetailLoading,
+	canViewAccessMap,
+	canManageUserPermissionOverrides,
+	permissionDefinitions,
+	rolePermissions,
+	permissionOverrideDraft,
+	isSavingPermissionOverrides,
+	onPermissionOverrideChange,
+	onPermissionOverrideReset,
+	onPermissionOverrideSave,
 	onClose,
 }) {
+	const selectedUser = selectedUserDetail.user
+	const roleDefaults = canManageUserPermissionOverrides
+		? rolePermissions?.[selectedUser?.role] ||
+			Object.fromEntries(permissionDefinitions.map(({ key }) => [key, false]))
+		: null
+
 	return (
 		<div className="admin-detail-layout">
 			<section className="admin-detail-panel">
 				<div className="admin-detail-header">
 					<div>
 						<p className="admin-eyebrow">User Detail</p>
-						<h2>{selectedUserDetail.user ? selectedUserDetail.user.name : 'Select a user'}</h2>
+						<h2>{selectedUser ? selectedUser.name : 'Select a user'}</h2>
 					</div>
 					{selectedUserId ? (
 						<button
@@ -28,7 +43,7 @@ export default function AdminUserDetailPanel({
 
 				{isDetailLoading ? (
 					<div className="admin-empty-state">Loading user details...</div>
-				) : selectedUserDetail.user ? (
+				) : selectedUser ? (
 					<div className="admin-detail-content">
 						<div className="admin-detail-grid">
 							<AdminMetricCard label="Trainings" value={selectedUserDetail.summary?.trainingCount || 0} />
@@ -41,11 +56,79 @@ export default function AdminUserDetailPanel({
 
 						<div className="admin-detail-block">
 							<h3>Account</h3>
-							<p>{selectedUserDetail.user.email}</p>
-							<p>Status: {getDisplayStatus(selectedUserDetail.user)}</p>
-							<p>Created: {formatDate(selectedUserDetail.user.createdAt)}</p>
-							<p>Updated: {formatDate(selectedUserDetail.user.updatedAt)}</p>
+							<p>{selectedUser.email}</p>
+							<p>Role: {selectedUser.role}</p>
+							<p>Status: {getDisplayStatus(selectedUser)}</p>
+							<p>Created: {formatDate(selectedUser.createdAt)}</p>
+							<p>Updated: {formatDate(selectedUser.updatedAt)}</p>
 						</div>
+
+						{canViewAccessMap && selectedUser.permissions ? (
+							<div className="admin-detail-block">
+								<h3>Access map</h3>
+								<div className="admin-detail-permission-list">
+									{permissionDefinitions.map(({ key, label }) => {
+										const effectiveValue = Boolean(selectedUser.permissions?.[key])
+										const roleValue = Boolean(roleDefaults?.[key])
+										const overrideMode = permissionOverrideDraft?.[key] || 'inherit'
+
+										return (
+											<div className="admin-detail-permission-row" key={key}>
+												<div className="admin-detail-permission-copy">
+													<strong>{label}</strong>
+													<small>
+														{roleDefaults
+															? `Role: ${roleValue ? 'allowed' : 'blocked'} | Effective: ${effectiveValue ? 'allowed' : 'blocked'}`
+															: `Effective: ${effectiveValue ? 'allowed' : 'blocked'}`}
+													</small>
+												</div>
+												{canManageUserPermissionOverrides && selectedUser.role !== 'admin' ? (
+													<select
+														value={overrideMode}
+														onChange={(event) => onPermissionOverrideChange(key, event.target.value)}
+														disabled={isSavingPermissionOverrides}
+													>
+														<option value="inherit">Inherit role</option>
+														<option value="allow">Allow explicitly</option>
+														<option value="deny">Deny explicitly</option>
+													</select>
+												) : (
+													<span className={`admin-role-badge ${effectiveValue ? 'is-allowed' : 'is-blocked'}`}>
+														{effectiveValue ? 'Allowed' : 'Blocked'}
+													</span>
+												)}
+											</div>
+										)
+									})}
+								</div>
+								{canManageUserPermissionOverrides ? (
+									selectedUser.role === 'admin' ? (
+										<p className="admin-detail-help">
+											Admin accounts always keep full access and do not support custom overrides.
+										</p>
+									) : (
+										<div className="admin-detail-actions">
+											<button
+												type="button"
+												className="admin-secondary-button"
+												onClick={onPermissionOverrideReset}
+												disabled={isSavingPermissionOverrides}
+											>
+												Reset overrides
+											</button>
+											<button
+												type="button"
+												className="admin-primary-button"
+												onClick={onPermissionOverrideSave}
+												disabled={isSavingPermissionOverrides}
+											>
+												{isSavingPermissionOverrides ? 'Saving...' : 'Save user access'}
+											</button>
+										</div>
+									)
+								) : null}
+							</div>
+						) : null}
 
 						<div className="admin-detail-block">
 							<h3>Recent trainings</h3>

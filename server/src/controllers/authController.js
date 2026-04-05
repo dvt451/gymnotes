@@ -45,11 +45,39 @@ export const register = async (req, res) => {
     const { name, weight, password } = req.body;
     const email = normalizeEmail(req.body.email);
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const existingUsers = await User.find({ email }).select('+password').sort({ createdAt: 1, _id: 1 });
+    const passwordUser = existingUsers.find((user) => user.password);
+    const googleOnlyUser = existingUsers.find((user) => user.googleId && !user.password);
+
+    if (passwordUser) {
       return res.status(400).json({
         success: false,
         message: 'User already exists',
+      });
+    }
+
+    if (googleOnlyUser) {
+      if (!ensureActiveUser(googleOnlyUser, res)) return;
+
+      googleOnlyUser.password = password;
+
+      if (!googleOnlyUser.name && name) {
+        googleOnlyUser.name = name;
+      }
+
+      if ((googleOnlyUser.weight === null || googleOnlyUser.weight === undefined) && weight !== undefined) {
+        googleOnlyUser.weight = weight;
+      }
+
+      await googleOnlyUser.save();
+
+      const linkedToken = generateToken(googleOnlyUser);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Password added successfully. You can now sign in with email or Google.',
+        token: linkedToken,
+        user: serializeUser(googleOnlyUser),
       });
     }
 

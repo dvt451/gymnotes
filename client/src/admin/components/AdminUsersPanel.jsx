@@ -9,8 +9,20 @@ export default function AdminUsersPanel({
 	adminSelectStyles,
 	isUsersLoading,
 	users,
+	availableRoles,
+	rolePermissions,
+	permissionDefinitions,
 	adminUser,
+	currentUserRole,
+	canManageRoles,
+	canSuspendUsers,
+	canRestoreUsers,
+	canSoftDeleteUsers,
+	canPermanentDeleteUsers,
+	canViewAccessMap,
+	canManageUserPermissionOverrides,
 	draftRoles,
+	permissionOverrideDraft,
 	busyActionKey,
 	usersPagination,
 	selectedUserId,
@@ -20,9 +32,13 @@ export default function AdminUsersPanel({
 	onRoleDraftChange,
 	onSelectUser,
 	onRoleSave,
+	onPermissionOverrideChange,
+	onPermissionOverrideReset,
+	onPermissionOverrideSave,
 	onStatusToggle,
 	onRestoreUser,
 	onDeleteUser,
+	onPermanentDeleteUser,
 	onCloseDetail,
 }) {
 	const emptyMessage =
@@ -36,48 +52,62 @@ export default function AdminUsersPanel({
 				<div>
 					<p className="admin-eyebrow">{activeTab === 'admins' ? 'Privileged Access' : 'Directory'}</p>
 					<h2>{activeTab === 'admins' ? 'Admin accounts' : 'User access and activity'}</h2>
+					<p className="admin-panel-description">
+						{activeTab === 'admins'
+							? 'Focus on elevated accounts, role changes, and recovery actions without leaving the directory.'
+							: 'Search members, change roles, and handle suspensions or restores from a single workspace.'}
+					</p>
 				</div>
 			</div>
 
-			<div className="admin-toolbar">
-				<label className="admin-search">
-					<span>Search</span>
-					<input
-						type="search"
-						value={userQuery.search}
-						onChange={(event) => onUserQueryChange('search', event.target.value)}
-						placeholder="Search by name or email"
-					/>
-				</label>
+			<div className="admin-toolbar-card">
+				<div className="admin-toolbar-copy">
+					<span className="admin-card-kicker">Filters</span>
+					<p>
+						Search by name or email, narrow by status, and choose how many rows to review at once.
+					</p>
+				</div>
 
-				<label className="admin-filter">
-					<span>Status</span>
-					<Select
-						options={STATUS_OPTIONS}
-						value={userQuery.status}
-						onChange={(value) => onUserQueryChange('status', value)}
-						styles={adminSelectStyles}
-					/>
-				</label>
+				<div className="admin-toolbar">
+					<label className="admin-search">
+						<span>Search</span>
+						<input
+							type="search"
+							value={userQuery.search}
+							onChange={(event) => onUserQueryChange('search', event.target.value)}
+							placeholder="Search by name or email"
+						/>
+					</label>
 
-				<label className="admin-filter">
-					<span>Rows</span>
-					<Select
-						options={USER_PAGE_SIZE_OPTIONS}
-						value={String(userQuery.pageSize)}
-						onChange={(value) => onUserQueryChange('pageSize', Number(value))}
-						styles={adminSelectStyles}
-					/>
-				</label>
+					<label className="admin-filter">
+						<span>Status</span>
+						<Select
+							options={STATUS_OPTIONS}
+							value={userQuery.status}
+							onChange={(value) => onUserQueryChange('status', value)}
+							styles={adminSelectStyles}
+						/>
+					</label>
 
-				<label className="admin-checkbox">
-					<input
-						type="checkbox"
-						checked={userQuery.includeDeleted}
-						onChange={(event) => onUserQueryChange('includeDeleted', event.target.checked)}
-					/>
-					<span>Include deleted</span>
-				</label>
+					<label className="admin-filter">
+						<span>Rows</span>
+						<Select
+							options={USER_PAGE_SIZE_OPTIONS}
+							value={String(userQuery.pageSize)}
+							onChange={(value) => onUserQueryChange('pageSize', Number(value))}
+							styles={adminSelectStyles}
+						/>
+					</label>
+
+					<label className="admin-checkbox">
+						<input
+							type="checkbox"
+							checked={userQuery.includeDeleted}
+							onChange={(event) => onUserQueryChange('includeDeleted', event.target.checked)}
+						/>
+						<span>Include deleted</span>
+					</label>
+				</div>
 			</div>
 
 			{isUsersLoading ? (
@@ -85,7 +115,14 @@ export default function AdminUsersPanel({
 			) : (
 				<AdminUserTable
 					rows={users}
+					availableRoles={availableRoles}
 					adminUser={adminUser}
+					currentUserRole={currentUserRole}
+					canManageRoles={canManageRoles}
+					canSuspendUsers={canSuspendUsers}
+					canRestoreUsers={canRestoreUsers}
+					canSoftDeleteUsers={canSoftDeleteUsers}
+					canPermanentDeleteUsers={canPermanentDeleteUsers}
 					draftRoles={draftRoles}
 					busyActionKey={busyActionKey}
 					adminSelectStyles={adminSelectStyles}
@@ -96,6 +133,7 @@ export default function AdminUsersPanel({
 					onStatusToggle={onStatusToggle}
 					onRestoreUser={onRestoreUser}
 					onDeleteUser={onDeleteUser}
+					onPermanentDeleteUser={onPermanentDeleteUser}
 					onPageChange={(page) => onUserQueryChange('page', page)}
 					emptyMessage={emptyMessage}
 				/>
@@ -105,6 +143,15 @@ export default function AdminUsersPanel({
 				selectedUserId={selectedUserId}
 				selectedUserDetail={selectedUserDetail}
 				isDetailLoading={isDetailLoading}
+				canViewAccessMap={canViewAccessMap}
+				canManageUserPermissionOverrides={canManageUserPermissionOverrides}
+				permissionDefinitions={permissionDefinitions}
+				rolePermissions={rolePermissions}
+				permissionOverrideDraft={permissionOverrideDraft}
+				isSavingPermissionOverrides={busyActionKey === `permissions:${selectedUserId}`}
+				onPermissionOverrideChange={onPermissionOverrideChange}
+				onPermissionOverrideReset={onPermissionOverrideReset}
+				onPermissionOverrideSave={onPermissionOverrideSave}
 				onClose={onCloseDetail}
 			/>
 		</section>

@@ -1,11 +1,19 @@
-const tabs = [
+const defaultTabs = [
 	{ id: 'dashboard', label: 'Dashboard' },
 	{ id: 'users', label: 'Users' },
 	{ id: 'admins', label: 'Admins' },
 	{ id: 'audit', label: 'Audit' },
 ]
 
-export default function AdminTabs({ activeTab, onChange }) {
+const tabDescriptions = {
+	dashboard: 'Overview and backups',
+	permissions: 'Role access rules',
+	users: 'Members and moderation',
+	admins: 'Privileged accounts',
+	audit: 'Action history',
+}
+
+export default function AdminTabs({ activeTab, onChange, tabs = defaultTabs }) {
 	return (
 		<nav className="admin-tabs" aria-label="Admin sections">
 			{tabs.map((tab) => (
@@ -14,8 +22,12 @@ export default function AdminTabs({ activeTab, onChange }) {
 					type="button"
 					className={activeTab === tab.id ? 'admin-tab active' : 'admin-tab'}
 					onClick={() => onChange(tab.id)}
+					aria-current={activeTab === tab.id ? 'page' : undefined}
 				>
-					{tab.label}
+					<span className="admin-tab-copy">
+						<strong>{tab.label}</strong>
+						<small>{tabDescriptions[tab.id] || 'Console section'}</small>
+					</span>
 				</button>
 			))}
 		</nav>

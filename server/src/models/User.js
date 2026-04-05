@@ -34,8 +34,9 @@ const userSchema = new mongoose.Schema(
 		},
 		role: {
 			type: String,
-			enum: ['user', 'admin'],
 			default: 'user',
+			trim: true,
+			lowercase: true,
 			index: true,
 		},
 		accountStatus: {
@@ -92,6 +93,10 @@ const userSchema = new mongoose.Schema(
 		lastNutritionReset: {
 			type: Date,
 			default: null,
+		},
+		permissionOverrides: {
+			type: mongoose.Schema.Types.Mixed,
+			default: {},
 		},
 	},
 	{ timestamps: true }

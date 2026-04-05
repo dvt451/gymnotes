@@ -4,8 +4,6 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
 
-const VALID_ROLES = ['user', 'admin'];
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -27,8 +25,8 @@ const main = async () => {
 		throw new Error('Email argument is required. Example: npm run user:role -- admin@example.com admin');
 	}
 
-	if (!VALID_ROLES.includes(role)) {
-		throw new Error(`Role must be one of: ${VALID_ROLES.join(', ')}`);
+	if (!role) {
+		throw new Error('Role argument is required. Example: npm run user:role -- admin@example.com moderator');
 	}
 
 	if (!process.env.MONGO_URI) {

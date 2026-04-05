@@ -1,12 +1,18 @@
 import Select from '../../components/widgets/Select.jsx'
-import { ROLE_OPTIONS } from '../constants.js'
 import { formatDate, getDisplayStatus, getStatusTone } from '../utils.js'
 import AdminPagination from './AdminPagination.jsx'
 import AdminStatusPill from './AdminStatusPill.jsx'
 
 export default function AdminUserTable({
 	rows,
+	availableRoles,
 	adminUser,
+	currentUserRole,
+	canManageRoles,
+	canSuspendUsers,
+	canRestoreUsers,
+	canSoftDeleteUsers,
+	canPermanentDeleteUsers,
 	draftRoles,
 	busyActionKey,
 	adminSelectStyles,
@@ -17,9 +23,16 @@ export default function AdminUserTable({
 	onStatusToggle,
 	onRestoreUser,
 	onDeleteUser,
+	onPermanentDeleteUser,
 	onPageChange,
 	emptyMessage,
 }) {
+	const normalizedRoles = availableRoles?.length ? availableRoles : ['user', 'admin']
+	const roleOptionsForCurrentUser =
+		currentUserRole === 'admin'
+			? normalizedRoles
+			: normalizedRoles.filter((role) => role !== 'admin')
+
 	return (
 		<>
 			<div className="admin-table-wrap">
@@ -42,11 +55,42 @@ export default function AdminUserTable({
 							const isStatusBusy = busyActionKey === `status:${user.id}`
 							const isRestoreBusy = busyActionKey === `restore:${user.id}`
 							const isDeleteBusy = busyActionKey === `delete:${user.id}`
+							const isPermanentDeleteBusy = busyActionKey === `permanent-delete:${user.id}`
 							const isDirtyRole = nextRole !== user.role
 							const isCurrentAdmin = adminUser?.id === user.id
 							const displayStatus = getDisplayStatus(user)
 							const isDeleted = user.isDeleted
-							const isRoleLocked = isCurrentAdmin || isRoleBusy || isDeleteBusy || isRestoreBusy || isDeleted
+							const isAdminTarget = user.role === 'admin'
+							const canManageRoleForTarget =
+								canManageRoles &&
+								!(currentUserRole === 'moderator' && isAdminTarget)
+							const canManageSuspendForTarget =
+								canSuspendUsers &&
+								!(currentUserRole === 'moderator' && isAdminTarget)
+							const canManageRestoreForTarget =
+								canRestoreUsers &&
+								!(currentUserRole === 'moderator' && isAdminTarget)
+							const canManageSoftDeleteForTarget =
+								canSoftDeleteUsers &&
+								!(currentUserRole === 'moderator' && isAdminTarget)
+							const canManagePermanentDeleteForTarget =
+								canPermanentDeleteUsers &&
+								!(currentUserRole === 'moderator' && isAdminTarget)
+							const roleOptions =
+								roleOptionsForCurrentUser.includes(user.role)
+									? roleOptionsForCurrentUser
+									: [user.role, ...roleOptionsForCurrentUser.filter((role) => role !== user.role)]
+							const canSaveRoleChoice =
+								canManageRoleForTarget &&
+								(currentUserRole === 'admin' || nextRole !== 'admin')
+							const isRoleLocked =
+								!canManageRoleForTarget ||
+								isCurrentAdmin ||
+								isRoleBusy ||
+								isDeleteBusy ||
+								isRestoreBusy ||
+								isPermanentDeleteBusy ||
+								isDeleted
 
 							return (
 								<tr key={user.id}>
@@ -68,7 +112,7 @@ export default function AdminUserTable({
 									</td>
 									<td>
 										<Select
-											options={ROLE_OPTIONS}
+											options={roleOptions}
 											value={nextRole}
 											onChange={(value) => onRoleDraftChange(user.id, value)}
 											disabled={isRoleLocked}
@@ -101,7 +145,7 @@ export default function AdminUserTable({
 												className="admin-inline-button"
 												type="button"
 												onClick={() => onRoleSave(user)}
-												disabled={!isDirtyRole || isRoleLocked || isStatusBusy}
+												disabled={!isDirtyRole || !canSaveRoleChoice || isRoleLocked || isStatusBusy}
 											>
 												{isRoleBusy ? 'Saving...' : 'Save role'}
 											</button>
@@ -109,7 +153,7 @@ export default function AdminUserTable({
 												className={isDeleted || displayStatus !== 'active' ? 'admin-secondary-button' : 'admin-warn-button'}
 												type="button"
 												onClick={() => (isDeleted ? onRestoreUser(user) : onStatusToggle(user))}
-												disabled={isDeleteBusy || isStatusBusy || isRestoreBusy || (isCurrentAdmin && user.accountStatus === 'active')}
+												disabled={!(isDeleted ? canManageRestoreForTarget : canManageSuspendForTarget) || isDeleteBusy || isStatusBusy || isRestoreBusy || isPermanentDeleteBusy || (isCurrentAdmin && user.accountStatus === 'active')}
 											>
 												{isRestoreBusy
 													? 'Restoring...'
@@ -125,9 +169,17 @@ export default function AdminUserTable({
 												className="admin-danger-button"
 												type="button"
 												onClick={() => onDeleteUser(user)}
-												disabled={isDeleteBusy || isCurrentAdmin || isDeleted}
+												disabled={!canManageSoftDeleteForTarget || isDeleteBusy || isPermanentDeleteBusy || isCurrentAdmin || isDeleted}
 											>
 												{isDeleteBusy ? 'Deleting...' : 'Soft delete'}
+											</button>
+											<button
+												className="admin-danger-button admin-danger-button-strong"
+												type="button"
+												onClick={() => onPermanentDeleteUser(user)}
+												disabled={!canManagePermanentDeleteForTarget || isDeleteBusy || isPermanentDeleteBusy || isStatusBusy || isRestoreBusy || isCurrentAdmin || !isDeleted}
+											>
+												{isPermanentDeleteBusy ? 'Removing...' : 'Permanent delete'}
 											</button>
 										</div>
 									</td>
