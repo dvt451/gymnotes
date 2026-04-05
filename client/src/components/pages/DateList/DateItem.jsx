@@ -4,8 +4,12 @@ import DatePickerModal from './DatePickerModal';
 import { colors, createCommonStyle, toRem } from '../../../styles/commonStyle';
 import { FaTrash } from "react-icons/fa";
 import { GlobalContext } from '../../../context/GlobalContext';
+import Popup from '../../widgets/Popup';
+import ButtonType from '../../widgets/ButtonType';
 
-export default function DateItem({ item, today, onOpen, onDelete, onUpdate, editState }) {
+export default function DateItem({
+	item, today, onOpen, deleteDate, onUpdate, editState, requestDeleteDate,
+	deletePopupOpen, setDeletePopupOpen }) {
 	const isToday = item.date === today;
 	const [showEditPicker, setShowEditPicker] = useState(false);
 	const [selectedDate, setSelectedDate] = useState(new Date(item.date));
@@ -18,6 +22,7 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 		setShowEditPicker(true);
 		setLocalError(null);
 	};
+
 
 	const handleUpdate = async () => {
 		const formatted = selectedDate.toISOString().split('T')[0];
@@ -78,13 +83,12 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 					style={dateItemStyles.deleteButton}
 					onClick={(e) => {
 						e.stopPropagation();
-						onDelete(item._id);
+						requestDeleteDate(item._id);
 					}}
 				>
 					<FaTrash style={dateItemStyles.deleteIcon} />
 				</button>}
-			</div >
-
+			</div>
 			<DatePickerModal
 				visible={showEditPicker}
 				selectedDate={selectedDate}
@@ -95,6 +99,25 @@ export default function DateItem({ item, today, onOpen, onDelete, onUpdate, edit
 				title="Изменить дату"
 				buttonText="Сохранить"
 			/>
+			<Popup
+				isOpen={deletePopupOpen}
+				onClose={() => setDeletePopupOpen(false)}
+			>
+				<div style={{ textAlign: 'center' }}>
+					<h3 style={{ ...commonStyle.titleHeader, color: '#fff' }}>Удалить дату?</h3>
+					<p style={{ color: colors.blueLight }}>Вы уверены, что хотите удалить эту тренировку?</p>
+
+					<div style={{ display: 'flex', gap: '10px', flexDirection: 'column', justifyContent: 'center', marginTop: '20px' }}>
+						<ButtonType buttonType={9} functionOnClick={deleteDate}>
+							удалить
+						</ButtonType>
+
+						<ButtonType buttonType={5} functionOnClick={() => setDeletePopupOpen(false)}>
+							Отмена
+						</ButtonType>
+					</div>
+				</div>
+			</Popup>
 		</>
 	);
 }

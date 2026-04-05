@@ -26,7 +26,10 @@ export default function DateList() {
 		openDayDetails,
 		isLoading,
 		error,
-		updateDate
+		updateDate,
+		requestDeleteDate,
+		deletePopupOpen,
+		setDeletePopupOpen
 	} = useDateListLogic(trainingId, trainingText, trainingTitle);
 	const { mainColor } = useContext(GlobalContext);
 	const [addError, setAddError] = useState(null);
@@ -95,11 +98,14 @@ export default function DateList() {
 										item={item}
 										today={today}
 										onOpen={openDayDetails}
-										onDelete={deleteDate}
+										deleteDate={deleteDate}
 										styles={dateListStyles}
 										editState={editState}
 										onUpdate={updateDate}
 										error={error}
+										requestDeleteDate={requestDeleteDate}
+										deletePopupOpen={deletePopupOpen}
+										setDeletePopupOpen={setDeletePopupOpen}
 									/>
 								))
 						)}

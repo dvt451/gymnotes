@@ -9,9 +9,15 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 	const [selectedDate, setSelectedDate] = useState(new Date());
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [deletePopupOpen, setDeletePopupOpen] = useState(false);
+	const [dateToDelete, setDateToDelete] = useState(null);
 	const { BASE_URL } = useContext(AuthContext);
 	const navigate = useNavigate();
 
+	const requestDeleteDate = (dateId) => {
+		setDateToDelete(dateId);
+		setDeletePopupOpen(true);
+	};
 	// Функция загрузки дат
 	const fetchDates = useCallback(async () => {
 		if (!trainingId) return;
@@ -211,17 +217,15 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 	};
 
 	// Функция удаления даты
-	const deleteDate = async (dateId) => {
-		if (!window.confirm('Удалить эту дату? Вы уверены?')) {
-			return;
-		}
+	const deleteDate = async () => {
+		if (!dateToDelete) return;
 
 		try {
 			setIsLoading(true);
 			setError(null);
 
-			const token = await getToken(); // используем getToken
-			const endpoint = `${BASE_URL}/api/trainings/${trainingId}/dates/${dateId}`;
+			const token = await getToken();
+			const endpoint = `${BASE_URL}/api/trainings/${trainingId}/dates/${dateToDelete}`;
 
 			const res = await fetch(endpoint, {
 				method: 'DELETE',
@@ -235,11 +239,13 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 				throw new Error(errorText || `HTTP error ${res.status}`);
 			}
 
-			// Удаляем дату из локального состояния
 			setDatesByTraining(prev => ({
 				...prev,
-				[trainingId]: prev[trainingId].filter(d => d._id !== dateId)
+				[trainingId]: prev[trainingId].filter(d => d._id !== dateToDelete)
 			}));
+
+			setDeletePopupOpen(false);
+			setDateToDelete(null);
 
 		} catch (err) {
 			console.error('Error deleting date:', err);
@@ -272,6 +278,9 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 		setSelectedDate,
 		addDate,
 		deleteDate,
+		requestDeleteDate,
+		deletePopupOpen,
+		setDeletePopupOpen,
 		openDayDetails,
 		isLoading,
 		error,

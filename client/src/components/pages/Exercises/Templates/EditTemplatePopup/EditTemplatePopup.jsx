@@ -319,6 +319,9 @@ export default function EditTemplatePopup({
 					Save
 				</button>
 			</div>
+			<ButtonType buttonType={5} functionOnClick={() => closeModal()}>
+				Cancel
+			</ButtonType>
 		</Popup>
 	);
 }
