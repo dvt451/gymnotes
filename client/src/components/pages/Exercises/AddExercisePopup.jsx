@@ -21,6 +21,7 @@ import MuscleGroupSelect from '../../widgets/MuscleGroupSelect';
 const normalizeExercisePayload = (ex) => ({
 	...ex,
 	id: ex._id?.toString() || ex.id || `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+	comment: typeof ex.comment === 'string' ? ex.comment : '',
 	weights: (ex.weights || []).map((w, weightIndex) => ({
 		...w,
 		id: w._id?.toString() || w.id || `weight_${weightIndex}_${Date.now()}`,
@@ -343,7 +344,10 @@ export default function AddExercisePopup({
 				const groupedByLibraryId = previousExercises.reduce((acc, exercise) => {
 					const libraryId = String(exercise.exerciseUserLibraryId || '');
 					if (!libraryId) return acc;
-					acc[libraryId] = Array.isArray(exercise.weights) ? exercise.weights : [];
+					acc[libraryId] = {
+						weights: Array.isArray(exercise.weights) ? exercise.weights : [],
+						comment: typeof exercise.comment === 'string' ? exercise.comment : '',
+					};
 					return acc;
 				}, {});
 

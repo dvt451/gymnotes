@@ -155,6 +155,7 @@ const mapEntriesToExercises = async (entries) => {
       name: libraryExercise?.name || 'Unknown exercise',
       muscleGroup: libraryExercise?.muscleGroup || normalizeMuscleGroup(),
       order: Number.isFinite(entry.order) ? entry.order : 0,
+      comment: entry.comment || '',
       weights: entry.weights || [],
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -191,7 +192,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { name, exerciseUserLibraryId } = req.body;
+    const { name, exerciseUserLibraryId, comment } = req.body;
     if ((!name || !name.trim()) && !exerciseUserLibraryId) {
       return res.status(400).json({ message: 'Имя упражнения обязательно' });
     }
@@ -254,6 +255,7 @@ router.post('/', async (req, res) => {
       trainingDateId: dateEntry._id,
       exerciseUserLibraryId: libraryExercise._id,
       order: orderedEntries.length,
+      comment: typeof comment === 'string' ? comment.trim() : '',
       weights: [],
     });
 
@@ -327,6 +329,7 @@ router.post('/apply-template', async (req, res) => {
           trainingDateId: dateEntry._id,
           exerciseUserLibraryId: libraryExercise._id,
           order: nextOrder,
+          comment: typeof exercise.comment === 'string' ? exercise.comment.trim() : '',
           weights: [],
         });
 
@@ -467,6 +470,30 @@ router.put('/:exerciseId', async (req, res) => {
         message: 'Упражнение с таким названием уже есть в этой дате',
       });
     }
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.put('/:exerciseId/comment', async (req, res) => {
+  try {
+    const dateEntry = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+    if (!dateEntry) return res.status(404).json({ message: 'Р”Р°С‚Р° РЅРµ РЅР°Р№РґРµРЅР°' });
+
+    const entry = await ExerciseEntry.findOne({
+      _id: req.params.exerciseId,
+      userId: req.userId,
+      trainingFileId: req.params.fileId,
+      trainingDateId: dateEntry._id,
+    });
+
+    if (!entry) return res.status(404).json({ message: 'РЈРїСЂР°Р¶РЅРµРЅРёРµ РЅРµ РЅР°Р№РґРµРЅРѕ' });
+
+    entry.comment = typeof req.body?.comment === 'string' ? req.body.comment.trim() : '';
+    await entry.save();
+
+    const [mapped] = await mapEntriesToExercises([entry]);
+    res.json(mapped);
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });

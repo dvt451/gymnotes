@@ -21,11 +21,13 @@ export default function ExercisesList({
 	const [expandedExerciseId, setExpandedExerciseId] = useState(null);
 	const [isReordering, setIsReordering] = useState(false);
 	const [isSavingOrder, setIsSavingOrder] = useState(false);
+	const [isCommentEditingId, setIsCommentEditingId] = useState(null);
 
 	useEffect(() => {
 		if (editState) return;
 		setIsReordering(false);
 		setExpandedExerciseId(null);
+		setIsCommentEditingId(null);
 	}, [editState]);
 
 	useEffect(() => {
@@ -44,6 +46,7 @@ export default function ExercisesList({
 		[nextExercises[index], nextExercises[newIndex]] = [nextExercises[newIndex], nextExercises[index]];
 
 		setExpandedExerciseId(null);
+		setIsCommentEditingId(null);
 		setExercises(nextExercises);
 		setIsSavingOrder(true);
 
@@ -85,6 +88,7 @@ export default function ExercisesList({
 						onClick={() => {
 							setExpandedExerciseId(null);
 							setIsReordering((prev) => !prev);
+							setIsCommentEditingId(null);
 						}}
 						style={{
 							...commonStyle.EditButton,
@@ -130,6 +134,8 @@ export default function ExercisesList({
 							BASE_URL={BASE_URL}
 							expandedExerciseId={expandedExerciseId}
 							setExpandedExerciseId={setExpandedExerciseId}
+							setIsCommentEditingId={setIsCommentEditingId}
+							isCommentEditingId={isCommentEditingId}
 							editState={editState}
 							isReordering={isReordering}
 							index={index}
@@ -137,7 +143,14 @@ export default function ExercisesList({
 							moveExerciseInList={moveExerciseInList}
 							isSavingOrder={isSavingOrder}
 							prevWeights={
-								previousExercisesByLibraryId[String(item.exerciseUserLibraryId || '')] || []
+								previousExercisesByLibraryId[
+									String(item.exerciseUserLibraryId || '')
+								]?.weights || []
+							}
+							prevComment={
+								previousExercisesByLibraryId[
+									String(item.exerciseUserLibraryId || '')
+								]?.comment || ''
 							}
 							previousDate={previousDateKey}
 						/>

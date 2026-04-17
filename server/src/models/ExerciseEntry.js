@@ -52,6 +52,12 @@ const exerciseEntrySchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    comment: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 1000,
+    },
     weights: {
       type: [weightSetSchema],
       default: [],

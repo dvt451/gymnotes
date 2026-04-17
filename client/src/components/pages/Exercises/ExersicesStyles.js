@@ -281,6 +281,105 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 
 	// ========== СТИЛИ ДЛЯ КОМПОНЕНТА WEIGHTS ==========
+	exerciseCommentSection: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(6),
+		padding: `0 ${toRem(15)} ${toRem(5)}`,
+	},
+
+	exerciseCommentRow: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: toRem(8),
+	},
+
+	exerciseCommentDisplayButton: {
+		background: 'transparent',
+		border: 'none',
+		padding: 0,
+		margin: 0,
+		display: 'flex',
+		alignItems: 'center',
+		flex: 1,
+		textAlign: 'left',
+		cursor: 'pointer',
+	},
+
+	exerciseCommentText: {
+		fontSize: toRem(14),
+		lineHeight: 1.4,
+		color: colors.white,
+		whiteSpace: 'pre-wrap',
+		wordBreak: 'break-word',
+	},
+
+	exerciseCommentPlaceholder: {
+		fontSize: toRem(16),
+		lineHeight: 1.4,
+		color: colors.white,
+		opacity: 0.3,
+	},
+
+	exerciseCommentInput: {
+		flex: 1,
+		width: '100%',
+		padding: `${toRem(7)} ${toRem(10)}`,
+		backgroundColor: colors.white,
+		border: `1px solid ${colors.inputBorder}`,
+		borderRadius: toRem(4),
+		fontSize: toRem(13),
+		lineHeight: 1.3,
+		color: colors.black,
+		boxSizing: 'border-box',
+	},
+
+	exerciseCommentIconButton: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: toRem(38),
+		height: toRem(32),
+		border: 'none',
+		borderRadius: toRem(6),
+		cursor: 'pointer',
+		flexShrink: 0,
+	},
+
+	exerciseCommentEditButton: {
+		backgroundColor: colors.blueLight,
+		color: colors.black,
+	},
+
+	exerciseCommentConfirmButton: {
+		backgroundColor: mainColor || colors.green,
+		color: colors.white,
+	},
+
+	exercisePreviousCommentRow: {
+		display: 'flex',
+		alignItems: 'baseline',
+		gap: toRem(6),
+		flexWrap: 'wrap',
+		paddingLeft: toRem(15),
+		paddingBottom: toRem(5),
+	},
+
+	exercisePreviousCommentText: {
+		fontSize: toRem(14),
+		lineHeight: 1.4,
+		color: colors.blueLight,
+		opacity: 0.8,
+		whiteSpace: 'pre-wrap',
+		wordBreak: 'break-word',
+	},
+
+	exerciseCommentError: {
+		margin: 0,
+		color: colors.red,
+		fontSize: toRem(12),
+	},
+
 	noWeights: {
 		textAlign: 'center',
 		color: colors.gray,

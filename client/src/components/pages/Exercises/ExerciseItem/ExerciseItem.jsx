@@ -12,6 +12,8 @@ import { createPopupStyle } from '../../../widgets/popupStyle';
 import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
 import { normalizeExerciseMuscleGroup } from '../../exerciseLibrary/muscleGroups';
 import ExerciseItemMove from './ExerciseItemMove';
+import ExerciseCurrentCommentSection from './ExerciseCurrentCommentSection';
+import ExercisePrevCommentSection from './ExercisePrevCommentSection';
 
 export default function ExerciseItem({
 	item,
@@ -21,6 +23,8 @@ export default function ExerciseItem({
 	BASE_URL,
 	expandedExerciseId,
 	setExpandedExerciseId,
+	setIsCommentEditingId,
+	isCommentEditingId,
 	editState,
 	isReordering = false,
 	index = 0,
@@ -28,6 +32,7 @@ export default function ExerciseItem({
 	moveExerciseInList = () => { },
 	isSavingOrder = false,
 	prevWeights = [],
+	prevComment = '',
 	previousDate = '',
 }) {
 	const { mainColor } = useContext(GlobalContext);
@@ -47,6 +52,7 @@ export default function ExerciseItem({
 		if (isReordering) return;
 		if (expandedExerciseId === item._id) return;
 		setExpandedExerciseId(item._id);
+		setIsCommentEditingId(false);
 	};
 
 	const isExpanded = expandedExerciseId === item._id;
@@ -152,7 +158,32 @@ export default function ExerciseItem({
 					)}
 				</div>
 
+
+				<ExercisePrevCommentSection
+					item={item}
+					setExercises={setExercises}
+					date={date}
+					trainingId={trainingId}
+					BASE_URL={BASE_URL}
+					isExpanded={isExpanded}
+					isReordering={isReordering}
+					prevComment={prevComment}
+					previousDate={previousDate}
+				/>
+
 				<PrevWeights weights={prevWeights} previousDate={previousDate} />
+				<ExerciseCurrentCommentSection
+					item={item}
+					setExercises={setExercises}
+					date={date}
+					trainingId={trainingId}
+					BASE_URL={BASE_URL}
+					isExpanded={isExpanded}
+					isReordering={isReordering}
+					setIsCommentEditingId={setIsCommentEditingId}
+					setExpandedExerciseId={setExpandedExerciseId}
+					isCommentEditingId={isCommentEditingId}
+				/>
 				<Weights
 					editState={editState}
 					item={item}
