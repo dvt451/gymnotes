@@ -148,7 +148,7 @@ export default function ExerciseCurrentCommentSection({
 										: styles.exerciseCommentPlaceholder
 								}
 							>
-								{normalizedCurrentComment || 'Empty'}
+								{normalizedCurrentComment || 'No comments'}
 							</span>
 						</button>
 						{canEditComment && (

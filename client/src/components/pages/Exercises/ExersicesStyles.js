@@ -315,7 +315,7 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 
 	exerciseCommentPlaceholder: {
-		fontSize: toRem(16),
+		fontSize: toRem(14),
 		lineHeight: 1.4,
 		color: colors.white,
 		opacity: 0.3,
