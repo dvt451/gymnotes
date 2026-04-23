@@ -1,3 +1,4 @@
+import React, { useContext } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext';
 import Home from './components/pages/Home/Home';
@@ -12,28 +13,52 @@ import Profile from './components/pages/profile/Profile';
 import { GlobalProvider } from './context/GlobalContext';
 import ExerciseLibrary from './components/pages/exerciseLibrary/ExerciseLibrary';
 import Progress from './components/pages/Progress/Progress';
+import AppLoadingScreen from './components/widgets/AppLoadingScreen';
+import { AuthContext } from './context/AuthContext';
+
+function AppRoutes() {
+	const { isBootstrapping } = useContext(AuthContext);
+
+	if (isBootstrapping) {
+		return <AppLoadingScreen />;
+	}
+
+	return (
+		<Routes>
+			<Route element={<Login />} path='/' />
+			<Route element={<Home />} path='/home' />
+			<Route element={<Profile />} path='/profile' />
+			<Route element={<Register />} path='/register' />
+			<Route element={<DateList />} path='/date-list/:trainingId' />
+			<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
+			<Route element={<ExerciseLibrary />} path='/exercise-library' />
+			<Route element={<Progress />} path='/progress' />
+		</Routes>
+	);
+}
 
 function App() {
+
 	return (
 		<div className="wrapper">
 			{/* <GlobalStyles /> */}
-			<BrowserRouter>
-				<GlobalProvider>
-					<AuthProvider>
-						<Routes>
-							<Route element={<Login />} path='/' />
-							<Route element={<Home />} path='/home' />
-							<Route element={<Profile />} path='/profile' />
-							<Route element={<Register />} path='/register' />
-							<Route element={<DateList />} path='/date-list/:trainingId' />
-							<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
-							<Route element={<ExerciseLibrary />} path='/exercise-library' />
-							<Route element={<Progress />} path='/progress' />
-						</Routes>
-					</AuthProvider>
-				</GlobalProvider>
+			<div style={{
+				maxWidth: '1200px',
+				margin: '0 auto',
+				height: '100%',
+				width: '100%',
+				display: 'flex',
+				flexDirection: 'column',
+			}}>
 
-			</BrowserRouter>
+				<BrowserRouter>
+					<GlobalProvider>
+						<AuthProvider>
+							<AppRoutes />
+						</AuthProvider>
+					</GlobalProvider>
+				</BrowserRouter>
+			</div>
 		</div >
 	);
 }

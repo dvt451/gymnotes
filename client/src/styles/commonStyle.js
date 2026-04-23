@@ -27,9 +27,27 @@ export const createCommonStyle = (mainColor) => ({
 		alignItems: 'center',
 		marginBottom: toRem(15),
 	},
+	gradient: {
+		position: 'fixed',
+		top: 0,
+		left: 0,
+		width: '100%',
+		height: '100%',
+		opacity: 0.5,
+		background: `linear-gradient(135deg, ${mainColor || colors.green} 0%, rgba(255, 255, 255, 0) 50%)`,
+	},
 	title: {
 		fontSize: toRem(20),
 		fontWeight: 'bold',
+	},
+	commonSection: {
+		backgroundColor: `${colors.blueDark}99`,
+		border: `1px solid ${mainColor || colors.green}33`,
+		borderRadius: toRem(18),
+		padding: toRem(18),
+		backdropFilter: 'blur(12px)',
+		boxShadow: `0 18px 40px ${colors.black}30`,
+		width: '100%',
 	},
 	EditButton: {
 		display: 'flex',

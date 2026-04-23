@@ -13,7 +13,7 @@ export default function MuscleGroupStatisticsSection({
 }) {
 	return (
 		<div style={progressStyles.section}>
-			<div style={commonStyle.titleHeader}>
+			<div style={{ ...commonStyle.titleHeader, ...progressStyles.exerciseGroupCard, ...progressStyles.titleHeader }}>
 				<h2 style={commonStyle.title}>Muscle group statistics</h2>
 			</div>
 			<div style={progressStyles.muscleGroupGrid}>

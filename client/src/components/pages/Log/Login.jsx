@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
+import LoadingButton from '../../widgets/LoadingButton';
 import styles from './Login.module.css';
 
 export default function Login() {
@@ -14,6 +15,7 @@ export default function Login() {
 		showPassword: false,
 	});
 	const [message, setMessage] = useState({ text: '', type: '' });
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -30,6 +32,7 @@ export default function Login() {
 		}
 
 		try {
+			setIsSubmitting(true);
 			const response = await fetch(`${BASE_URL}/api/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -50,6 +53,8 @@ export default function Login() {
 			await login(data.token);
 		} catch (error) {
 			setMessage({ text: error.message, type: 'error' });
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -89,6 +94,7 @@ export default function Login() {
 					value={formData.email}
 					onChange={handleChange}
 					required
+					disabled={isSubmitting}
 					className={styles.input}
 				/>
 
@@ -100,6 +106,7 @@ export default function Login() {
 						value={formData.password}
 						onChange={handleChange}
 						required
+						disabled={isSubmitting}
 						className={styles.input}
 					/>
 					<button
@@ -107,15 +114,22 @@ export default function Login() {
 						onClick={() =>
 							setFormData((prev) => ({ ...prev, showPassword: !prev.showPassword }))
 						}
+						disabled={isSubmitting}
 						className={styles.passwordToggle}
 					>
 						{formData.showPassword ? 'Hide' : 'Show'}
 					</button>
 				</div>
 
-				<button type="submit" className={styles.loginButton}>
+				<LoadingButton
+					type="submit"
+					className={styles.loginButton}
+					isLoading={isSubmitting}
+					loadingLabel="Signing in..."
+					spinnerColor="#0C0E14"
+				>
 					Sign in
-				</button>
+				</LoadingButton>
 			</form>
 
 			{message.text && (

@@ -7,7 +7,11 @@ export const createProfileStyles = (mainColor) => ({
 		marginBottom: '30px',
 		paddingBottom: '20px',
 		padding: '18px',
-		paddingBottom: '95px'
+		paddingBottom: '95px',
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
+		gap: toRem(20),
 	},
 	editSection: {
 		marginBottom: '25px',

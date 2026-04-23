@@ -32,7 +32,7 @@ export default function Popup({
 	};
 
 	return (
-		<div style={popupStyle.popup} onClick={handleClose}>
+		<div style={popupStyle.popup} className="popup" onClick={handleClose}>
 			<div style={popupStyle.popupLayer}></div>
 			<div
 				style={popupStyle.popupContent}

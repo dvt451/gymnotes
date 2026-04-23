@@ -4,6 +4,7 @@ import { createHomeStyle } from '../../homeStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
 import { createPopupStyle } from '../../../../widgets/popupStyle';
+import LoadingButton from '../../../../widgets/LoadingButton';
 
 function DeleteConfirmationModal({ isOpen, trainingName, isLoading, onConfirm, onCancel }) {
 	const { mainColor } = useContext(GlobalContext);
@@ -27,13 +28,15 @@ function DeleteConfirmationModal({ isOpen, trainingName, isLoading, onConfirm, o
 				>
 					Cancel
 				</button>
-				<button
+				<LoadingButton
 					onClick={onConfirm}
 					style={{ ...commonStyle.button, ...commonStyle.popupDeleteButton }}
+					isLoading={isLoading}
+					loadingLabel="Deleting..."
 					disabled={isLoading}
 				>
-					{isLoading ? 'Deleting...' : 'Delete'}
-				</button>
+					Delete
+				</LoadingButton>
 			</div>
 		</Popup>
 	);

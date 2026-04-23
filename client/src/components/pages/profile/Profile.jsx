@@ -7,7 +7,7 @@ import { createCommonStyle } from '../../../styles/commonStyle';
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { GlobalContext } from '../../../context/GlobalContext';
 import ProfileMainColorSelector from './ProfileMainColorSelector';
-
+import Gradient from '../../widgets/Gradient';
 // Компонент уведомления
 const Notification = ({ message, type, onClose }) => {
 	const [isVisible, setIsVisible] = useState(true);
@@ -209,157 +209,163 @@ export default function Profile() {
 				type={notification.type}
 				onClose={() => setNotification({ message: '', type: '' })}
 			/>
-
-			<Header />
-			<main style={profileStyles.profileSection}>
-				<div style={commonStyle.titleHeader}>
-					<h2 style={commonStyle.title}>My details</h2>
-				</div>
-
-				<div style={profileStyles.infoSection}>
-					<div style={profileStyles.infoList}>
-						{/* Строка редактирования имени */}
-						<div style={profileStyles.infoRow}>
-							<span style={profileStyles.infoLabel}>Name:</span>
-							-
-							{isNameEditing ? (
-								<div style={profileStyles.infoEditRow}>
-									<input
-										type="text"
-										value={newName}
-										onChange={(e) => setNewName(e.target.value)}
-										placeholder="Введите новое имя"
-										style={profileStyles.input}
-										className='profile-input'
-										disabled={isSubmitting}
-										autoFocus
-									/>
-									<button
-										style={profileStyles.submitButton}
-										onClick={updateName}
-										disabled={isSubmitting}
-									>
-										<FaCheck />
-									</button>
-									<button
-										style={profileStyles.cancelButton}
-										onClick={cancelNameEdit}
-										disabled={isSubmitting}
-									>
-										<FaTimes />
-									</button>
-								</div>
-							) : (
-								<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
-									<span style={profileStyles.infoValue}>{theUser?.name || 'Not specified'}</span>
-									<button
-										style={profileStyles.editButton}
-										onClick={() => setIsNameEditing(true)}
-										disabled={isSubmitting}
-									>
-										<img src="/img/icons/editorange.png" alt="edit icon" />
-									</button>
-								</div>
-							)}
+			<Gradient />
+			<div style={{ position: 'relative', zIndex: 1 }}>
+				<Header />
+				<main style={profileStyles.profileSection}>
+					<div style={commonStyle.commonSection}>
+						<div style={commonStyle.titleHeader}>
+							<h2 style={commonStyle.title}>My details</h2>
 						</div>
-						{/* Строка редактирования веса */}
-						<div style={profileStyles.infoRow}>
-							<span style={profileStyles.infoLabel}>Weight:</span>
-							-
-							{isWeightEditing ? (
-								<div style={profileStyles.infoEditRow}>
-									<input
-										type="number"
-										step="0.1"
-										min="1"
-										value={newWeight}
-										onChange={(e) => setNewWeight(e.target.value)}
-										placeholder="Введите новый вес"
-										style={profileStyles.input}
-										className='profile-input'
-										disabled={isSubmitting}
-										autoFocus
-									/>
-									<button
-										style={profileStyles.submitButton}
-										onClick={updateWeight}
-										disabled={isSubmitting}
-									>
-										<FaCheck />
-									</button>
-									<button
-										style={profileStyles.cancelButton}
-										onClick={cancelWeightEdit}
-										disabled={isSubmitting}
-									>
-										<FaTimes />
-									</button>
+
+						<div style={profileStyles.infoSection}>
+							<div style={profileStyles.infoList}>
+								{/* Строка редактирования имени */}
+								<div style={profileStyles.infoRow}>
+									<span style={profileStyles.infoLabel}>Name:</span>
+									-
+									{isNameEditing ? (
+										<div style={profileStyles.infoEditRow}>
+											<input
+												type="text"
+												value={newName}
+												onChange={(e) => setNewName(e.target.value)}
+												placeholder="Введите новое имя"
+												style={profileStyles.input}
+												className='profile-input'
+												disabled={isSubmitting}
+												autoFocus
+											/>
+											<button
+												style={profileStyles.submitButton}
+												onClick={updateName}
+												disabled={isSubmitting}
+											>
+												<FaCheck />
+											</button>
+											<button
+												style={profileStyles.cancelButton}
+												onClick={cancelNameEdit}
+												disabled={isSubmitting}
+											>
+												<FaTimes />
+											</button>
+										</div>
+									) : (
+										<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
+											<span style={profileStyles.infoValue}>{theUser?.name || 'Not specified'}</span>
+											<button
+												style={profileStyles.editButton}
+												onClick={() => setIsNameEditing(true)}
+												disabled={isSubmitting}
+											>
+												<img src="/img/icons/editorange.png" alt="edit icon" />
+											</button>
+										</div>
+									)}
 								</div>
-							) : (
-								<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
-									<span style={profileStyles.infoValue}>
-										{theUser?.weight ? `${theUser.weight} kg` : 'Not specified'}
-									</span>
-									<button
-										style={profileStyles.editButton}
-										onClick={() => setIsWeightEditing(true)}
-										disabled={isSubmitting}
-									>
-										<img src="/img/icons/editorange.png" alt="edit icon" />
-									</button>
+								{/* Строка редактирования веса */}
+								<div style={profileStyles.infoRow}>
+									<span style={profileStyles.infoLabel}>Weight:</span>
+									-
+									{isWeightEditing ? (
+										<div style={profileStyles.infoEditRow}>
+											<input
+												type="number"
+												step="0.1"
+												min="1"
+												value={newWeight}
+												onChange={(e) => setNewWeight(e.target.value)}
+												placeholder="Введите новый вес"
+												style={profileStyles.input}
+												className='profile-input'
+												disabled={isSubmitting}
+												autoFocus
+											/>
+											<button
+												style={profileStyles.submitButton}
+												onClick={updateWeight}
+												disabled={isSubmitting}
+											>
+												<FaCheck />
+											</button>
+											<button
+												style={profileStyles.cancelButton}
+												onClick={cancelWeightEdit}
+												disabled={isSubmitting}
+											>
+												<FaTimes />
+											</button>
+										</div>
+									) : (
+										<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
+											<span style={profileStyles.infoValue}>
+												{theUser?.weight ? `${theUser.weight} kg` : 'Not specified'}
+											</span>
+											<button
+												style={profileStyles.editButton}
+												onClick={() => setIsWeightEditing(true)}
+												disabled={isSubmitting}
+											>
+												<img src="/img/icons/editorange.png" alt="edit icon" />
+											</button>
+										</div>
+									)}
 								</div>
-							)}
+							</div>
 						</div>
 					</div>
-				</div>
-				<div style={{ ...commonStyle.titleHeader, ...{ justifyContent: 'center' } }}>
-					<h2 style={commonStyle.title}>Home page settings</h2>
-				</div>
-				<div style={profileStyles.infoSection}>
-					<div style={profileStyles.infoList}>
-						<div style={{ ...profileStyles.infoRow, ...{ justifyContent: 'space-between' } }}>
-							<span style={profileStyles.infoLabel}>Schedule</span>
-							<button
-								onClick={toggleSchedule}
-								style={{
-									...profileStyles.checkBox,
-									...(scheduleState ? profileStyles.checkBoxChecked : {})
-								}}
-							>
-								<span style={{
-									...profileStyles.checkBoxDott,
-									...(scheduleState ? profileStyles.checkBoxDottChecked : {})
-								}}></span>
-							</button>
-						</div>
-						<div style={{ ...profileStyles.infoRow, ...{ justifyContent: 'space-between' } }}>
-							<span style={profileStyles.infoLabel}>Nutrition</span>
-							<button
-								onClick={toggleNutrition}
-								style={{
-									...profileStyles.checkBox,
-									...(nutritionState ? profileStyles.checkBoxChecked : {})
-								}}
-							>
-								<span style={{
-									...profileStyles.checkBoxDott,
-									...(nutritionState ? profileStyles.checkBoxDottChecked : {})
-								}}></span>
-							</button>
-						</div>
-						<ProfileMainColorSelector />
-					</div>
-				</div>
-				<button
-					onClick={logout}
-					style={profileStyles.logoutButton}
-					disabled={isSubmitting}
-				>
-					Log out
-				</button>
-			</main >
-			<Footer />
 
+					<div style={commonStyle.commonSection}>
+						<div style={{ ...commonStyle.titleHeader }}>
+							<h2 style={commonStyle.title}>Home page settings</h2>
+						</div>
+						<div style={profileStyles.infoSection}>
+							<div style={profileStyles.infoList}>
+								<div style={{ ...profileStyles.infoRow, ...{ justifyContent: 'space-between' } }}>
+									<span style={profileStyles.infoLabel}>Schedule</span>
+									<button
+										onClick={toggleSchedule}
+										style={{
+											...profileStyles.checkBox,
+											...(scheduleState ? profileStyles.checkBoxChecked : {})
+										}}
+									>
+										<span style={{
+											...profileStyles.checkBoxDott,
+											...(scheduleState ? profileStyles.checkBoxDottChecked : {})
+										}}></span>
+									</button>
+								</div>
+								<div style={{ ...profileStyles.infoRow, ...{ justifyContent: 'space-between' } }}>
+									<span style={profileStyles.infoLabel}>Nutrition</span>
+									<button
+										onClick={toggleNutrition}
+										style={{
+											...profileStyles.checkBox,
+											...(nutritionState ? profileStyles.checkBoxChecked : {})
+										}}
+									>
+										<span style={{
+											...profileStyles.checkBoxDott,
+											...(nutritionState ? profileStyles.checkBoxDottChecked : {})
+										}}></span>
+									</button>
+								</div>
+								<ProfileMainColorSelector />
+							</div>
+						</div>
+						<button
+							onClick={logout}
+							style={profileStyles.logoutButton}
+							disabled={isSubmitting}
+						>
+							Log out
+						</button>
+					</div>
+				</main >
+				<Footer />
+			</div>
 			{/* Добавляем стили через style тег без jsx атрибута */}
 			<style>{`
 				@keyframes notificationSlideIn {

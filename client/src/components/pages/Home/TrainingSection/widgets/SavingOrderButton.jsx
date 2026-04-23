@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import { createHomeStyle } from '../../homeStyles';
 import { createCommonStyle } from '../../../../../styles/commonStyle';
+import LoadingButton from '../../../../widgets/LoadingButton';
 
 export default function SavingOrderButton({ editState, state, handleSaveReorder }) {
 	const { mainColor } = useContext(GlobalContext);
@@ -10,17 +11,20 @@ export default function SavingOrderButton({ editState, state, handleSaveReorder 
 
 	return (
 		editState && state.isReordering && (
-			<button
+			<LoadingButton
 				onClick={handleSaveReorder}
 				disabled={state.isLoading}
+				isLoading={state.isLoading}
+				loadingLabel="Saving order..."
+				spinnerColor="#0C0E14"
 				style={{
 					...commonStyle.button,
 					...homeStyle.trainingCardAddButton,
 					opacity: state.isLoading ? 0.7 : 1,
 				}}
 			>
-				{state.isLoading ? '💾 Saving...' : '💾 Save Order'}
-			</button>
+				Save Order
+			</LoadingButton>
 		)
 	)
 }

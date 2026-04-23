@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
+import LoadingButton from '../../widgets/LoadingButton';
 import styles from './Register.module.css';
 
 export default function Register() {
@@ -12,6 +13,7 @@ export default function Register() {
 		password: '',
 	});
 	const [message, setMessage] = useState({ text: '', type: '' });
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { BASE_URL, login } = useContext(AuthContext);
 	const navigate = useNavigate();
 	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -26,6 +28,7 @@ export default function Register() {
 		setMessage({ text: '', type: '' });
 
 		try {
+			setIsSubmitting(true);
 			const res = await fetch(`${BASE_URL}/api/auth/register`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -45,6 +48,8 @@ export default function Register() {
 			setTimeout(() => navigate('/'), 1500);
 		} catch (error) {
 			setMessage({ text: error.message, type: 'error' });
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -84,6 +89,7 @@ export default function Register() {
 					value={formData.name}
 					onChange={handleChange}
 					required
+					disabled={isSubmitting}
 					className={styles.input}
 				/>
 				<input
@@ -93,6 +99,7 @@ export default function Register() {
 					value={formData.weight}
 					onChange={handleChange}
 					required
+					disabled={isSubmitting}
 					className={styles.input}
 				/>
 				<input
@@ -102,6 +109,7 @@ export default function Register() {
 					value={formData.email}
 					onChange={handleChange}
 					required
+					disabled={isSubmitting}
 					className={styles.input}
 				/>
 				<input
@@ -111,11 +119,18 @@ export default function Register() {
 					value={formData.password}
 					onChange={handleChange}
 					required
+					disabled={isSubmitting}
 					className={styles.input}
 				/>
-				<button type="submit" className={styles.button}>
+				<LoadingButton
+					type="submit"
+					className={styles.button}
+					isLoading={isSubmitting}
+					loadingLabel="Creating account..."
+					spinnerColor="#0C0E14"
+				>
 					Create account
-				</button>
+				</LoadingButton>
 			</form>
 
 			{message.text && (

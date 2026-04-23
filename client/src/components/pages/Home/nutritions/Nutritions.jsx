@@ -9,6 +9,7 @@ import { getToken } from '../../../utils/getToken';
 import { AuthContext } from '../../../../context/AuthContext';
 import NutritionControls from './NutritionControls';
 import { GlobalContext } from '../../../../context/GlobalContext';
+import { createCalendarStyles } from '../CalendareSection/calendarStyles';
 
 export default function Nutritions() {
 	const { BASE_URL } = useContext(AuthContext);
@@ -115,7 +116,7 @@ export default function Nutritions() {
 		setEditState(!editState);
 	}
 	return (
-		<div style={nutritionsStyle.nutritions}>
+		<div style={commonStyle.commonSection}>
 			<div style={commonStyle.titleHeader}>
 				<h2 style={commonStyle.title}>Nutritions</h2>
 				<NutritionControls editState={editState} handleToggleEdit={handleToggleEdit} />

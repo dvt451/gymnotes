@@ -226,7 +226,7 @@ export default function TrainingsSection() {
 	}
 
 	return (
-		<div style={homeStyle.trainingBlock}>
+		<div style={commonStyle.commonSection}>
 			<div style={commonStyle.titleHeader}>
 				<h2 style={commonStyle.title}>Trainings</h2>
 				{state.trainingDays.length > 0 && <TrainingControls

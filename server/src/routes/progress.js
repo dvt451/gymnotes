@@ -13,10 +13,17 @@ const router = express.Router();
 
 const roundValue = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
 
+const getValidWeights = (weights = []) =>
+  Array.isArray(weights)
+    ? weights.filter((item) => {
+        const nextWeight = Number(item?.weight);
+        return Number.isFinite(nextWeight) && nextWeight >= 0;
+      })
+    : [];
+
 const getMaxWeight = (weights = []) =>
-  weights.reduce((max, item) => {
+  getValidWeights(weights).reduce((max, item) => {
     const nextWeight = Number(item?.weight);
-    if (!Number.isFinite(nextWeight) || nextWeight < 0) return max;
     return Math.max(max, nextWeight);
   }, 0);
 
@@ -65,30 +72,26 @@ router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
   try {
-    const trainingDates = await TrainingDate.find({ userId: req.userId })
+    const allTrainingDates = await TrainingDate.find({ userId: req.userId })
       .sort({ date: 1, createdAt: 1 })
       .select('_id date trainingFileId')
       .lean();
 
-    const periodFirstDate = trainingDates[0]?.date || null;
-    const periodLastDate = trainingDates[trainingDates.length - 1]?.date || null;
-    const trainingFileIds = new Set(
-      trainingDates
-        .map((item) => item?.trainingFileId?.toString())
-        .filter(Boolean)
-    );
-
     const trainingDateMap = new Map(
-      trainingDates.map((item) => [item._id.toString(), item.date])
+      allTrainingDates.map((item) => [item._id.toString(), item])
     );
 
     const exerciseEntries = await ExerciseEntry.find({ userId: req.userId })
       .select('exerciseUserLibraryId trainingDateId weights')
       .lean();
 
+    const weightedExerciseEntries = exerciseEntries.filter(
+      (entry) => getValidWeights(entry?.weights).length > 0
+    );
+
     const libraryIds = [
       ...new Set(
-        exerciseEntries
+        weightedExerciseEntries
           .map((entry) => entry?.exerciseUserLibraryId?.toString())
           .filter(Boolean)
       ),
@@ -114,13 +117,17 @@ router.get('/', async (req, res) => {
     const allMuscleGroups = buildMuscleGroupList(customGroups.map((item) => item.name));
 
     const exerciseProgressMap = new Map();
+    const weightedTrainingDateIds = new Set();
 
-    for (const entry of exerciseEntries) {
+    for (const entry of weightedExerciseEntries) {
       const exerciseId = entry?.exerciseUserLibraryId?.toString();
       const trainingDateId = entry?.trainingDateId?.toString();
-      const entryDate = trainingDateMap.get(trainingDateId);
+      const trainingDate = trainingDateMap.get(trainingDateId);
+      const entryDate = trainingDate?.date;
 
       if (!exerciseId || !entryDate) continue;
+
+      weightedTrainingDateIds.add(trainingDateId);
 
       const libraryExercise = libraryMap.get(exerciseId);
       const entryWeight = getMaxWeight(entry?.weights);
@@ -152,6 +159,17 @@ router.get('/', async (req, res) => {
 
       exerciseProgressMap.set(exerciseId, nextExercise);
     }
+
+    const trainingDates = allTrainingDates.filter((item) =>
+      weightedTrainingDateIds.has(item._id.toString())
+    );
+    const periodFirstDate = trainingDates[0]?.date || null;
+    const periodLastDate = trainingDates[trainingDates.length - 1]?.date || null;
+    const trainingFileIds = new Set(
+      trainingDates
+        .map((item) => item?.trainingFileId?.toString())
+        .filter(Boolean)
+    );
 
     const exercises = Array.from(exerciseProgressMap.values())
       .map((item) => ({

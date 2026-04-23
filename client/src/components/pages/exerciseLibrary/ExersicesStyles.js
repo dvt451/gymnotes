@@ -9,8 +9,7 @@ export const createExercisesStyles = (mainColor) => ({
 		marginBottom: toRem(10),
 	},
 	exercisesListTitle: {
-		paddingTop: toRem(20),
-		paddingBottom: toRem(20),
+		marginBottom: toRem(20),
 	},
 	exercisesList: {
 		display: 'flex',
@@ -18,7 +17,6 @@ export const createExercisesStyles = (mainColor) => ({
 		gap: toRem(10),
 	},
 	muscleGroupsBlock: {
-		backgroundColor: colors.labelBG,
 		borderRadius: toRem(14),
 		padding: toRem(16),
 		display: 'flex',
@@ -119,11 +117,9 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 	// Основной контейнер
 	container: {
-		backgroundColor: colors.blueDark,
 		minHeight: '100vh',
 		padding: `${toRem(20)} ${toRem(20)} ${toRem(100)}`,
 	},
-
 	// Хедер
 	header: {
 		marginBottom: toRem(30),
@@ -300,11 +296,7 @@ export const createExercisesStyles = (mainColor) => ({
 			transform: 'translateX(5px)',
 		},
 	},
-	container: {
-		backgroundColor: colors.blueDark,
-		padding: toRem(20),
-		paddingBottom: toRem(95),
-	},
+
 
 	header: {
 		marginBottom: toRem(30),

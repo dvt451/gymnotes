@@ -8,6 +8,7 @@ import { createProgressStyles } from './ProgressStyles';
 import OverallProgressSection from './OverallProgressSection';
 import MuscleGroupStatisticsSection from './MuscleGroupStatisticsSection';
 import ExerciseStatisticsSection from './ExerciseStatisticsSection';
+import Gradient from '../../widgets/Gradient';
 
 
 export default function Progress() {
@@ -68,46 +69,49 @@ export default function Progress() {
 
 	return (
 		<>
-			<Header />
-			<main style={progressStyles.main}>
-				<section style={progressStyles.section}>
-					{isLoading ? (
-						<div style={progressStyles.statusCard}>
-							<p style={progressStyles.statusText}>Loading progress statistics...</p>
-						</div>
-					) : error ? (
-						<div style={progressStyles.statusCard}>
-							<p style={progressStyles.statusText}>{error}</p>
-						</div>
-					) : !period?.trackedExercises ? (
-						<div style={progressStyles.statusCard}>
-							<p style={progressStyles.statusText}>
-								Add training days with weights to see your progress statistics.
-							</p>
-						</div>
-					) : (
-						<>
-							<OverallProgressSection
-								overall={overall}
-								period={period}
-								progressStyles={progressStyles}
-								muscleGroups={muscleGroups}
-							/>
-							<MuscleGroupStatisticsSection
-								commonStyle={commonStyle}
-								muscleGroups={muscleGroups}
-								progressStyles={progressStyles}
-							/>
-							<ExerciseStatisticsSection
-								commonStyle={commonStyle}
-								exercises={exercises}
-								progressStyles={progressStyles}
-							/>
-						</>
-					)}
-				</section>
-			</main >
-			<Footer />
+			<Gradient />
+			<div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
+				<Header />
+				<main style={progressStyles.main}>
+					<section style={progressStyles.section}>
+						{isLoading ? (
+							<div style={progressStyles.statusCard}>
+								<p style={progressStyles.statusText}>Loading progress statistics...</p>
+							</div>
+						) : error ? (
+							<div style={progressStyles.statusCard}>
+								<p style={progressStyles.statusText}>{error}</p>
+							</div>
+						) : !period?.trackedExercises ? (
+							<div style={progressStyles.statusCard}>
+								<p style={progressStyles.statusText}>
+									Add training days with weights to see your progress statistics.
+								</p>
+							</div>
+						) : (
+							<>
+								<OverallProgressSection
+									overall={overall}
+									period={period}
+									progressStyles={progressStyles}
+									muscleGroups={muscleGroups}
+								/>
+								<MuscleGroupStatisticsSection
+									commonStyle={commonStyle}
+									muscleGroups={muscleGroups}
+									progressStyles={progressStyles}
+								/>
+								<ExerciseStatisticsSection
+									commonStyle={commonStyle}
+									exercises={exercises}
+									progressStyles={progressStyles}
+								/>
+							</>
+						)}
+					</section>
+				</main >
+				<Footer />
+			</div >
 		</>
 	);
 }

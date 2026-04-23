@@ -29,7 +29,7 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 			const token = localStorage.getItem('token');
 			if (!token) {
 				setError('Требуется авторизация');
-				navigate('/login');
+				navigate('/');
 				return;
 			}
 
@@ -101,7 +101,7 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 			const token = localStorage.getItem('token');
 			if (!token) {
 				setError('Требуется авторизация');
-				navigate('/login');
+				navigate('/');
 				return;
 			}
 
@@ -179,7 +179,7 @@ export function useDateListLogic(trainingId, trainingText, trainingTitle) {
 			const token = localStorage.getItem('token');
 			if (!token) {
 				setError('Требуется авторизация');
-				navigate('/login');
+				navigate('/');
 				return;
 			}
 

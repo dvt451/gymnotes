@@ -11,7 +11,7 @@ export const createFooterStyle = (mainColor) => ({
 	footerContainer: {
 		maxWidth: toRem(1200),
 		margin: '0 auto',
-		backgroundColor: colors.labelBG,
+		backgroundColor: colors.blueDark,
 		padding: toRem(20),
 		borderRadius: `${toRem(30)} ${toRem(30)} 0 0`,
 		boxShadow: '0px 0px 4px #000',

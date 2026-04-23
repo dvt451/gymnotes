@@ -9,6 +9,7 @@ export const headerStyle = {
 		position: 'relative',
 		display: 'flex',
 		gap: toRem(30),
+		zIndex: 10,
 	},
 	user: {
 		display: 'flex',

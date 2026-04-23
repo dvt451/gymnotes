@@ -3,6 +3,7 @@ import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import Popup from '../../../../widgets/Popup';
 import { createPopupStyle } from '../../../../widgets/popupStyle';
+import LoadingButton from '../../../../widgets/LoadingButton';
 
 function TrainingPopup({
 	isOpen,
@@ -50,16 +51,18 @@ function TrainingPopup({
 
 			<div style={popupStyle.popupButtons}>
 				{mode === 'edit' && onDelete && (
-					<button
+					<LoadingButton
 						onClick={onDelete}
 						style={{
 							...commonStyle.button,
 							...commonStyle.popupDeleteButton
 						}}
+						isLoading={isLoading}
+						loadingLabel="Deleting..."
 						disabled={isLoading}
 					>
 						Delete Training
-					</button>
+					</LoadingButton>
 				)}
 
 				<button
@@ -69,13 +72,15 @@ function TrainingPopup({
 					Cancel
 				</button>
 
-				<button
+				<LoadingButton
 					onClick={onSubmit}
 					style={{ ...commonStyle.button, ...commonStyle.popupCreateButton }}
+					isLoading={isLoading}
+					loadingLabel={submitText}
 					disabled={isLoading}
 				>
-					{submitText}
-				</button>
+					{mode === 'create' ? 'Create' : 'Save Changes'}
+				</LoadingButton>
 			</div>
 		</Popup>
 	);

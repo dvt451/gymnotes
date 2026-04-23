@@ -27,7 +27,6 @@ export const createProgressStyles = (mainColor) => ({
 		flexDirection: 'column',
 		gap: toRem(14),
 		boxShadow: `0 2px 0 ${mainColor || colors.green}`,
-		marginBottom: toRem(20),
 	},
 	overallCardLayout: {
 		display: 'grid',
@@ -108,8 +107,47 @@ export const createProgressStyles = (mainColor) => ({
 		flexDirection: 'column',
 		gap: toRem(12),
 	},
-	exerciseStatCard: {
+	exerciseGroupList: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(14),
+	},
+	titleHeader: {
+		alignItems: 'flex-start',
+		marginBottom: toRem(0),
+		marginTop: toRem(20),
+	},
+	exerciseGroupCard: {
 		backgroundColor: colors.labelBG,
+		borderRadius: toRem(14),
+		padding: toRem(16),
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(14),
+		border: `1px solid ${mainColor || colors.green}22`,
+	},
+	exerciseGroupHeader: {
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		gap: toRem(12),
+	},
+	exerciseSearchWrap: {
+		display: 'flex',
+	},
+	exerciseSearchInput: {
+		width: '100%',
+		borderRadius: toRem(12),
+		border: `1px solid ${mainColor || colors.green}44`,
+		backgroundColor: colors.labelBG,
+		color: colors.white,
+		padding: `${toRem(12)} ${toRem(14)}`,
+		fontSize: toRem(15),
+		outline: 'none',
+
+	},
+	exerciseStatCard: {
+		backgroundColor: 'rgba(255, 255, 255, 0.03)',
 		borderRadius: toRem(14),
 		padding: toRem(16),
 		display: 'flex',

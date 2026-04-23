@@ -218,7 +218,7 @@ export const createExercisesStyles = (mainColor) => ({
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(15),
-		paddingBottom: toRem(120),
+		paddingBottom: toRem(20),
 	},
 
 	addButton: {
