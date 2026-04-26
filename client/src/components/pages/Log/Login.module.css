@@ -22,6 +22,14 @@
 	gap: 20px;
 }
 
+.helperText {
+	color: #B0B0B0;
+	font-size: 14px;
+	line-height: 1.5;
+	text-align: center;
+	margin: -10px 0 24px;
+}
+
 .input {
 	width: 100%;
 	padding: 14px 16px;
@@ -65,6 +73,26 @@
 
 .passwordToggle:hover {
 	color: #FFFFFF;
+}
+
+.linkRow {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: -8px;
+}
+
+.textLink {
+	background: none;
+	border: none;
+	color: #4CAF50;
+	cursor: pointer;
+	font-size: 14px;
+	padding: 0;
+	text-decoration: underline;
+}
+
+.textLink:hover {
+	color: #45a049;
 }
 
 .loginButton {
@@ -161,4 +189,29 @@
 
 .registerLink:hover {
 	color: #45a049;
+}
+
+.actionGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 24px;
+}
+
+.secondaryButton {
+	padding: 14px 16px;
+	font-size: 16px;
+	font-weight: 600;
+	background-color: transparent;
+	color: #FFFFFF;
+	border: 1px solid #333333;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: border-color 0.3s, color 0.3s, background-color 0.3s;
+}
+
+.secondaryButton:hover {
+	border-color: #4CAF50;
+	color: #4CAF50;
+	background-color: rgba(76, 175, 80, 0.08);
 }

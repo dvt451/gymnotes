@@ -75,6 +75,17 @@ const userSchema = new mongoose.Schema(
 			minlength: [6, 'Пароль должен быть минимум 6 символов'],
 			select: false,
 		},
+		passwordResetToken: {
+			type: String,
+			default: null,
+			select: false,
+		},
+		passwordResetExpiresAt: {
+			type: Date,
+			default: null,
+			select: false,
+			index: true,
+		},
 		googleId: {
 			type: String,
 			unique: true,

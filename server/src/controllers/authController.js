@@ -1,8 +1,11 @@
 import User from '../models/User.js';
 import TrainingFile from '../models/TrainingFile.js';
 import { generateToken, verifyGoogleToken } from '../utils/jwt.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
+import crypto from 'crypto';
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
 
 const serializeUser = (user, extra = {}) => ({
   id: user._id,
@@ -38,6 +41,27 @@ const ensureActiveUser = (user, res) => {
   }
 
   return true;
+};
+
+const hashResetToken = (token) => crypto.createHash('sha256').update(String(token || '')).digest('hex');
+
+const getPasswordResetBaseUrl = () => {
+  const explicitUrl = String(process.env.PASSWORD_RESET_URL || '').trim();
+  if (explicitUrl) {
+    return explicitUrl.replace(/\/+$/, '');
+  }
+
+  const clientUrl = String(process.env.CLIENT_URL || '').trim();
+  if (!clientUrl) {
+    throw new Error('CLIENT_URL or PASSWORD_RESET_URL must be configured');
+  }
+
+  return `${clientUrl.replace(/\/+$/, '')}/reset-password`;
+};
+
+const buildPasswordResetUrl = (token) => {
+  const baseUrl = getPasswordResetBaseUrl();
+  return `${baseUrl}/${encodeURIComponent(token)}`;
 };
 
 export const register = async (req, res) => {
@@ -149,6 +173,96 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error during login',
+    });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  const successMessage = 'If an account exists for this email, a password reset link has been sent.';
+
+  try {
+    const email = normalizeEmail(req.body.email);
+    const users = await User.find({ email }).select('+password').sort({ createdAt: 1, _id: 1 });
+    const resetUser =
+      users.find((candidate) => !candidate.isDeleted && candidate.accountStatus === 'active' && candidate.password) ||
+      users.find((candidate) => !candidate.isDeleted && candidate.accountStatus === 'active');
+
+    if (!resetUser) {
+      return res.json({
+        success: true,
+        message: successMessage,
+      });
+    }
+
+    const rawResetToken = crypto.randomBytes(32).toString('hex');
+    resetUser.passwordResetToken = hashResetToken(rawResetToken);
+    resetUser.passwordResetExpiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+    await resetUser.save();
+
+    try {
+      await sendPasswordResetEmail({
+        to: resetUser.email,
+        name: resetUser.name,
+        resetUrl: buildPasswordResetUrl(rawResetToken),
+      });
+    } catch (emailError) {
+      resetUser.passwordResetToken = null;
+      resetUser.passwordResetExpiresAt = null;
+      await resetUser.save();
+
+      console.error('Forgot password email error:', emailError);
+      return res.status(500).json({
+        success: false,
+        message: 'Password recovery email is not configured on the server',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: successMessage,
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during password recovery',
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    const hashedToken = hashResetToken(token);
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpiresAt: { $gt: new Date() },
+    }).select('+password +passwordResetToken +passwordResetExpiresAt');
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'This password reset link is invalid or has expired',
+      });
+    }
+
+    if (!ensureActiveUser(user, res)) return;
+
+    user.password = password;
+    user.passwordResetToken = null;
+    user.passwordResetExpiresAt = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now sign in with your new password.',
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during password reset',
     });
   }
 };

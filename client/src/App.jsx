@@ -7,6 +7,8 @@ import Home from './components/pages/Home/Home';
 import './styles/style.css';
 import Login from './components/pages/Log/Login';
 import Register from './components/pages/Log/Register';
+import ForgotPassword from './components/pages/Log/ForgotPassword';
+import ResetPassword from './components/pages/Log/ResetPassword';
 import DateList from './components/pages/DateList/DateList';
 import Exercises from './components/pages/Exercises/Exercises';
 import Profile from './components/pages/profile/Profile';
@@ -29,6 +31,8 @@ function AppRoutes() {
 			<Route element={<Home />} path='/home' />
 			<Route element={<Profile />} path='/profile' />
 			<Route element={<Register />} path='/register' />
+			<Route element={<ForgotPassword />} path='/forgot-password' />
+			<Route element={<ResetPassword />} path='/reset-password/:token' />
 			<Route element={<DateList />} path='/date-list/:trainingId' />
 			<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
 			<Route element={<ExerciseLibrary />} path='/exercise-library' />

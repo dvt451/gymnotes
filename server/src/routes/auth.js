@@ -3,17 +3,26 @@ import User from '../models/User.js';
 import {
 	register,
 	login,
+	forgotPassword,
+	resetPassword,
 	loginWithGoogle,
 	getProfile,
 	updateProfile,
 } from '../controllers/authController.js';
 import { authMiddleware, requireAdmin } from '../middleware/auth.js';
-import { validateRegister, validateLogin } from '../middleware/validation.js';
+import {
+	validateRegister,
+	validateLogin,
+	validateForgotPassword,
+	validateResetPassword,
+} from '../middleware/validation.js';
 
 const router = express.Router();
 
 router.post('/register', validateRegister, register);
 router.post('/login', validateLogin, login);
+router.post('/forgot-password', validateForgotPassword, forgotPassword);
+router.post('/reset-password', validateResetPassword, resetPassword);
 
 router.get('/profile', authMiddleware, getProfile);
 router.post('/profile', authMiddleware, updateProfile);

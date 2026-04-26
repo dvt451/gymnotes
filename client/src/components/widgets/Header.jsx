@@ -1,5 +1,5 @@
-import React, { useEffect, useContext, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useContext, useState, } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Menu from './Menu';
 import { headerStyle } from './headerStyle';
@@ -36,13 +36,13 @@ export default function Header() {
 
 			{/* Аватар */}
 			{<div style={headerStyle.user}>
-				<div style={headerStyle.avatar}>
+				<Link to="/home" style={headerStyle.avatar}>
 					<img
 						style={headerStyle.avatarImage}
 						src={'/user.png'}
 						alt="User avatar"
 					/>
-				</div>
+				</Link>
 				<div style={headerStyle.userInfo}>
 					<h1 style={headerStyle.userName}>{theUser.name || 'Гость'}</h1>
 					<p style={headerStyle.userWeight}>Weight - {theUser.weight ? `${theUser.weight}kg` : '—'}</p>

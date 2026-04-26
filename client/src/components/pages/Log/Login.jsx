@@ -121,6 +121,17 @@ export default function Login() {
 					</button>
 				</div>
 
+				<div className={styles.linkRow}>
+					<button
+						type="button"
+						onClick={() => navigate('/forgot-password')}
+						disabled={isSubmitting}
+						className={styles.textLink}
+					>
+						Forgot password?
+					</button>
+				</div>
+
 				<LoadingButton
 					type="submit"
 					className={styles.loginButton}

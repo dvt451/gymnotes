@@ -11,7 +11,6 @@ import AppLoadingScreen from '../../widgets/AppLoadingScreen';
 
 export default function Home() {
 	const { mainColor, showScheduleSection, showNutritionSection } = useContext(GlobalContext);
-
 	return (
 		<>
 			<Gradient />
@@ -32,7 +31,6 @@ export default function Home() {
 				<Footer />
 			</div>
 			{/* Модальное окно */}
-
 		</>
 	);
 }
