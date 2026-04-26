@@ -51,7 +51,7 @@ export default function AdminDashboardPanel({
 							<p className="admin-eyebrow">Snapshot</p>
 							<h2>System totals</h2>
 							<p className="admin-panel-description">
-								A quick read on account health, activity volume, and privileged access across GymNotes.
+								A quick read on account health, activity volume, and privileged access across Lift Log.
 							</p>
 						</div>
 					</div>
@@ -138,7 +138,7 @@ export default function AdminDashboardPanel({
 									<small>
 										{selectedBackupFile
 											? 'JSON file selected for restore'
-											: 'Select a previously downloaded GymNotes JSON backup'}
+											: 'Select a previously downloaded Lift Log JSON backup'}
 									</small>
 								</span>
 								<span className="admin-file-trigger-chip">

@@ -19,7 +19,7 @@ export default function AdminLoginScreen({
 			<div className="admin-login-shell">
 				<section className="admin-login-aside">
 					<p className="admin-eyebrow">Console Access</p>
-					<h1>GymNotes control surface</h1>
+					<h1>Lift Log control surface</h1>
 					<p className="admin-subtitle">
 						One place to review users, lock down permissions, restore backups, and trace admin activity with less friction.
 					</p>
@@ -59,7 +59,7 @@ export default function AdminLoginScreen({
 								type="email"
 								value={loginForm.email}
 								onChange={onChange}
-								placeholder="admin@gymnotes.app"
+								placeholder="admin@liftlog.app"
 								disabled={isLoggingIn || isGoogleLoggingIn}
 								required
 							/>

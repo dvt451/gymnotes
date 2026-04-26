@@ -18,14 +18,6 @@ export default function AdminHeader({
 
 	return (
 		<header className="admin-header">
-			<div className="admin-header-copy">
-				<p className="admin-eyebrow">GymNotes Admin</p>
-				<h1>Operations dashboard</h1>
-				<p className="admin-subtitle">
-					Review user access, recovery actions, backups, and audit events from one calmer control surface.
-				</p>
-			</div>
-
 			<div className="admin-header-card">
 				<div className="admin-header-identity">
 					<div className="admin-header-avatar" aria-hidden="true">

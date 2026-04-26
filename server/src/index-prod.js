@@ -88,7 +88,7 @@ app.get('/health', (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
 	res.json({
-		message: '🚀 GymNotes API Server is running!',
+		message: '🚀 Lift Log API Server is running!',
 		version: '1.0.0',
 		environment: env,
 		endpoints: {

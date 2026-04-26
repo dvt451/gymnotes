@@ -82,7 +82,7 @@ const DEFAULT_ROLE_PERMISSIONS = {
 	},
 };
 const FULL_ADMIN_PERMISSIONS = Object.fromEntries(PERMISSION_KEYS.map((key) => [key, true]));
-const BACKUP_FORMAT = 'gymnotes-backup';
+const BACKUP_FORMAT = 'liftlog-backup';
 const BACKUP_VERSION = 1;
 const OPTIONAL_BACKUP_COLLECTION_KEYS = new Set(['adminRolePermissions']);
 const BACKUP_COLLECTIONS = [
@@ -230,7 +230,7 @@ const getAvailableRoleList = (permissionMap = {}) => {
 
 const createBackupFilename = () => {
 	const safeTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
-	return `gymnotes-backup-${safeTimestamp}.json`;
+	return `liftlog-backup-${safeTimestamp}.json`;
 };
 
 const buildBackupCounts = (collections) =>

@@ -438,7 +438,7 @@ export default function useAdminConsole() {
 			const filenameMatch = contentDisposition.match(/filename=\"([^\"]+)\"/i)
 			const filename =
 				filenameMatch?.[1] ||
-				`gymnotes-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+				`liftlog-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
 
 			const blob = new Blob([JSON.stringify(backup, null, 2)], {
 				type: 'application/json',

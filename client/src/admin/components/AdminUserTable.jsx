@@ -42,8 +42,6 @@ export default function AdminUserTable({
 							<th>User</th>
 							<th>Role</th>
 							<th>Status</th>
-							<th>Trainings</th>
-							<th>Custom exercises</th>
 							<th>Updated</th>
 							<th>Actions</th>
 						</tr>
@@ -129,8 +127,6 @@ export default function AdminUserTable({
 											</AdminStatusPill>
 										</div>
 									</td>
-									<td>{user.trainingCount}</td>
-									<td>{user.customExerciseCount}</td>
 									<td>{formatDate(user.updatedAt)}</td>
 									<td>
 										<div className="admin-action-group">
@@ -158,12 +154,12 @@ export default function AdminUserTable({
 												{isRestoreBusy
 													? 'Restoring...'
 													: isStatusBusy
-													? 'Saving...'
-													: isDeleted
-														? 'Restore'
-														: user.accountStatus === 'active'
-														? 'Suspend'
-														: 'Reactivate'}
+														? 'Saving...'
+														: isDeleted
+															? 'Restore'
+															: user.accountStatus === 'active'
+																? 'Suspend'
+																: 'Reactivate'}
 											</button>
 											<button
 												className="admin-danger-button"
