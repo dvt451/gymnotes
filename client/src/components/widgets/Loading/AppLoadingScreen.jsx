@@ -1,5 +1,5 @@
 import React from 'react';
-import InlineSpinner from './InlineSpinner';
+import InlineSpinner from '../InlineSpinner';
 
 export default function AppLoadingScreen({
 	title = 'LiftLog',

@@ -41,7 +41,7 @@ export default function useAdminConsole() {
 	const [auditQuery, setAuditQuery] = useState(defaultAuditQuery)
 	const [selectedUserId, setSelectedUserId] = useState('')
 	const [selectedUserDetail, setSelectedUserDetail] = useState(initialState.selectedUserDetail)
-	const [activeTab, setActiveTab] = useState('dashboard')
+	const [activeTab, setActiveTab] = useState('users')
 	const [availableRoles, setAvailableRoles] = useState(initialState.availableRoles)
 	const [protectedRoles, setProtectedRoles] = useState(initialState.protectedRoles)
 	const [rolePermissions, setRolePermissions] = useState(initialState.rolePermissions)
@@ -88,9 +88,9 @@ export default function useAdminConsole() {
 		canViewDashboard || canExportBackup || canRestoreBackup || canManageRolePermissions
 	const visibleTabs = [
 		canAccessDashboardTab ? { id: 'dashboard', label: 'Dashboard' } : null,
-		canManageRolePermissions ? { id: 'permissions', label: 'Permissions' } : null,
 		canViewUsers ? { id: 'users', label: 'Users' } : null,
 		canViewUsers ? { id: 'admins', label: 'Admins' } : null,
+		canManageRolePermissions ? { id: 'permissions', label: 'Permissions' } : null,
 		canViewAuditLogs || canClearAuditLogs ? { id: 'audit', label: 'Audit' } : null,
 	].filter(Boolean)
 	const selectedPermissionOverrideDraft = useMemo(

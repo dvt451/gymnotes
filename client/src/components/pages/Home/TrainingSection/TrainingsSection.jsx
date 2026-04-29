@@ -226,61 +226,66 @@ export default function TrainingsSection() {
 	}
 
 	return (
-		<div style={commonStyle.commonSection}>
-			<div style={commonStyle.titleHeader}>
-				<h2 style={commonStyle.title}>Trainings</h2>
-				{state.trainingDays.length > 0 && <TrainingControls
-					editState={editState}
-					isReordering={state.isReordering}
-					onToggleEdit={handleToggleEdit} // 🚨 Используем обновленную функцию
-					onSaveReorder={handleSaveReorder}
-				/>}
-			</div>
-
-			{/* Кнопка Reorder показывается только если есть тренировки и включен editState */}
-			<ReorderButton
-				editState={editState}
-				state={state}
-				handleToggleReorder={handleToggleReorder}
-			/>
-
-			{/* Сообщение если тренировок нет */}
-			{state.trainingDays.length === 0 && !state.isLoading && (
-				<div style={homeStyle.emptyState}>
-					<p style={homeStyle.emptyStateText}>
-						No trainings yet. Create your first training!
-					</p>
+		<>
+			<div style={commonStyle.commonSection}>
+				<div style={commonStyle.titleHeader}>
+					<h2 style={commonStyle.title}>Trainings</h2>
+					{state.trainingDays.length > 0 && <TrainingControls
+						editState={editState}
+						isReordering={state.isReordering}
+						onToggleEdit={handleToggleEdit} // 🚨 Используем обновленную функцию
+						onSaveReorder={handleSaveReorder}
+					/>}
 				</div>
-			)}
 
-			{/* Список тренировок показывается только если они есть */}
-			<TrainingList
-				state={state}
-				setState={setState}
-				editState={editState}
-				loadScene={loadScene}
-			/>
+				{/* Кнопка Reorder показывается только если есть тренировки и включен editState */}
+				<ReorderButton
+					editState={editState}
+					state={state}
+					handleToggleReorder={handleToggleReorder}
+				/>
 
-			{/* Кнопка добавления показывается всегда */}
-			{!editState && !state.isReordering && (
-				<ButtonType
-					functionOnClick={() => setState(prev => ({
-						...prev,
-						showCreatePopup: true
-					}))}
-					addStyle={homeStyle.trainingCardAddButton}>
-					+ Add Training
-				</ButtonType>
-			)}
+				{/* Сообщение если тренировок нет */}
+				{state.trainingDays.length === 0 && !state.isLoading && (
+					<div style={homeStyle.emptyState}>
+						<p style={homeStyle.emptyStateText}>
+							No trainings yet. Create your first training!
+						</p>
+					</div>
+				)}
 
-			{/* Кнопка сохранения порядка показывается только при перетаскивании */}
-			<SavingOrderButton
-				editState={editState}
-				state={state}
-				handleSaveReorder={handleSaveReorder}
-			/>
+				{/* Список тренировок показывается только если они есть */}
+				<TrainingList
+					state={state}
+					setState={setState}
+					editState={editState}
+					loadScene={loadScene}
+				/>
 
-			{/* Попапы */}
+				{/* Кнопка добавления показывается всегда */}
+				{!editState && !state.isReordering && (
+					<ButtonType
+						functionOnClick={() => setState(prev => ({
+							...prev,
+							showCreatePopup: true
+						}))}
+						addStyle={homeStyle.trainingCardAddButton}>
+						+ Add Training
+					</ButtonType>
+				)}
+
+				{/* Кнопка сохранения порядка показывается только при перетаскивании */}
+				<SavingOrderButton
+					editState={editState}
+					state={state}
+					handleSaveReorder={handleSaveReorder}
+				/>
+
+				{/* Попапы */}
+
+
+
+			</div>
 			<TrainingPopup
 				isOpen={state.showCreatePopup}
 				mode="create"
@@ -310,7 +315,6 @@ export default function TrainingsSection() {
 				onSubmit={handleEditSubmit}
 				onDelete={() => setShowDeleteModal(true)}
 			/>
-
 			<DeleteConfirmationModal
 				isOpen={showDeleteModal}
 				trainingName={state.selectedTraining?.name}
@@ -318,6 +322,6 @@ export default function TrainingsSection() {
 				onConfirm={handleDeleteConfirm}
 				onCancel={() => setShowDeleteModal(false)}
 			/>
-		</div>
+		</>
 	);
 }

@@ -15,7 +15,7 @@ import Profile from './components/pages/profile/Profile';
 import { GlobalProvider } from './context/GlobalContext';
 import ExerciseLibrary from './components/pages/exerciseLibrary/ExerciseLibrary';
 import Progress from './components/pages/Progress/Progress';
-import AppLoadingScreen from './components/widgets/AppLoadingScreen';
+import AppLoadingScreen from './components/widgets/Loading/AppLoadingScreen';
 import { AuthContext } from './context/AuthContext';
 
 function AppRoutes() {

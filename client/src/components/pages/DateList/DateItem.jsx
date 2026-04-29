@@ -9,7 +9,8 @@ import ButtonType from '../../widgets/ButtonType';
 
 export default function DateItem({
 	item, today, onOpen, deleteDate, onUpdate, editState, requestDeleteDate,
-	deletePopupOpen, setDeletePopupOpen }) {
+	deletePopupOpen, setDeletePopupOpen
+}) {
 	const isToday = item.date === today;
 	const [showEditPicker, setShowEditPicker] = useState(false);
 	const [selectedDate, setSelectedDate] = useState(new Date(item.date));
@@ -23,22 +24,38 @@ export default function DateItem({
 		setLocalError(null);
 	};
 
-
 	const handleUpdate = async () => {
 		const formatted = selectedDate.toISOString().split('T')[0];
 		try {
 			await onUpdate(item._id, formatted);
-			setShowEditPicker(false);   // закрываем только при успехе
+			setShowEditPicker(false);
 			setLocalError(null);
 		} catch (err) {
-			setLocalError(err.message); // показываем ошибку, модалка остаётся открытой
+			setLocalError(err.message);
 		}
 	};
+
 	const handleCloseEditPicker = () => {
 		setShowEditPicker(false);
-		setLocalError(null); // очищаем ошибку при закрытии
+		setLocalError(null);
 	};
+
 	const exerciseCount = Number(item.exerciseCount ?? item.exercises?.length ?? 0);
+
+	const handleDeleteClick = (e) => {
+		e.stopPropagation();
+		console.log('Delete clicked for date:', item._id); // Для отладки
+		requestDeleteDate(); // Вызываем функцию без передачи ID, так как она уже замкнута на item._id в родителе
+	};
+
+	const handleClosePopup = () => {
+		setDeletePopupOpen(false);
+	};
+
+	const handleConfirmDelete = async () => {
+		console.log('Confirming delete'); // Для отладки
+		await deleteDate();
+	};
 
 	return (
 		<>
@@ -77,42 +94,39 @@ export default function DateItem({
 					)}
 				</button>
 
-
-
-				{editState && <button
-					style={dateItemStyles.deleteButton}
-					onClick={(e) => {
-						e.stopPropagation();
-						requestDeleteDate(item._id);
-					}}
-				>
-					<FaTrash style={dateItemStyles.deleteIcon} />
-				</button>}
+				{editState && (
+					<button
+						style={dateItemStyles.deleteButton}
+						onClick={handleDeleteClick}
+					>
+						<FaTrash style={dateItemStyles.deleteIcon} />
+					</button>
+				)}
 			</div>
+
 			<DatePickerModal
 				visible={showEditPicker}
 				selectedDate={selectedDate}
 				onSelect={setSelectedDate}
-				onClose={handleCloseEditPicker}   // важно для кнопки "Отмена"
+				onClose={handleCloseEditPicker}
 				onAdd={handleUpdate}
-				error={localError}                          // локальная ошибка для этой модалки
+				error={localError}
 				title="Изменить дату"
 				buttonText="Сохранить"
 			/>
-			<Popup
-				isOpen={deletePopupOpen}
-				onClose={() => setDeletePopupOpen(false)}
-			>
+
+			{/* Всегда рендерим попап, но показываем только когда deletePopupOpen === true */}
+			<Popup isOpen={deletePopupOpen} onClose={handleClosePopup}>
 				<div style={{ textAlign: 'center' }}>
 					<h3 style={{ ...commonStyle.titleHeader, color: '#fff' }}>Удалить дату?</h3>
 					<p style={{ color: colors.blueLight }}>Вы уверены, что хотите удалить эту тренировку?</p>
 
 					<div style={{ display: 'flex', gap: '10px', flexDirection: 'column', justifyContent: 'center', marginTop: '20px' }}>
-						<ButtonType buttonType={9} functionOnClick={deleteDate}>
+						<ButtonType buttonType={9} functionOnClick={handleConfirmDelete}>
 							удалить
 						</ButtonType>
 
-						<ButtonType buttonType={5} functionOnClick={() => setDeletePopupOpen(false)}>
+						<ButtonType buttonType={5} functionOnClick={handleClosePopup}>
 							Отмена
 						</ButtonType>
 					</div>

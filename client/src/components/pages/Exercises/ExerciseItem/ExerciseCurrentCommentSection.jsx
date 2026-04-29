@@ -26,7 +26,7 @@ export default function ExerciseCurrentCommentSection({
 		setCommentValue(item.comment || '');
 		setCommentError('');
 		setIsSavingComment(false);
-		setIsCommentEditingId(false);
+		// Не сбрасываем isCommentEditingId здесь, чтобы не закрывать инпут при обновлении
 	}, [item._id, item.comment]);
 
 	const submitComment = async () => {
@@ -70,6 +70,12 @@ export default function ExerciseCurrentCommentSection({
 		}
 	};
 
+	const handleCancelEdit = () => {
+		setCommentValue(item.comment || '');
+		setCommentError('');
+		setIsCommentEditingId(false);
+	};
+
 	const normalizedCurrentComment = (item.comment || '').trim();
 	const hasCommentChanges = commentValue.trim() !== normalizedCurrentComment;
 	const canEditComment = isExpanded && !isReordering;
@@ -86,26 +92,27 @@ export default function ExerciseCurrentCommentSection({
 			e.preventDefault();
 			if (hasCommentChanges && !isSavingComment) {
 				submitComment();
+			} else if (!hasCommentChanges) {
+				// Если нет изменений, просто закрываем редактирование
+				setIsCommentEditingId(false);
 			}
 		}
 
 		if (e.key === 'Escape') {
-			setCommentValue(item.comment || '');
-			setCommentError('');
-			setIsCommentEditingId(false);
+			e.preventDefault();
+			handleCancelEdit();
 		}
 	};
 
+	// Не показываем компонент, если нет комментария и нельзя редактировать
 	if (!(normalizedCurrentComment || canEditComment)) {
 		return null;
 	}
 
 	return (
-		<div
-			style={styles.exerciseCommentSection}
-		>
+		<div style={styles.exerciseCommentSection}>
 			<div style={styles.exerciseCommentRow}>
-				{isCommentEditingId ? (
+				{isCommentEditingId === item._id ? (
 					<>
 						<input
 							type="text"
@@ -115,11 +122,22 @@ export default function ExerciseCurrentCommentSection({
 								setCommentValue(e.target.value);
 							}}
 							onKeyDown={handleKeyDown}
+							onBlur={() => {
+								// При потере фокуса (нажатие Done на мобильной клавиатуре)
+								if (isCommentEditingId === item._id && !isSavingComment) {
+									if (hasCommentChanges) {
+										submitComment();
+									} else {
+										handleCancelEdit();
+									}
+								}
+							}}
 							placeholder="Comment"
 							style={styles.exerciseCommentInput}
 							maxLength={1000}
 							disabled={isSavingComment}
 							autoFocus
+							enterKeyHint="done"
 						/>
 						<button
 							type="button"
@@ -130,6 +148,7 @@ export default function ExerciseCurrentCommentSection({
 							}}
 							aria-label="Save comment"
 							title="Save comment"
+							disabled={isSavingComment}
 						>
 							<FaCheck />
 						</button>
@@ -138,7 +157,11 @@ export default function ExerciseCurrentCommentSection({
 					<>
 						<button
 							type="button"
-							style={styles.exerciseCommentDisplayButton}
+							onClick={canEditComment ? handleStartEditing : undefined}
+							style={{
+								...styles.exerciseCommentDisplayButton,
+								cursor: canEditComment ? 'pointer' : 'default',
+							}}
 							title={canEditComment ? 'Edit comment' : undefined}
 						>
 							<span
@@ -169,6 +192,6 @@ export default function ExerciseCurrentCommentSection({
 				)}
 			</div>
 			{commentError && <p style={styles.exerciseCommentError}>{commentError}</p>}
-		</div >
+		</div>
 	);
 }

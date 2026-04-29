@@ -66,6 +66,7 @@ export default function Progress() {
 	const overall = progress?.overall;
 	const muscleGroups = progress?.muscleGroups || [];
 	const exercises = progress?.exercises || [];
+	console.log(progress);
 
 	return (
 		<>

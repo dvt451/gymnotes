@@ -1,10 +1,7 @@
 import React, { useContext, useState } from 'react';
-import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
-import Popup from '../../../../widgets/Popup';
-import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 export default function AddReps({
 	BASE_URL,
@@ -14,28 +11,24 @@ export default function AddReps({
 	weightId,
 	setExercises,
 }) {
-	const [showPopup, setShowPopup] = useState(false);
 	const [repsInput, setRepsInput] = useState('');
-	const [isSubmitting, setIsSubmitting] = useState(false);
-	const { mainColor } = useContext(GlobalContext)
-	const popupStyle = createPopupStyle(mainColor);
+	const [addIsSubmitting, setAddIsSubmitting] = useState(false);
+	const [showInput, setShowInput] = useState(false);
+	const { mainColor } = useContext(GlobalContext);
 
 	const exercisesStyles = createExercisesStyles(mainColor);
-	const commonStyle = createCommonStyle(mainColor);
 
 	const handleAddRepClick = () => {
-		setShowPopup(true);
+		setShowInput(true);
 		setRepsInput('');
 	};
 
 	const handleCancel = () => {
-		setShowPopup(false);
+		setShowInput(false);
 		setRepsInput('');
 	};
 
-	const handleSubmit = async (e) => {
-		e?.preventDefault();
-
+	const handleSubmit = async () => {
 		if (!repsInput.trim()) return;
 
 		const reps = parseInt(repsInput, 10);
@@ -44,7 +37,7 @@ export default function AddReps({
 			return;
 		}
 
-		setIsSubmitting(true);
+		setAddIsSubmitting(true);
 
 		try {
 			const token = await getToken();
@@ -87,35 +80,28 @@ export default function AddReps({
 				})
 			);
 
-			setShowPopup(false);
+			setShowInput(false);
 			setRepsInput('');
 		} catch (err) {
 			console.error('Ошибка при добавлении подхода:', err);
 			alert(`Ошибка: ${err.message}`);
 		} finally {
-			setIsSubmitting(false);
-		}
-	};
-
-	const handleKeyPress = (e) => {
-		if (e.key === 'Enter') {
-			handleSubmit();
+			setAddIsSubmitting(false);
 		}
 	};
 
 	return (
 		<>
-			<button
-				onClick={handleAddRepClick}
-				style={exercisesStyles.addSetBtn}
-				type="button"
-			>
-				+ approach
-			</button>
-
-			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-				<h2 style={popupStyle.title}>Add Approach</h2>
-				<div style={popupStyle.popupBodyContent}>
+			{!showInput ? (
+				<button
+					onClick={handleAddRepClick}
+					style={exercisesStyles.addSetBtn}
+					type="button"
+				>
+					+ approach
+				</button>
+			) : (
+				<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 					<input
 						type="text"
 						inputMode="decimal"
@@ -123,32 +109,48 @@ export default function AddReps({
 						value={repsInput}
 						onChange={(e) => setRepsInput(e.target.value)}
 						onKeyPress={handleKeyPress}
-						placeholder="Количество повторений"
-						style={popupStyle.popupInput}
+						placeholder="Повторения"
+						style={{
+							padding: '6px 10px',
+							borderRadius: '8px',
+							border: `1px solid ${mainColor}`,
+							fontSize: '14px',
+							width: '70px',
+							textAlign: 'center',
+						}}
 						autoFocus
 						min="1"
-						disabled={isSubmitting}
+						disabled={addIsSubmitting}
 					/>
-				</div>
-
-				<div style={commonStyle.popupButtons}>
 					<button
 						onClick={handleSubmit}
-						style={commonStyle.popupCreateButton}
-						disabled={!repsInput.trim() || isSubmitting}
+						style={{
+							...exercisesStyles.addSetBtn,
+							padding: '6px 12px',
+							margin: 0,
+							backgroundColor: mainColor,
+							color: 'white',
+						}}
+						disabled={!repsInput.trim() || addIsSubmitting}
 					>
-						{isSubmitting ? 'Добавление...' : 'Добавить'}
+						{addIsSubmitting ? '...' : 'OK'}
 					</button>
-
 					<button
 						onClick={handleCancel}
-						style={commonStyle.popupCancelButton}
-						disabled={isSubmitting}
+						style={{
+							padding: '6px 10px',
+							backgroundColor: '#ccc',
+							border: 'none',
+							borderRadius: '8px',
+							cursor: 'pointer',
+							fontSize: '14px',
+						}}
+						disabled={addIsSubmitting}
 					>
-						Отмена
+						✕
 					</button>
 				</div>
-			</Popup>
+			)}
 		</>
 	);
 }

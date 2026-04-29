@@ -11,6 +11,7 @@ export default function MuscleGroupStatisticsSection({
 	muscleGroups = [],
 	progressStyles,
 }) {
+
 	return (
 		<div style={progressStyles.section}>
 			<div style={{ ...commonStyle.titleHeader, ...progressStyles.exerciseGroupCard, ...progressStyles.titleHeader }}>
@@ -26,14 +27,14 @@ export default function MuscleGroupStatisticsSection({
 							</p>
 						</div>
 						<div style={progressStyles.statsGrid}>
-							<ProgressStatItem label="Start" value={formatWeight(group.startingWeight)} styles={progressStyles} />
-							<ProgressStatItem label="Current" value={formatWeight(group.currentWeight)} styles={progressStyles} />
-							<ProgressStatItem
+							{/* <ProgressStatItem label="Start" value={formatWeight(group.startingWeight)} styles={progressStyles} /> */}
+							{/* <ProgressStatItem label="Current" value={formatWeight(group.currentWeight)} styles={progressStyles} /> */}
+							{/* <ProgressStatItem
 								label="Added"
 								value={`${group.addedWeight > 0 ? '+' : ''}${formatWeight(group.addedWeight)}`}
 								valueStyle={getValueStyle(progressStyles, group.addedWeight)}
 								styles={progressStyles}
-							/>
+							/> */}
 							<ProgressStatItem
 								label="Progress"
 								value={formatPercent(group.progressPercent)}

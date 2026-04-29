@@ -9,6 +9,7 @@ import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import DateListControls from './DateListControls';
 import { GlobalContext } from '../../../context/GlobalContext';
 import ButtonType from '../../widgets/ButtonType';
+import AppLoadingScreen from '../../widgets/Loading/AppLoadingScreen';
 
 export default function DateList() {
 	const location = useLocation();
@@ -29,29 +30,34 @@ export default function DateList() {
 		updateDate,
 		requestDeleteDate,
 		deletePopupOpen,
-		setDeletePopupOpen
+		setDeletePopupOpen,
+		dateToDelete // получаем ID даты для удаления
 	} = useDateListLogic(trainingId, trainingText, trainingTitle);
+
 	const { mainColor } = useContext(GlobalContext);
 	const [addError, setAddError] = useState(null);
 	const commonStyle = createCommonStyle(mainColor);
 
-	// Обработчик добавления даты
 	const handleAddDate = async () => {
 		const formatted = selectedDate.toISOString().split('T')[0];
 		try {
 			await addDate(formatted);
-			setShowPicker(false);   // закрываем при успехе
-			setAddError(null);       // сбрасываем ошибку
+			setShowPicker(false);
+			setAddError(null);
 		} catch (err) {
-			setAddError(err.message); // показываем ошибку в модалке
+			setAddError(err.message);
 		}
 	};
-	const dateListStyles = createDateListStyles(mainColor); // передаем основной цвет в стили
-	// Обработчик закрытия модалки
+
+	const dateListStyles = createDateListStyles(mainColor);
+
 	const handleClosePicker = () => {
 		setShowPicker(false);
-		setAddError(null); // очищаем ошибку при закрытии
+		setAddError(null);
 	};
+
+	const handleToggleEdit = () => setEditState(!editState);
+
 	if (!trainingId) {
 		return <div style={dateListStyles.errorMessage}>Ошибка: не указан ID тренировки</div>;
 	}
@@ -61,14 +67,8 @@ export default function DateList() {
 	const todayExists = currentDates.some(item => item.date === today);
 
 	if (isLoading) {
-		return (
-			<div style={dateListStyles.loadingContainer}>
-				<p style={dateListStyles.loadingText}>Загрузка дат...</p>
-			</div>
-		);
+		return <AppLoadingScreen />;
 	}
-
-	const handleToggleEdit = () => setEditState(!editState);
 
 	return (
 		<>
@@ -94,17 +94,16 @@ export default function DateList() {
 								.sort((a, b) => new Date(b.date) - new Date(a.date))
 								.map(item => (
 									<DateItem
-										key={item.id}
+										key={item._id || item.id}
 										item={item}
 										today={today}
 										onOpen={openDayDetails}
-										deleteDate={deleteDate}
-										styles={dateListStyles}
+										deleteDate={() => deleteDate()} // Передаём функцию без параметров
 										editState={editState}
 										onUpdate={updateDate}
 										error={error}
-										requestDeleteDate={requestDeleteDate}
-										deletePopupOpen={deletePopupOpen}
+										requestDeleteDate={() => requestDeleteDate(item._id)} // Передаём замкнутую функцию с ID
+										deletePopupOpen={deletePopupOpen} // Просто передаём состояние
 										setDeletePopupOpen={setDeletePopupOpen}
 									/>
 								))
@@ -139,10 +138,9 @@ export default function DateList() {
 					visible={showPicker}
 					selectedDate={selectedDate}
 					onSelect={setSelectedDate}
-					onClose={handleClosePicker}          // ← обновлённый обработчик
-					error={addError}                      // ← локальная ошибка
-					onAdd={handleAddDate}                  // ← новый обработчик
-					styles={dateListStyles}
+					onClose={handleClosePicker}
+					error={addError}
+					onAdd={handleAddDate}
 				/>
 			</div>
 		</>

@@ -55,7 +55,7 @@ export default function OverallProgressSection({
 
 	const contentBlock = (
 		<div style={progressStyles.overallCardContent}>
-			<div style={progressStyles.statsGrid}>
+			{/* <div style={progressStyles.statsGrid}>
 				<ProgressStatItem
 					label="Starting weight"
 					value={formatWeight(overall.startingWeight)}
@@ -78,7 +78,7 @@ export default function OverallProgressSection({
 					valueStyle={getValueStyle(progressStyles, overall.progressPercent)}
 					styles={progressStyles}
 				/>
-			</div>
+			</div> */}
 			<div style={progressStyles.statsGrid}>
 				<ProgressStatItem label="Training days" value={period.trainingDays} styles={progressStyles} />
 				<ProgressStatItem label="Calendar days" value={period.calendarDays} styles={progressStyles} />

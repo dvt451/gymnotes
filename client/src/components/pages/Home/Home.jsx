@@ -7,7 +7,7 @@ import Nutritions from './nutritions/Nutritions';
 import { GlobalContext } from '../../../context/GlobalContext';
 import Calendare from './CalendareSection/Calendare';
 import Gradient from '../../widgets/Gradient';
-import AppLoadingScreen from '../../widgets/AppLoadingScreen';
+import AppLoadingScreen from '../../widgets/Loading/AppLoadingScreen';
 
 export default function Home() {
 	const { mainColor, showScheduleSection, showNutritionSection } = useContext(GlobalContext);

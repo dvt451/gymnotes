@@ -47,6 +47,8 @@ export default function ExerciseItem({
 	const [isRenaming, setIsRenaming] = useState(false);
 	const popupStyle = createPopupStyle(mainColor);
 
+	const [showAddInput, setShowAddInput] = useState(false);
+
 	const toggleExpand = (e) => {
 		e.stopPropagation();
 		if (isReordering) return;

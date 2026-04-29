@@ -1,32 +1,23 @@
 import React, { useContext, useState } from 'react';
 import { getToken } from '../../../../utils/getToken';
-import { createCommonStyle } from '../../../../../styles/commonStyle';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
-import Popup from '../../../../widgets/Popup';
-import { createPopupStyle } from '../../../../widgets/popupStyle';
+import { colors } from '../../../../../styles/commonStyle';
 
 export default function AddWeight({ setExercises, itemID, trainingId, date, BASE_URL }) {
-	const [showPopup, setShowPopup] = useState(false);
+	const [showInput, setShowInput] = useState(false);
 	const [weightInput, setWeightInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const { mainColor } = useContext(GlobalContext)
-	const popupStyle = createPopupStyle(mainColor);
+	const { mainColor } = useContext(GlobalContext);
 
 	const exercisesStyles = createExercisesStyles(mainColor);
-	const commonStyle = createCommonStyle(mainColor);
 
-	const handleAddWeightClick = () => {
-		setShowPopup(true);
+	const handleAddClick = () => {
+		setShowInput(true);
 		setWeightInput('');
 	};
 
-	const handleCancel = () => {
-		setShowPopup(false);
-		setWeightInput('');
-	};
-
-	const handleSubmit = async () => {
+	const handleAddWeight = async () => {
 		if (!weightInput.trim()) return;
 
 		const normalizedInput = weightInput.replace(',', '.');
@@ -41,13 +32,6 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 
 		try {
 			const token = await getToken();
-
-			console.log('Adding weight with params:', {
-				trainingId,
-				date,
-				exerciseId: itemID,
-				weight
-			});
 
 			const res = await fetch(
 				`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${itemID}/weights`,
@@ -67,9 +51,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 			}
 
 			const data = await res.json();
-			console.log('Weight added successfully:', data);
 
-			// Обновляем состояние упражнений
 			setExercises(prev =>
 				prev.map(ex => {
 					if (ex._id === itemID) {
@@ -82,71 +64,81 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 				})
 			);
 
-			setShowPopup(false);
+			setShowInput(false);
 			setWeightInput('');
 
 		} catch (err) {
 			console.error('Ошибка при добавлении веса:', err);
-
-			if (err.message.includes('404') || err.message.includes('не найдено')) {
-				alert(`Упражнение не найдено! Проверьте:\n\n1. ID упражнения: ${itemID}\n2. ID тренировки: ${trainingId}\n3. Дата: ${date}\n\nОшибка: ${err.message}`);
-			} else {
-				alert(`Ошибка при добавлении веса: ${err.message}`);
-			}
+			alert(`Ошибка при добавлении веса: ${err.message}`);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
+	const handleCancel = () => {
+		setShowInput(false);
+		setWeightInput('');
+	};
+
 	const handleKeyPress = (e) => {
 		if (e.key === 'Enter') {
-			handleSubmit();
+			handleAddWeight();
 		}
 	};
 
 	return (
-		<>
-			<div>
-				<button onClick={handleAddWeightClick} style={exercisesStyles.addWeightBtn}>
+		<div>
+			{!showInput ? (
+				<button onClick={handleAddClick} style={exercisesStyles.addWeightBtn}>
 					+ weight
 				</button>
-			</div>
-
-			<Popup isOpen={showPopup} onClose={() => setShowPopup(false)}>
-				<h2 style={popupStyle.title}>Add Weight</h2>
-				<div style={popupStyle.popupBodyContent}>
+			) : (
+				<div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '10px' }}>
 					<input
 						type="text"
 						inputMode="decimal"
-						pattern="[0-9]*\.?[0-9]*"
 						value={weightInput}
 						onChange={(e) => setWeightInput(e.target.value)}
 						onKeyPress={handleKeyPress}
-						placeholder="Set weight (kg)"
-						style={popupStyle.popupInput}
-						autoFocus
+						placeholder="Вес в кг"
+						style={{
+							padding: '8px 12px',
+							borderRadius: '8px',
+							border: `1px solid ${mainColor}`,
+							fontSize: '14px',
+							width: '100px',
+							color: colors.blueDark,
+						}}
+						onBlur={handleAddWeight}
 						disabled={isSubmitting}
+						autoFocus
 					/>
-				</div>
-
-				<div style={commonStyle.popupButtons}>
 					<button
-						onClick={handleSubmit}
-						style={commonStyle.popupCreateButton}
+						onClick={handleAddWeight}
+						style={{
+							...exercisesStyles.addWeightBtn,
+							padding: '8px 16px',
+							margin: 0,
+						}}
 						disabled={!weightInput.trim() || isSubmitting}
 					>
-						{isSubmitting ? 'Adding...' : 'Add'}
+						{isSubmitting ? '...' : 'OK'}
 					</button>
-
 					<button
 						onClick={handleCancel}
-						style={commonStyle.popupCancelButton}
+						style={{
+							padding: '8px 12px',
+							backgroundColor: '#ccc',
+							border: 'none',
+							borderRadius: '8px',
+							cursor: 'pointer',
+						}}
 						disabled={isSubmitting}
 					>
-						Cancel
+						✕
 					</button>
 				</div>
-			</Popup>
-		</>
+			)}
+		</div>
 	);
 }

@@ -460,10 +460,8 @@ code {
 .admin-header-card {
 	padding: 30px 32px;
 	border-radius: var(--admin-radius-xl);
-	background: var(--admin-panel);
 	backdrop-filter: blur(18px);
 	border: 1px solid var(--admin-border);
-	box-shadow: var(--admin-shadow);
 }
 
 .admin-header-copy {
@@ -487,8 +485,6 @@ code {
 	display: grid;
 	gap: 18px;
 	align-content: start;
-	background:
-		linear-gradient(145deg, rgba(255, 252, 247, 0.94), rgba(245, 234, 219, 0.88));
 }
 
 .admin-header-identity {

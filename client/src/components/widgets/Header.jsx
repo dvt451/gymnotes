@@ -43,10 +43,10 @@ export default function Header() {
 						alt="User avatar"
 					/>
 				</Link>
-				<div style={headerStyle.userInfo}>
+				<Link to="/profile" style={headerStyle.userInfo}>
 					<h1 style={headerStyle.userName}>{theUser.name || 'Гость'}</h1>
 					<p style={headerStyle.userWeight}>Weight - {theUser.weight ? `${theUser.weight}kg` : '—'}</p>
-				</div>
+				</Link>
 			</div>}
 		</header>
 	);

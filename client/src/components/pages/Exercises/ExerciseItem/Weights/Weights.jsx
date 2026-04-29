@@ -1,43 +1,62 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import AddWeight from './AddWeight';
 import DeleteWeights from './DeleteWeights';
 import Repeats from '../Reps/Repeats';
-import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
-import Popup from '../../../../widgets/Popup';
+import { colors } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
-import { createPopupStyle } from '../../../../widgets/popupStyle';
 
 export default function Weights({ item, editState, setExercises, date, trainingId, isExpanded, BASE_URL }) {
-	const [showEditPopup, setShowEditPopup] = useState(false);
-	const [currentWeight, setCurrentWeight] = useState(null);
-	const [newWeightInput, setNewWeightInput] = useState('');
+	const [editingWeightId, setEditingWeightId] = useState(null);
+	const [editingWeightValue, setEditingWeightValue] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const { mainColor } = useContext(GlobalContext)
-	const popupStyle = createPopupStyle(mainColor);
+	const { mainColor } = useContext(GlobalContext);
 
 	const styles = createExercisesStyles(mainColor);
-	const commonStyle = createCommonStyle(mainColor);
 
+	// Ref для отслеживания кликов вне инпута редактирования
+	const editInputRef = useRef(null);
 
-	const weightChangeHandler = (weight) => {
-		// Сохраняем текущий вес и открываем popup
-		setCurrentWeight(weight);
-		setNewWeightInput(weight.weight.toString());
-		setShowEditPopup(true);
+	// Закрываем редактирование при клике вне его области
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (editingWeightId !== null && editInputRef.current && !editInputRef.current.contains(event.target)) {
+				// Сохраняем если есть изменения, иначе отменяем
+				if (editingWeightValue.trim() && parseFloat(editingWeightValue.replace(',', '.')) > 0) {
+					const weight = item.weights?.find(w => w._id === editingWeightId);
+					if (weight) {
+						handleSaveWeight(weight);
+					} else {
+						cancelEditing();
+					}
+				} else {
+					cancelEditing();
+				}
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [editingWeightId, editingWeightValue]);
+
+	const startEditing = (weight) => {
+		if (!editState || !isExpanded) return;
+		setEditingWeightId(weight._id);
+		setEditingWeightValue(weight.weight.toString());
 	};
 
-	const handleEditCancel = () => {
-		setShowEditPopup(false);
-		setCurrentWeight(null);
-		setNewWeightInput('');
+	const cancelEditing = () => {
+		setEditingWeightId(null);
+		setEditingWeightValue('');
 	};
 
-	const handleEditSubmit = async () => {
-		if (!newWeightInput.trim() || !currentWeight) return;
+	const handleSaveWeight = async (weight) => {
+		if (!editingWeightValue.trim()) return;
 
-		const normalizedInput = newWeightInput.replace(',', '.');
+		const normalizedInput = editingWeightValue.replace(',', '.');
 		const newWeightValue = parseFloat(normalizedInput);
 
 		if (isNaN(newWeightValue) || newWeightValue <= 0) {
@@ -49,7 +68,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 
 		try {
 			const token = await getToken();
-			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${item._id}/weights/${currentWeight._id}`;
+			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${item._id}/weights/${weight._id}`;
 
 			const res = await fetch(url, {
 				method: 'PUT',
@@ -70,7 +89,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 						return {
 							...ex,
 							weights: ex.weights.map(w => {
-								if (w._id === currentWeight._id) {
+								if (w._id === weight._id) {
 									return { ...w, weight: newWeightValue };
 								}
 								return w;
@@ -81,9 +100,8 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 				})
 			);
 
-			setShowEditPopup(false);
-			setCurrentWeight(null);
-			setNewWeightInput('');
+			setEditingWeightId(null);
+			setEditingWeightValue('');
 		} catch (err) {
 			console.error('Ошибка при изменении веса:', err);
 			alert(`Ошибка: ${err.message}`);
@@ -92,21 +110,60 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 		}
 	};
 
-	const handleKeyPress = (e) => {
+	const handleKeyPress = (e, weight) => {
 		if (e.key === 'Enter') {
-			handleEditSubmit();
+			e.preventDefault();
+			handleSaveWeight(weight);
+		}
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			cancelEditing();
 		}
 	};
 
 	return (
-		<>
-			<div style={styles.settingsRow}>
-				{(!item.weights || item.weights.length === 0) && (
-					<p style={styles.noWeights}>Нет весов</p>
-				)}
+		<div style={styles.settingsRow}>
+			{(!item.weights || item.weights.length === 0) && (
+				<p style={styles.noWeights}>Нет весов</p>
+			)}
 
-				{item.weights && item.weights.map((w) => (
-					<div key={w._id} style={styles.weightBlock}>
+			{item.weights && item.weights.map((w) => (
+				<div key={w._id} style={styles.weightBlock}>
+					{editingWeightId === w._id ? (
+						<div ref={editInputRef}>
+							<input
+								type="text"
+								inputMode="decimal"
+								pattern="[0-9]*\.?[0-9]*"
+								value={editingWeightValue}
+								onChange={(e) => setEditingWeightValue(e.target.value)}
+								onKeyDown={(e) => handleKeyPress(e, w)}
+								onBlur={() => {
+									if (editingWeightId === w._id && !isSubmitting) {
+										if (editingWeightValue.trim() && parseFloat(editingWeightValue.replace(',', '.')) !== w.weight) {
+											handleSaveWeight(w);
+										} else {
+											cancelEditing();
+										}
+									}
+								}}
+								style={{
+									width: '70px',
+									padding: '6px 8px',
+									borderRadius: '8px',
+									border: `1px solid ${mainColor}`,
+									textAlign: 'center',
+									fontSize: '14px',
+									backgroundColor: 'white',
+									color: colors.blueDark
+								}}
+								autoFocus
+								disabled={isSubmitting}
+								placeholder="Вес в кг"
+								enterKeyHint="done"
+							/>
+						</div>
+					) : (
 						<button
 							style={{
 								...styles.weightButton,
@@ -115,7 +172,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 									position: 'relative',
 								})
 							}}
-							onClick={() => editState && isExpanded ? weightChangeHandler(w) : null}
+							onClick={() => editState && isExpanded ? startEditing(w) : null}
 							title={editState && isExpanded ? "Нажмите для редактирования веса" : ""}
 						>
 							<span style={{
@@ -131,77 +188,41 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 								{w.weight}kg
 							</span>
 						</button>
-						<Repeats
-							editState={editState}
-							BASE_URL={BASE_URL}
-							trainingId={trainingId}
-							date={date}
-							item={item}
-							w={w}
-							isExpanded={isExpanded}
-							setExercises={setExercises}
-						/>
-						{editState && isExpanded && <DeleteWeights
+					)}
+
+					<Repeats
+						editState={editState}
+						BASE_URL={BASE_URL}
+						trainingId={trainingId}
+						date={date}
+						item={item}
+						w={w}
+						isExpanded={isExpanded}
+						setExercises={setExercises}
+					/>
+
+					{editState && isExpanded && (
+						<DeleteWeights
 							BASE_URL={BASE_URL}
 							trainingId={trainingId}
 							date={date}
 							exerciseId={item._id}
 							weightId={w._id}
 							setExercises={setExercises}
-						/>}
-					</div>
-				))}
+						/>
+					)}
+				</div>
+			))}
 
-				{!editState && isExpanded && <AddWeight
+			{!editState && isExpanded && (
+				<AddWeight
 					BASE_URL={BASE_URL}
 					date={date}
 					trainingId={trainingId}
 					setExercises={setExercises}
 					itemID={item._id}
-				/>}
-			</div>
-
-			{/* Popup для редактирования веса */}
-			{showEditPopup && currentWeight && (
-				<Popup isOpen onClose={handleEditCancel}>
-					<h2 style={popupStyle.title}>Изменить вес</h2>
-					<div style={commonStyle.popupContentInputs}>
-						<input
-							type="number"
-							inputMode="decimal"
-							pattern="[0-9]*\.?[0-9]*"
-							value={newWeightInput}
-							onChange={(e) => setNewWeightInput(e.target.value)}
-							onKeyPress={handleKeyPress}
-							placeholder="Введите новый вес"
-							style={popupStyle.popupInput}
-							autoFocus
-							disabled={isSubmitting}
-						/>
-					</div>
-
-					<div style={commonStyle.popupButtons}>
-						<button
-							onClick={handleEditSubmit}
-							style={{
-								...commonStyle.popupCreateButton,
-								opacity: isSubmitting ? 0.7 : 1
-							}}
-							disabled={!newWeightInput.trim() || isSubmitting}
-						>
-							{isSubmitting ? 'Сохранение...' : 'Сохранить'}
-						</button>
-
-						<button
-							onClick={handleEditCancel}
-							style={commonStyle.popupCancelButton}
-							disabled={isSubmitting}
-						>
-							Отмена
-						</button>
-					</div>
-				</Popup>
+				/>
 			)}
-		</>
+		</div>
 	);
 }
