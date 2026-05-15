@@ -1,9 +1,12 @@
+import { useContext } from 'react'
 import AdminAuditPanel from './AdminAuditPanel.jsx'
 import AdminDashboardPanel from './AdminDashboardPanel.jsx'
 import AdminHeader from './AdminHeader.jsx'
+import AdminPageBar from './AdminPageBar.jsx'
 import AdminPermissionsPanel from './AdminPermissionsPanel.jsx'
 import AdminTabs from './AdminTabs.jsx'
 import AdminUsersPanel from './AdminUsersPanel.jsx'
+import { GlobalContext } from '../../context/GlobalContext.jsx'
 
 export default function AdminWorkspace({
 	adminUser,
@@ -76,27 +79,24 @@ export default function AdminWorkspace({
 	onAuditQueryChange,
 	onClearAuditLogs,
 }) {
+	const { adminBarState, setAdminBarState } = useContext(GlobalContext);
 	return (
 		<div className="admin-shell">
 			<div className="admin-shell-inner">
-
-
 				{message?.text ? (
 					<div className={`admin-message admin-message-${message.type}`}>{message.text}</div>
 				) : null}
 
 				<div className="admin-content-shell">
-					<div className="admin-content-shell-block">
-						<div className="admin-nav-row">
-							<AdminHeader
-								adminUser={adminUser}
-								isRefreshingSummary={isRefreshingSummary}
-								onRefresh={onRefresh}
-								onLogout={onLogout}
-							/>
-							<AdminTabs activeTab={activeTab} onChange={onTabChange} tabs={visibleTabs} />
-						</div>
-					</div>
+					<AdminPageBar
+						adminUser={adminUser}
+						isRefreshingSummary={isRefreshingSummary}
+						onRefresh={onRefresh}
+						onLogout={onLogout}
+						activeTab={activeTab}
+						onTabChange={onTabChange}
+						visibleTabs={visibleTabs}
+					/>
 					<main className="admin-content">
 						{activeTab === 'dashboard' ? (
 							<AdminDashboardPanel

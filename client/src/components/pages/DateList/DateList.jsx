@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import DateItem from './DateItem';
 import DatePickerModal from './DatePickerModal';
 import { useDateListLogic } from './dateListLogic';
@@ -9,7 +9,7 @@ import { colors, createCommonStyle } from '../../../styles/commonStyle';
 import DateListControls from './DateListControls';
 import { GlobalContext } from '../../../context/GlobalContext';
 import ButtonType from '../../widgets/ButtonType';
-import AppLoadingScreen from '../../widgets/Loading/AppLoadingScreen';
+import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 
 export default function DateList() {
 	const location = useLocation();
@@ -31,12 +31,12 @@ export default function DateList() {
 		requestDeleteDate,
 		deletePopupOpen,
 		setDeletePopupOpen,
-		dateToDelete // получаем ID даты для удаления
 	} = useDateListLogic(trainingId, trainingText, trainingTitle);
 
 	const { mainColor } = useContext(GlobalContext);
 	const [addError, setAddError] = useState(null);
 	const commonStyle = createCommonStyle(mainColor);
+	const dateListStyles = createDateListStyles(mainColor);
 
 	const handleAddDate = async () => {
 		const formatted = selectedDate.toISOString().split('T')[0];
@@ -49,8 +49,6 @@ export default function DateList() {
 		}
 	};
 
-	const dateListStyles = createDateListStyles(mainColor);
-
 	const handleClosePicker = () => {
 		setShowPicker(false);
 		setAddError(null);
@@ -59,80 +57,104 @@ export default function DateList() {
 	const handleToggleEdit = () => setEditState(!editState);
 
 	if (!trainingId) {
-		return <div style={dateListStyles.errorMessage}>Ошибка: не указан ID тренировки</div>;
+		return <div style={dateListStyles.errorMessage}>Error: training ID is missing</div>;
 	}
 
 	const today = new Date().toISOString().split('T')[0];
 	const currentDates = datesByTraining[trainingId] || [];
-	const todayExists = currentDates.some(item => item.date === today);
-
-	if (isLoading) {
-		return <AppLoadingScreen />;
-	}
+	const todayExists = currentDates.some((item) => item.date === today);
+	const hasLoadedDates = Object.prototype.hasOwnProperty.call(datesByTraining, trainingId);
+	const isInitialLoading = isLoading && !hasLoadedDates;
 
 	return (
 		<>
 			<Header />
 			<div style={dateListStyles.container}>
-				<div style={{ ...dateListStyles.trainingHeader, ...commonStyle.titleHeader }}>
-					{trainingText ? `${trainingText} — ` : ''}{trainingTitle}
-					{currentDates.length > 0 && (
-						<DateListControls
-							editState={editState}
-							onToggleEdit={handleToggleEdit}
-						/>
-					)}
-				</div>
-				<div style={dateListStyles.content}>
-					<div style={dateListStyles.datesList}>
-						{currentDates.length === 0 ? (
-							<div style={dateListStyles.emptyState}>
-								<p style={dateListStyles.emptyStateText}>Нет добавленных дат</p>
+				{isInitialLoading ? (
+					<>
+						<div style={{ ...dateListStyles.trainingHeader, ...commonStyle.titleHeader }}>
+							<div className="ui-skeleton" style={{ width: '54%', height: '32px', margin: '0 auto' }}></div>
+						</div>
+						<div style={dateListStyles.content}>
+							<SectionSkeleton
+								showHeader={false}
+								cards={5}
+								cardHeight={76}
+								cardGap={15}
+								style={dateListStyles.datesList}
+							/>
+							<div style={dateListStyles.buttonContainer}>
+								<div className="ui-skeleton" style={{ height: '56px', borderRadius: '14px' }}></div>
+								<div className="ui-skeleton" style={{ height: '56px', borderRadius: '14px' }}></div>
 							</div>
-						) : (
-							[...currentDates]
-								.sort((a, b) => new Date(b.date) - new Date(a.date))
-								.map(item => (
-									<DateItem
-										key={item._id || item.id}
-										item={item}
-										today={today}
-										onOpen={openDayDetails}
-										deleteDate={() => deleteDate()} // Передаём функцию без параметров
-										editState={editState}
-										onUpdate={updateDate}
-										error={error}
-										requestDeleteDate={() => requestDeleteDate(item._id)} // Передаём замкнутую функцию с ID
-										deletePopupOpen={deletePopupOpen} // Просто передаём состояние
-										setDeletePopupOpen={setDeletePopupOpen}
-									/>
-								))
-						)}
-					</div>
+						</div>
+					</>
+				) : (
+					<>
+						<div style={{ ...dateListStyles.trainingHeader, ...commonStyle.titleHeader }}>
+							{trainingText ? `${trainingText} - ` : ''}
+							{trainingTitle}
+							{currentDates.length > 0 && (
+								<DateListControls
+									editState={editState}
+									onToggleEdit={handleToggleEdit}
+								/>
+							)}
+						</div>
+						<div style={dateListStyles.content}>
+							<div style={dateListStyles.datesList}>
+								{currentDates.length === 0 ? (
+									<div style={dateListStyles.emptyState}>
+										<p style={dateListStyles.emptyStateText}>No dates added yet</p>
+									</div>
+								) : (
+									[...currentDates]
+										.sort((a, b) => new Date(b.date) - new Date(a.date))
+										.map((item) => (
+											<DateItem
+												key={item._id || item.id}
+												item={item}
+												today={today}
+												onOpen={openDayDetails}
+												deleteDate={() => deleteDate()}
+												editState={editState}
+												onUpdate={updateDate}
+												error={error}
+												requestDeleteDate={() => requestDeleteDate(item._id)}
+												deletePopupOpen={deletePopupOpen}
+												setDeletePopupOpen={setDeletePopupOpen}
+											/>
+										))
+								)}
+							</div>
 
-					<div style={dateListStyles.buttonContainer}>
-						<ButtonType
-							addStyle={
-								todayExists && {
-									backgroundColor: colors.gray,
-									opacity: 0.5,
-									cursor: 'not-allowed',
-								}
-							}
-							functionOnClick={() => addDate(today)}
-						>
-							{todayExists ? 'Already added' : 'Add today'}
-						</ButtonType>
+							<div style={dateListStyles.buttonContainer}>
+								<ButtonType
+									addStyle={
+										todayExists
+											? {
+												backgroundColor: colors.gray,
+												opacity: 0.5,
+												cursor: 'not-allowed',
+											}
+											: undefined
+									}
+									functionOnClick={() => addDate(today)}
+								>
+									{todayExists ? 'Already added' : 'Add today'}
+								</ButtonType>
 
-						<ButtonType
-							addStyle={dateListStyles.pickerButton}
-							functionOnClick={() => setShowPicker(true)}
-							buttonType={4}
-						>
-							Choose date
-						</ButtonType>
-					</div>
-				</div>
+								<ButtonType
+									addStyle={dateListStyles.pickerButton}
+									functionOnClick={() => setShowPicker(true)}
+									buttonType={4}
+								>
+									Choose date
+								</ButtonType>
+							</div>
+						</div>
+					</>
+				)}
 
 				<DatePickerModal
 					visible={showPicker}

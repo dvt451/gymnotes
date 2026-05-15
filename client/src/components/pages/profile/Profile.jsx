@@ -1,23 +1,23 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 import { AuthContext } from '../../../context/AuthContext';
-import Header from '../../widgets/Header';
-import Footer from '../../widgets/Footer';
-import { createProfileStyles } from './profileStyles';
-import { createCommonStyle } from '../../../styles/commonStyle';
-import { FaCheck, FaTimes } from "react-icons/fa";
 import { GlobalContext } from '../../../context/GlobalContext';
-import ProfileMainColorSelector from './ProfileMainColorSelector';
+import { createCommonStyle } from '../../../styles/commonStyle';
+import Footer from '../../widgets/Footer';
+import Header from '../../widgets/Header';
+import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 import Gradient from '../../widgets/Gradient';
-// Компонент уведомления
+import ProfileMainColorSelector from './ProfileMainColorSelector';
+import { createProfileStyles } from './profileStyles';
+
 const Notification = ({ message, type, onClose }) => {
 	const [isVisible, setIsVisible] = useState(true);
 
 	useEffect(() => {
 		if (message) {
-			setIsVisible(true);
 			const timer = setTimeout(() => {
 				setIsVisible(false);
-				setTimeout(onClose, 300); // Даем время на анимацию исчезновения
+				setTimeout(onClose, 300);
 			}, 2700);
 
 			return () => clearTimeout(timer);
@@ -43,7 +43,7 @@ const Notification = ({ message, type, onClose }) => {
 			gap: '15px',
 			animation: 'notificationSlideIn 0.3s ease-out',
 			maxWidth: '400px',
-			width: '100%'
+			width: '100%',
 		}}>
 			<span>{message}</span>
 			<button
@@ -58,10 +58,10 @@ const Notification = ({ message, type, onClose }) => {
 					cursor: 'pointer',
 					fontSize: '18px',
 					padding: '0 5px',
-					fontWeight: 'bold'
+					fontWeight: 'bold',
 				}}
 			>
-				×
+				x
 			</button>
 		</div>
 	);
@@ -69,8 +69,9 @@ const Notification = ({ message, type, onClose }) => {
 
 export default function Profile() {
 	const { BASE_URL, logout, setUser, user } = useContext(AuthContext);
-
-	const theUser = user.user || {};
+	const { mainColor } = useContext(GlobalContext);
+	const theUser = user?.user || {};
+	const isProfileLoading = !user?.user;
 	const [newName, setNewName] = useState(theUser?.name || '');
 	const [newWeight, setNewWeight] = useState(theUser?.weight?.toString() || '');
 	const [isNameEditing, setIsNameEditing] = useState(false);
@@ -78,28 +79,34 @@ export default function Profile() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [scheduleState, setScheduleState] = useState(true);
 	const [nutritionState, setNutritionState] = useState(true);
-	// Состояния для уведомлений
 	const [notification, setNotification] = useState({ message: '', type: '' });
-	const { mainColor } = useContext(GlobalContext);
-	// Функция для показа уведомления
-	const showNotification = (message, type = 'success') => {
-		setNotification({ message, type });
-	};
-	const toggleSchedule = () => {
-		setScheduleState(prev => !prev);
-		// Здесь можно добавить сохранение состояния на сервере, если нужно
-	};
-	const toggleNutrition = () => {
-		setNutritionState(prev => !prev);
-		// Здесь можно добавить сохранение состояния на сервере, если нужно
-	};
 	const commonStyle = createCommonStyle(mainColor);
 	const profileStyles = createProfileStyles(mainColor);
 
+	useEffect(() => {
+		if (!isNameEditing) {
+			setNewName(theUser?.name || '');
+		}
+		if (!isWeightEditing) {
+			setNewWeight(theUser?.weight?.toString() || '');
+		}
+	}, [isNameEditing, isWeightEditing, theUser?.name, theUser?.weight]);
+
+	const showNotification = (message, type = 'success') => {
+		setNotification({ message, type });
+	};
+
+	const toggleSchedule = () => {
+		setScheduleState((prev) => !prev);
+	};
+
+	const toggleNutrition = () => {
+		setNutritionState((prev) => !prev);
+	};
 
 	const updateName = async () => {
 		if (!newName.trim()) {
-			showNotification('Введите имя', 'error');
+			showNotification('Enter a name', 'error');
 			return;
 		}
 
@@ -118,35 +125,31 @@ export default function Profile() {
 
 			if (!res.ok) {
 				const text = await res.text();
-				throw new Error(`Ошибка ${res.status}: ${text}`);
+				throw new Error(`Error ${res.status}: ${text}`);
 			}
 
-			const updated = await res.json();
-
-			// Обновляем пользователя в контексте
 			setUser({
 				...user,
 				user: {
 					...theUser,
-					name: newName.trim()
-				}
+					name: newName.trim(),
+				},
 			});
 
 			setIsNameEditing(false);
-			showNotification('Имя успешно обновлено!', 'success');
+			showNotification('Name updated successfully!', 'success');
 		} catch (err) {
-			console.error('Ошибка обновления имени:', err);
-			showNotification(`Ошибка: ${err.message}`, 'error');
+			console.error('Error updating name:', err);
+			showNotification(`Error: ${err.message}`, 'error');
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	// Функция для обновления веса
 	const updateWeight = async () => {
 		const weightValue = parseFloat(newWeight);
-		if (isNaN(weightValue) || weightValue <= 0) {
-			showNotification('Введите корректный вес', 'error');
+		if (Number.isNaN(weightValue) || weightValue <= 0) {
+			showNotification('Enter a valid weight', 'error');
 			return;
 		}
 
@@ -165,37 +168,32 @@ export default function Profile() {
 
 			if (!res.ok) {
 				const text = await res.text();
-				throw new Error(`Ошибка ${res.status}: ${text}`);
+				throw new Error(`Error ${res.status}: ${text}`);
 			}
 
-			const updated = await res.json();
-
-			// Обновляем пользователя в контексте
 			setUser({
 				...user,
 				user: {
 					...theUser,
-					weight: weightValue
-				}
+					weight: weightValue,
+				},
 			});
 
 			setIsWeightEditing(false);
-			showNotification('Вес успешно обновлен!', 'success');
+			showNotification('Weight updated successfully!', 'success');
 		} catch (err) {
-			console.error('Ошибка обновления веса:', err);
-			showNotification(`Ошибка: ${err.message}`, 'error');
+			console.error('Error updating weight:', err);
+			showNotification(`Error: ${err.message}`, 'error');
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	// Отмена редактирования имени
 	const cancelNameEdit = () => {
 		setNewName(theUser?.name || '');
 		setIsNameEditing(false);
 	};
 
-	// Отмена редактирования веса
 	const cancelWeightEdit = () => {
 		setNewWeight(theUser?.weight?.toString() || '');
 		setIsWeightEditing(false);
@@ -203,8 +201,8 @@ export default function Profile() {
 
 	return (
 		<>
-			{/* Компонент уведомления */}
 			<Notification
+				key={notification.message || 'empty-notification'}
 				message={notification.message}
 				type={notification.type}
 				onClose={() => setNotification({ message: '', type: '' })}
@@ -213,160 +211,187 @@ export default function Profile() {
 			<div style={{ position: 'relative', zIndex: 1 }}>
 				<Header />
 				<main style={profileStyles.profileSection}>
-					<div style={commonStyle.commonSection}>
-						<div style={commonStyle.titleHeader}>
-							<h2 style={commonStyle.title}>My details</h2>
-						</div>
-
-						<div style={profileStyles.infoSection}>
-							<div style={profileStyles.infoList}>
-								{/* Строка редактирования имени */}
-								<div style={profileStyles.infoRow}>
-									<span style={profileStyles.infoLabel}>Name:</span>
-									-
-									{isNameEditing ? (
-										<div style={profileStyles.infoEditRow}>
-											<input
-												type="text"
-												value={newName}
-												onChange={(e) => setNewName(e.target.value)}
-												placeholder="Введите новое имя"
-												style={profileStyles.input}
-												className='profile-input'
-												disabled={isSubmitting}
-												autoFocus
-											/>
-											<button
-												style={profileStyles.submitButton}
-												onClick={updateName}
-												disabled={isSubmitting}
-											>
-												<FaCheck />
-											</button>
-											<button
-												style={profileStyles.cancelButton}
-												onClick={cancelNameEdit}
-												disabled={isSubmitting}
-											>
-												<FaTimes />
-											</button>
-										</div>
-									) : (
-										<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
-											<span style={profileStyles.infoValue}>{theUser?.name || 'Not specified'}</span>
-											<button
-												style={profileStyles.editButton}
-												onClick={() => setIsNameEditing(true)}
-												disabled={isSubmitting}
-											>
-												<img src="/img/icons/editorange.png" alt="edit icon" />
-											</button>
-										</div>
-									)}
+					{isProfileLoading ? (
+						<>
+							<div style={commonStyle.commonSection}>
+								<SectionSkeleton
+									headerWidth="30%"
+									headerAsideWidth="18%"
+									cards={2}
+									cardHeight={56}
+									cardGap={12}
+								/>
+							</div>
+							<div style={commonStyle.commonSection}>
+								<SectionSkeleton
+									headerWidth="42%"
+									headerAsideWidth="20%"
+									cards={3}
+									cardHeight={48}
+									cardGap={12}
+								/>
+								<div className="ui-skeleton" style={{ height: '48px', borderRadius: '12px', marginTop: '20px' }}></div>
+							</div>
+						</>
+					) : (
+						<>
+							<div style={commonStyle.commonSection}>
+								<div style={commonStyle.titleHeader}>
+									<h2 style={commonStyle.title}>My details</h2>
 								</div>
-								{/* Строка редактирования веса */}
-								<div style={profileStyles.infoRow}>
-									<span style={profileStyles.infoLabel}>Weight:</span>
-									-
-									{isWeightEditing ? (
-										<div style={profileStyles.infoEditRow}>
-											<input
-												type="number"
-												step="0.1"
-												min="1"
-												value={newWeight}
-												onChange={(e) => setNewWeight(e.target.value)}
-												placeholder="Введите новый вес"
-												style={profileStyles.input}
-												className='profile-input'
-												disabled={isSubmitting}
-												autoFocus
-											/>
-											<button
-												style={profileStyles.submitButton}
-												onClick={updateWeight}
-												disabled={isSubmitting}
-											>
-												<FaCheck />
-											</button>
-											<button
-												style={profileStyles.cancelButton}
-												onClick={cancelWeightEdit}
-												disabled={isSubmitting}
-											>
-												<FaTimes />
-											</button>
+
+								<div style={profileStyles.infoSection}>
+									<div style={profileStyles.infoList}>
+										<div style={profileStyles.infoRow}>
+											<span style={profileStyles.infoLabel}>Name:</span>
+											-
+											{isNameEditing ? (
+												<div style={profileStyles.infoEditRow}>
+													<input
+														type="text"
+														value={newName}
+														onChange={(e) => setNewName(e.target.value)}
+														placeholder="Enter a new name"
+														style={profileStyles.input}
+														className="profile-input"
+														disabled={isSubmitting}
+														autoFocus
+													/>
+													<button
+														style={profileStyles.submitButton}
+														onClick={updateName}
+														disabled={isSubmitting}
+													>
+														<FaCheck />
+													</button>
+													<button
+														style={profileStyles.cancelButton}
+														onClick={cancelNameEdit}
+														disabled={isSubmitting}
+													>
+														<FaTimes />
+													</button>
+												</div>
+											) : (
+												<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
+													<span style={profileStyles.infoValue}>{theUser?.name || 'Not specified'}</span>
+													<button
+														style={profileStyles.editButton}
+														onClick={() => setIsNameEditing(true)}
+														disabled={isSubmitting}
+													>
+														<img src="/img/icons/editorange.png" alt="edit icon" />
+													</button>
+												</div>
+											)}
 										</div>
-									) : (
-										<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
-											<span style={profileStyles.infoValue}>
-												{theUser?.weight ? `${theUser.weight} kg` : 'Not specified'}
-											</span>
-											<button
-												style={profileStyles.editButton}
-												onClick={() => setIsWeightEditing(true)}
-												disabled={isSubmitting}
-											>
-												<img src="/img/icons/editorange.png" alt="edit icon" />
-											</button>
+										<div style={profileStyles.infoRow}>
+											<span style={profileStyles.infoLabel}>Weight:</span>
+											-
+											{isWeightEditing ? (
+												<div style={profileStyles.infoEditRow}>
+													<input
+														type="number"
+														step="0.1"
+														min="1"
+														value={newWeight}
+														onChange={(e) => setNewWeight(e.target.value)}
+														placeholder="Enter a new weight"
+														style={profileStyles.input}
+														className="profile-input"
+														disabled={isSubmitting}
+														autoFocus
+													/>
+													<button
+														style={profileStyles.submitButton}
+														onClick={updateWeight}
+														disabled={isSubmitting}
+													>
+														<FaCheck />
+													</button>
+													<button
+														style={profileStyles.cancelButton}
+														onClick={cancelWeightEdit}
+														disabled={isSubmitting}
+													>
+														<FaTimes />
+													</button>
+												</div>
+											) : (
+												<div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', justifyContent: 'space-between' }}>
+													<span style={profileStyles.infoValue}>
+														{theUser?.weight ? `${theUser.weight} kg` : 'Not specified'}
+													</span>
+													<button
+														style={profileStyles.editButton}
+														onClick={() => setIsWeightEditing(true)}
+														disabled={isSubmitting}
+													>
+														<img src="/img/icons/editorange.png" alt="edit icon" />
+													</button>
+												</div>
+											)}
 										</div>
-									)}
+									</div>
 								</div>
 							</div>
-						</div>
-					</div>
 
-					<div style={commonStyle.commonSection}>
-						<div style={{ ...commonStyle.titleHeader }}>
-							<h2 style={commonStyle.title}>Home page settings</h2>
-						</div>
-						<div style={profileStyles.infoSection}>
-							<div style={profileStyles.infoList}>
-								<div style={{ ...profileStyles.infoRow, ...{ justifyContent: 'space-between' } }}>
-									<span style={profileStyles.infoLabel}>Schedule</span>
-									<button
-										onClick={toggleSchedule}
-										style={{
-											...profileStyles.checkBox,
-											...(scheduleState ? profileStyles.checkBoxChecked : {})
-										}}
-									>
-										<span style={{
-											...profileStyles.checkBoxDott,
-											...(scheduleState ? profileStyles.checkBoxDottChecked : {})
-										}}></span>
-									</button>
+							<div style={commonStyle.commonSection}>
+								<div style={commonStyle.titleHeader}>
+									<h2 style={commonStyle.title}>Home page settings</h2>
 								</div>
-								<div style={{ ...profileStyles.infoRow, ...{ justifyContent: 'space-between' } }}>
-									<span style={profileStyles.infoLabel}>Nutrition</span>
-									<button
-										onClick={toggleNutrition}
-										style={{
-											...profileStyles.checkBox,
-											...(nutritionState ? profileStyles.checkBoxChecked : {})
-										}}
-									>
-										<span style={{
-											...profileStyles.checkBoxDott,
-											...(nutritionState ? profileStyles.checkBoxDottChecked : {})
-										}}></span>
-									</button>
+								<div style={profileStyles.infoSection}>
+									<div style={profileStyles.infoList}>
+										<div style={{ ...profileStyles.infoRow, justifyContent: 'space-between' }}>
+											<span style={profileStyles.infoLabel}>Schedule</span>
+											<button
+												onClick={toggleSchedule}
+												style={{
+													...profileStyles.checkBox,
+													...(scheduleState ? profileStyles.checkBoxChecked : {}),
+												}}
+											>
+												<span
+													style={{
+														...profileStyles.checkBoxDott,
+														...(scheduleState ? profileStyles.checkBoxDottChecked : {}),
+													}}
+												></span>
+											</button>
+										</div>
+										<div style={{ ...profileStyles.infoRow, justifyContent: 'space-between' }}>
+											<span style={profileStyles.infoLabel}>Nutrition</span>
+											<button
+												onClick={toggleNutrition}
+												style={{
+													...profileStyles.checkBox,
+													...(nutritionState ? profileStyles.checkBoxChecked : {}),
+												}}
+											>
+												<span
+													style={{
+														...profileStyles.checkBoxDott,
+														...(nutritionState ? profileStyles.checkBoxDottChecked : {}),
+													}}
+												></span>
+											</button>
+										</div>
+										<ProfileMainColorSelector />
+									</div>
 								</div>
-								<ProfileMainColorSelector />
+								<button
+									onClick={logout}
+									style={profileStyles.logoutButton}
+									disabled={isSubmitting}
+								>
+									Log out
+								</button>
 							</div>
-						</div>
-						<button
-							onClick={logout}
-							style={profileStyles.logoutButton}
-							disabled={isSubmitting}
-						>
-							Log out
-						</button>
-					</div>
-				</main >
+						</>
+					)}
+				</main>
 				<Footer />
 			</div>
-			{/* Добавляем стили через style тег без jsx атрибута */}
 			<style>{`
 				@keyframes notificationSlideIn {
 					from {
@@ -378,7 +403,7 @@ export default function Profile() {
 						opacity: 1;
 					}
 				}
-				
+
 				@keyframes notificationSlideOut {
 					from {
 						transform: translateX(0);

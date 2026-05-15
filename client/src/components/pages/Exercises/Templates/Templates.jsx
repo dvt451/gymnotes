@@ -107,7 +107,6 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 				}
 
 				const data = await res.json();
-				console.log('Templates data:', data);
 				const safeTemplates = Array.isArray(data) ? data : [];
 				const normalized = safeTemplates.map(t => ({
 					...t,

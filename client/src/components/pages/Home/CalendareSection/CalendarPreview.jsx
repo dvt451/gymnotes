@@ -1,13 +1,13 @@
 import React from 'react';
 import { colors } from '../../../../styles/commonStyle';
-import { MONTH_LABEL, WEEKDAY_SHORT, formatDateKey } from './calendarUtils';
+import { WEEKDAY_SHORT, formatDateKey } from './calendarUtils';
 
 export default function CalendarPreview({
 	calendarStyles,
 	currentWeekDays,
+	isLoading,
 	mainColor,
 	onOpenCalendar,
-	today,
 	todayKey,
 	trainingDates
 }) {
@@ -16,12 +16,45 @@ export default function CalendarPreview({
 	const isMobile = window.innerWidth <= 600;
 
 	return (
-		<button type="button" style={calendarStyles.previewCard} onClick={onOpenCalendar}>
+		<button
+			type="button"
+			style={{
+				...calendarStyles.previewCard,
+				cursor: isLoading ? 'wait' : 'pointer',
+			}}
+			onClick={onOpenCalendar}
+			disabled={isLoading}
+		>
 			<div style={calendarStyles.weekGrid}>
-				{currentWeekDays.map((day) => {
+				{currentWeekDays.map((day, index) => {
 					const dayKey = formatDateKey(day);
 					const isToday = dayKey === todayKey;
 					const hasTraining = trainingDaySet.has(dayKey);
+
+					if (isLoading) {
+						return (
+							<div
+								key={`calendar-preview-skeleton-${dayKey}`}
+								style={{
+									...calendarStyles.weekDayCard,
+									...(isMobile ? calendarStyles.weekDayCardMobile : {}),
+								}}
+							>
+								<div
+									className="ui-skeleton"
+									style={{ width: '65%', height: '12px', borderRadius: '999px' }}
+								></div>
+								<div
+									className="ui-skeleton"
+									style={{ width: index % 2 === 0 ? '44%' : '56%', height: '26px', borderRadius: '12px' }}
+								></div>
+								<div
+									className="ui-skeleton"
+									style={{ width: '8px', height: '8px', borderRadius: '50%' }}
+								></div>
+							</div>
+						);
+					}
 
 					return (
 						<div
@@ -65,6 +98,9 @@ export default function CalendarPreview({
 					);
 				})}
 			</div>
+			{isLoading && (
+				<p style={calendarStyles.statusText}>Syncing your training calendar...</p>
+			)}
 		</button>
 	);
 }

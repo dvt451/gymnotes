@@ -3,6 +3,7 @@ import { createExercisesStyles } from '../../ExersicesStyles';
 import { colors } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import InlineSpinner from '../../../../widgets/InlineSpinner';
 
 export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, date, item: exercise, w: weight, setExercises }) {
 	const [editingSetIndex, setEditingSetIndex] = useState(null);
@@ -282,15 +283,6 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 		}
 	};
 
-	const handleAddKeyPress = (e) => {
-		if (e.key === 'Enter') {
-			handleAddSubmit();
-		}
-		if (e.key === 'Escape') {
-			handleCancelAdd();
-		}
-	};
-
 	return (
 		<>
 			<div style={{
@@ -406,6 +398,10 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 							onClick={handleAddSubmit}
 							style={{
 								...styles.addSetBtn,
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: '8px',
 								padding: '6px 12px',
 								margin: 0,
 								backgroundColor: mainColor,
@@ -413,7 +409,12 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 							}}
 							disabled={!repsInput.trim() || addIsSubmitting}
 						>
-							{addIsSubmitting ? '...' : 'OK'}
+							{addIsSubmitting ? (
+								<>
+									<InlineSpinner size={14} thickness={2} color={colors.white} />
+									<span>Saving</span>
+								</>
+							) : 'OK'}
 						</button>
 						<button
 							onClick={handleCancelAdd}

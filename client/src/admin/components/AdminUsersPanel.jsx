@@ -153,6 +153,7 @@ export default function AdminUsersPanel({
 				onPermissionOverrideReset={onPermissionOverrideReset}
 				onPermissionOverrideSave={onPermissionOverrideSave}
 				onClose={onCloseDetail}
+				adminSelectStyles={adminSelectStyles}
 			/>
 		</section>
 	)

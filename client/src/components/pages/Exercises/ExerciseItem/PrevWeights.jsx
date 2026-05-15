@@ -17,7 +17,10 @@ const normalizeSets = (sets = []) =>
 		};
 	});
 
-export default function PrevWeights({ weights = [], previousDate = '' }) {
+export default function PrevWeights({
+	weights = [],
+	previousDate = '',
+}) {
 	const { mainColor } = useContext(GlobalContext);
 	const styles = createExercisesStyles(mainColor);
 
@@ -28,7 +31,7 @@ export default function PrevWeights({ weights = [], previousDate = '' }) {
 	return (
 		<div style={styles.settingsRow}>
 			{/* {previousDate && (
-				<div style={styles.prevMetaText}>Date: {previousDate}</div>
+				<div style={styles.prevMetaText}>Previous: {previousDate}</div>
 			)} */}
 			{weights.map((weight) => {
 				const normalizedSets = normalizeSets(weight.sets || []);

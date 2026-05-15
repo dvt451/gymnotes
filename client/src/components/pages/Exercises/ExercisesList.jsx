@@ -11,6 +11,7 @@ export default function ExercisesList({
 	date,
 	trainingId,
 	BASE_URL,
+	isPreviousHistoryLoading,
 	previousExercisesByLibraryId,
 	previousDateKey,
 	editState,
@@ -142,6 +143,7 @@ export default function ExercisesList({
 							exercisesCount={exercises.length}
 							moveExerciseInList={moveExerciseInList}
 							isSavingOrder={isSavingOrder}
+							isPreviousHistoryLoading={isPreviousHistoryLoading}
 							prevWeights={
 								previousExercisesByLibraryId[
 									String(item.exerciseUserLibraryId || '')

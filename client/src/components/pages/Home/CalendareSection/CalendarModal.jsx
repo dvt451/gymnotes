@@ -55,50 +55,64 @@ export default function CalendarModal({
 					</div>
 
 					<div style={calendarStyles.monthGrid}>
-						{calendarDays.map((day) => {
-							const dayKey = formatDateKey(day);
-							const isToday = dayKey === todayKey;
-							const hasTraining = trainingDaySet.has(dayKey);
-							const isOutsideVisibleMonth = day.getMonth() !== visibleMonth.getMonth();
-
-							return (
+						{isLoading
+							? Array.from({ length: 35 }).map((_, index) => (
 								<div
-									key={dayKey}
-									style={{
-										...calendarStyles.monthDay,
-										opacity: isOutsideVisibleMonth ? 0.35 : 1,
-										...(hasTraining
-											? {
-												backgroundColor: `${activeColor}22`,
-												borderColor: `${activeColor}66`,
-											}
-											: {}),
-										...(isToday
-											? {
-												borderColor: mainColor || colors.green,
-												boxShadow: `0 0 0 1px ${mainColor || colors.green} inset`,
-												backgroundColor: `${mainColor || colors.green}22`,
-											}
-											: {}),
-									}}
-								>
-									<span
+									key={`calendar-modal-skeleton-${index}`}
+									className="ui-skeleton"
+									style={{ height: '74px', borderRadius: '14px' }}
+								></div>
+							))
+							: calendarDays.map((day) => {
+								const dayKey = formatDateKey(day);
+								const isToday = dayKey === todayKey;
+								const hasTraining = trainingDaySet.has(dayKey);
+								const isOutsideVisibleMonth = day.getMonth() !== visibleMonth.getMonth();
+
+								return (
+									<div
+										key={dayKey}
 										style={{
-											...calendarStyles.monthDayNumber,
-											color: isToday
-												? (hasTraining ? activeColor : mainColor || colors.green)
-												: (hasTraining ? activeColor : colors.white),
+											...calendarStyles.monthDay,
+											opacity: isOutsideVisibleMonth ? 0.35 : 1,
+											...(hasTraining
+												? {
+													backgroundColor: `${activeColor}22`,
+													borderColor: `${activeColor}66`,
+												}
+												: {}),
+											...(isToday
+												? {
+													borderColor: mainColor || colors.green,
+													boxShadow: `0 0 0 1px ${mainColor || colors.green} inset`,
+													backgroundColor: `${mainColor || colors.green}22`,
+												}
+												: {}),
 										}}
 									>
-										{day.getDate()}
-									</span>
-									<span style={calendarStyles.monthDayText}> </span>
-								</div>
-							);
-						})}
+										<span
+											style={{
+												...calendarStyles.monthDayNumber,
+												color: isToday
+													? (hasTraining ? activeColor : mainColor || colors.green)
+													: (hasTraining ? activeColor : colors.white),
+											}}
+										>
+											{day.getDate()}
+										</span>
+										<span style={calendarStyles.monthDayText}> </span>
+									</div>
+								);
+							})}
 					</div>
 				</div>
 
+				{isLoading && (
+					<p style={calendarStyles.emptyState}>Loading training days...</p>
+				)}
+				{error && (
+					<p style={calendarStyles.emptyState}>{error}</p>
+				)}
 				{!isLoading && !error && trainingDates.length === 0 && (
 					<p style={calendarStyles.emptyState}>
 						No marked days yet. Open any training and add a date to start building your calendar.

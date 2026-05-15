@@ -3,6 +3,7 @@ import { FaCheck, FaPen } from 'react-icons/fa';
 import { GlobalContext } from '../../../../context/GlobalContext';
 import { createExercisesStyles } from '../ExersicesStyles';
 import { getToken } from '../../../utils/getToken';
+import InlineSpinner from '../../../widgets/InlineSpinner';
 
 export default function ExerciseCurrentCommentSection({
 	item,
@@ -10,7 +11,6 @@ export default function ExerciseCurrentCommentSection({
 	date,
 	trainingId,
 	BASE_URL,
-	itemId,
 	isExpanded,
 	isReordering,
 	isCommentEditingId,
@@ -150,7 +150,11 @@ export default function ExerciseCurrentCommentSection({
 							title="Save comment"
 							disabled={isSavingComment}
 						>
-							<FaCheck />
+							{isSavingComment ? (
+								<InlineSpinner size={14} thickness={2} color="#FFFFFF" />
+							) : (
+								<FaCheck />
+							)}
 						</button>
 					</>
 				) : (

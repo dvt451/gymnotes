@@ -18,6 +18,7 @@ export const GlobalProvider = ({ children }) => {
 	const [mainColor, setMainColor] = useState('#92E33C'); // РёР»Рё С†РІРµС‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 	const [showScheduleSection, setShowScheduleSection] = useState(() => readStoredBoolean('showScheduleSection', true));
 	const [showNutritionSection, setShowNutritionSection] = useState(() => readStoredBoolean('showNutritionSection', true));
+	const [adminBarState, setAdminBarState] = useState(false)
 
 	// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ С†РІРµС‚Р°
 	const handleColorChange = (e) => {
@@ -43,7 +44,9 @@ export const GlobalProvider = ({ children }) => {
 			showScheduleSection,
 			setShowScheduleSection,
 			showNutritionSection,
-			setShowNutritionSection
+			setShowNutritionSection,
+			adminBarState,
+			setAdminBarState
 		}}>
 			{children}
 		</GlobalContext.Provider>

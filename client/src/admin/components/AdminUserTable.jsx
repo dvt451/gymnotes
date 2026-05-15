@@ -37,7 +37,7 @@ export default function AdminUserTable({
 		<>
 			<div className="admin-table-wrap">
 				<table className="admin-table">
-					<thead>
+					<thead style={{ zIndex: 2, position: 'relative' }}>
 						<tr>
 							<th>User</th>
 							<th>Role</th>

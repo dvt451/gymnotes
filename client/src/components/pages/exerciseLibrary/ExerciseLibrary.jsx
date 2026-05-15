@@ -13,6 +13,7 @@ import RenameExercisePopup from './RenameExercisePopup';
 import RenameMuscleGroupPopup from './RenameMuscleGroupPopup';
 import { useExerciseLibraryManager } from './useExerciseLibraryManager';
 import Gradient from '../../widgets/Gradient';
+import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 
 export default function ExerciseLibrary() {
 	const { mainColor } = useContext(GlobalContext);
@@ -57,6 +58,40 @@ export default function ExerciseLibrary() {
 		userExercises,
 	} = useExerciseLibraryManager(BASE_URL);
 
+	const libraryLoadingView = (
+		<div style={styles.exerciseListBlock}>
+			<div style={{ ...styles.muscleGroupsBlock, ...commonStyle.commonSection }}>
+				<div style={styles.muscleGroupsHeader}>
+					<div className="ui-skeleton" style={{ width: '34%', height: '24px' }}></div>
+					<div className="ui-skeleton" style={{ width: '88px', height: '16px' }}></div>
+				</div>
+				<SectionSkeleton
+					showHeader={false}
+					cards={6}
+					cardHeight={74}
+					cardGap={10}
+					columns="repeat(auto-fit, minmax(130px, 1fr))"
+				/>
+				<div style={styles.muscleGroupCreateRow}>
+					<div className="ui-skeleton" style={{ flex: 1, height: '46px', borderRadius: '10px' }}></div>
+					<div className="ui-skeleton" style={{ width: '120px', height: '46px', borderRadius: '10px' }}></div>
+				</div>
+			</div>
+
+			<div style={{ ...commonStyle.commonSection, ...styles.exercisesListTitle }}>
+				<div className="ui-skeleton" style={{ width: '30%', height: '24px' }}></div>
+			</div>
+			<SectionSkeleton
+				showHeader={false}
+				cards={4}
+				cardHeight={76}
+				cardGap={12}
+				style={{ ...commonStyle.commonSection, marginBottom: '20px' }}
+			/>
+			<div className="ui-skeleton" style={{ height: '62px', borderRadius: '14px', marginTop: '20px' }}></div>
+		</div>
+	);
+
 	return (
 		<>
 			<Gradient />
@@ -66,44 +101,48 @@ export default function ExerciseLibrary() {
 					<div style={{ ...commonStyle.titleHeader, ...styles.exercisesHeader }}>
 						<h2 style={commonStyle.title}>Exercise Library</h2>
 					</div>
-					<div style={styles.exerciseListBlock}>
-						<ExerciseLibraryMuscleGroupsPanel
-							allMuscleGroupSections={allMuscleGroupSections}
-							commonStyle={commonStyle}
-							customMuscleGroups={customMuscleGroups}
-							isCreatingMuscleGroup={isCreatingMuscleGroup}
-							muscleGroupError={muscleGroupError}
-							muscleGroups={muscleGroups}
-							newMuscleGroupName={newMuscleGroupName}
-							onCreateMuscleGroup={handleCreateMuscleGroup}
-							onMuscleGroupNameChange={(e) => {
-								setMuscleGroupError('');
-								setNewMuscleGroupName(e.target.value);
-							}}
-							onOpenRenameMuscleGroup={openRenameMuscleGroupModal}
-							popupStyle={popupStyle}
-							styles={styles}
-						/>
+					{isLoading ? (
+						libraryLoadingView
+					) : (
+						<div style={styles.exerciseListBlock}>
+							<ExerciseLibraryMuscleGroupsPanel
+								allMuscleGroupSections={allMuscleGroupSections}
+								commonStyle={commonStyle}
+								customMuscleGroups={customMuscleGroups}
+								isCreatingMuscleGroup={isCreatingMuscleGroup}
+								muscleGroupError={muscleGroupError}
+								muscleGroups={muscleGroups}
+								newMuscleGroupName={newMuscleGroupName}
+								onCreateMuscleGroup={handleCreateMuscleGroup}
+								onMuscleGroupNameChange={(e) => {
+									setMuscleGroupError('');
+									setNewMuscleGroupName(e.target.value);
+								}}
+								onOpenRenameMuscleGroup={openRenameMuscleGroupModal}
+								popupStyle={popupStyle}
+								styles={styles}
+							/>
 
-						<ExerciseLibraryListSection
-							commonStyle={commonStyle}
-							deletingExerciseId={deletingExerciseId}
-							error={error}
-							groupedUserExercises={groupedUserExercises}
-							isLoading={isLoading}
-							onDeleteExercise={handleDeleteExercise}
-							onRenameExercise={openRenameModal}
-							renamingExerciseId={renamingExerciseId}
-							styles={styles}
-							userExercises={userExercises}
-						/>
+							<ExerciseLibraryListSection
+								commonStyle={commonStyle}
+								deletingExerciseId={deletingExerciseId}
+								error={error}
+								groupedUserExercises={groupedUserExercises}
+								isLoading={isLoading}
+								onDeleteExercise={handleDeleteExercise}
+								onRenameExercise={openRenameModal}
+								renamingExerciseId={renamingExerciseId}
+								styles={styles}
+								userExercises={userExercises}
+							/>
 
-						<CreateExerciseButton
-							existingExercises={userExercises}
-							onCreateExercise={handleCreateExercise}
-							muscleGroups={muscleGroups}
-						/>
-					</div>
+							<CreateExerciseButton
+								existingExercises={userExercises}
+								onCreateExercise={handleCreateExercise}
+								muscleGroups={muscleGroups}
+							/>
+						</div>
+					)}
 				</main>
 
 				<RenameExercisePopup
@@ -134,8 +173,7 @@ export default function ExerciseLibrary() {
 					styles={styles}
 				/>
 				<Footer />
-			</div >
-
+			</div>
 		</>
 	);
 }

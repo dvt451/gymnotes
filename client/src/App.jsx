@@ -54,7 +54,6 @@ function App() {
 				display: 'flex',
 				flexDirection: 'column',
 			}}>
-
 				<BrowserRouter>
 					<GlobalProvider>
 						<AuthProvider>

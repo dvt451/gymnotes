@@ -7,13 +7,12 @@ import { GlobalContext } from '../../../../context/GlobalContext';
 import { createCommonStyle } from '../../../../styles/commonStyle';
 import { getToken } from '../../../utils/getToken';
 import { FaPen } from 'react-icons/fa';
-import PrevWeights from './PrevWeights';
 import { createPopupStyle } from '../../../widgets/popupStyle';
 import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
 import { normalizeExerciseMuscleGroup } from '../../exerciseLibrary/muscleGroups';
 import ExerciseItemMove from './ExerciseItemMove';
 import ExerciseCurrentCommentSection from './ExerciseCurrentCommentSection';
-import ExercisePrevCommentSection from './ExercisePrevCommentSection';
+import PreviousData from './PreviousData';
 
 export default function ExerciseItem({
 	item,
@@ -31,6 +30,7 @@ export default function ExerciseItem({
 	exercisesCount = 0,
 	moveExerciseInList = () => { },
 	isSavingOrder = false,
+	isPreviousHistoryLoading = false,
 	prevWeights = [],
 	prevComment = '',
 	previousDate = '',
@@ -46,8 +46,6 @@ export default function ExerciseItem({
 	const [renameError, setRenameError] = useState('');
 	const [isRenaming, setIsRenaming] = useState(false);
 	const popupStyle = createPopupStyle(mainColor);
-
-	const [showAddInput, setShowAddInput] = useState(false);
 
 	const toggleExpand = (e) => {
 		e.stopPropagation();
@@ -161,7 +159,7 @@ export default function ExerciseItem({
 				</div>
 
 
-				<ExercisePrevCommentSection
+				<PreviousData
 					item={item}
 					setExercises={setExercises}
 					date={date}
@@ -169,11 +167,11 @@ export default function ExerciseItem({
 					BASE_URL={BASE_URL}
 					isExpanded={isExpanded}
 					isReordering={isReordering}
+					prevWeights={prevWeights}
 					prevComment={prevComment}
 					previousDate={previousDate}
+					isPreviousHistoryLoading={isPreviousHistoryLoading}
 				/>
-
-				<PrevWeights weights={prevWeights} previousDate={previousDate} />
 				<ExerciseCurrentCommentSection
 					item={item}
 					setExercises={setExercises}

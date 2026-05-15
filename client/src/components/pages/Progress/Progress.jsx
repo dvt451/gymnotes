@@ -9,6 +9,7 @@ import OverallProgressSection from './OverallProgressSection';
 import MuscleGroupStatisticsSection from './MuscleGroupStatisticsSection';
 import ExerciseStatisticsSection from './ExerciseStatisticsSection';
 import Gradient from '../../widgets/Gradient';
+import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 
 
 export default function Progress() {
@@ -66,7 +67,6 @@ export default function Progress() {
 	const overall = progress?.overall;
 	const muscleGroups = progress?.muscleGroups || [];
 	const exercises = progress?.exercises || [];
-	console.log(progress);
 
 	return (
 		<>
@@ -76,9 +76,77 @@ export default function Progress() {
 				<main style={progressStyles.main}>
 					<section style={progressStyles.section}>
 						{isLoading ? (
-							<div style={progressStyles.statusCard}>
-								<p style={progressStyles.statusText}>Loading progress statistics...</p>
-							</div>
+							<>
+								<div style={progressStyles.card}>
+									<SectionSkeleton
+										showHeader={false}
+										lines={2}
+										lineHeight={24}
+										lineGap={12}
+									/>
+									<div
+										style={{
+											display: 'grid',
+											gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+											gap: '18px',
+											alignItems: 'start',
+										}}
+									>
+										<div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+											<div
+												className="ui-skeleton"
+												style={{ width: '220px', height: '220px', borderRadius: '50%', alignSelf: 'center' }}
+											></div>
+											<SectionSkeleton
+												showHeader={false}
+												cards={4}
+												cardHeight={16}
+												cardGap={10}
+											/>
+										</div>
+										<SectionSkeleton
+											showHeader={false}
+											cards={4}
+											columns={2}
+											cardHeight={92}
+											cardGap={10}
+										/>
+									</div>
+								</div>
+
+								<div style={progressStyles.section}>
+									<div style={{ ...progressStyles.exerciseGroupCard, ...progressStyles.titleHeader }}>
+										<SectionSkeleton
+											showHeader={false}
+											lines={1}
+											lineHeight={24}
+										/>
+									</div>
+									<SectionSkeleton
+										showHeader={false}
+										cards={3}
+										columns={3}
+										cardHeight={170}
+										cardGap={12}
+									/>
+								</div>
+
+								<div style={progressStyles.section}>
+									<div style={{ ...progressStyles.exerciseGroupCard, ...progressStyles.titleHeader }}>
+										<SectionSkeleton
+											showHeader={false}
+											lines={1}
+											lineHeight={24}
+										/>
+									</div>
+									<SectionSkeleton
+										showHeader={false}
+										cards={3}
+										cardHeight={132}
+										cardGap={12}
+									/>
+								</div>
+							</>
 						) : error ? (
 							<div style={progressStyles.statusCard}>
 								<p style={progressStyles.statusText}>{error}</p>

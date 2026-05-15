@@ -1,3 +1,4 @@
+import Select from '../../components/widgets/Select.jsx';
 import { formatActionLabel, formatDate, getDisplayStatus } from '../utils.js'
 import AdminMetricCard from './AdminMetricCard.jsx'
 
@@ -15,12 +16,18 @@ export default function AdminUserDetailPanel({
 	onPermissionOverrideReset,
 	onPermissionOverrideSave,
 	onClose,
+	adminSelectStyles,
 }) {
-	const selectedUser = selectedUserDetail.user
+	const selectedUser = selectedUserDetail.user;
 	const roleDefaults = canManageUserPermissionOverrides
 		? rolePermissions?.[selectedUser?.role] ||
-			Object.fromEntries(permissionDefinitions.map(({ key }) => [key, false]))
-		: null
+		Object.fromEntries(permissionDefinitions.map(({ key }) => [key, false]))
+		: null;
+	const roleOptions = [
+		'Inherit role',
+		'Allow explicitly',
+		'Deny explicitly',
+	]
 
 	return (
 		<div className="admin-detail-layout">
@@ -83,15 +90,15 @@ export default function AdminUserDetailPanel({
 													</small>
 												</div>
 												{canManageUserPermissionOverrides && selectedUser.role !== 'admin' ? (
-													<select
-														value={overrideMode}
-														onChange={(event) => onPermissionOverrideChange(key, event.target.value)}
-														disabled={isSavingPermissionOverrides}
-													>
-														<option value="inherit">Inherit role</option>
-														<option value="allow">Allow explicitly</option>
-														<option value="deny">Deny explicitly</option>
-													</select>
+													<>
+														<Select
+															options={roleOptions}
+															value={overrideMode === 'inherit' ? roleValue : overrideMode}
+															onChange={(event) => onPermissionOverrideChange(key, event.target.value)}
+															disabled={isSavingPermissionOverrides}
+															styles={adminSelectStyles}
+														/>
+													</>
 												) : (
 													<span className={`admin-role-badge ${effectiveValue ? 'is-allowed' : 'is-blocked'}`}>
 														{effectiveValue ? 'Allowed' : 'Blocked'}

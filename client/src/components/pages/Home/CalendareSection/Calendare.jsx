@@ -118,9 +118,9 @@ export default function Calendare() {
 				<CalendarPreview
 					calendarStyles={calendarStyles}
 					currentWeekDays={currentWeekDays}
+					isLoading={isLoading}
 					mainColor={mainColor}
 					onOpenCalendar={openCalendar}
-					today={today}
 					todayKey={todayKey}
 					trainingDates={trainingDates}
 				/>

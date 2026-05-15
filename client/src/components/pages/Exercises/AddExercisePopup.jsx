@@ -42,27 +42,6 @@ const normalizeExercisePayload = (ex) => ({
 	})),
 });
 
-const normalizeDateKey = (value) => {
-	if (!value) return '';
-	const str = String(value);
-	return str.includes('T') ? str.split('T')[0] : str;
-};
-
-const getPreviousDateKey = (allDates, currentDate) => {
-	const current = normalizeDateKey(currentDate);
-	if (!current) return '';
-
-	const uniqueSorted = [...new Set(allDates.map(normalizeDateKey).filter(Boolean))].sort(
-		(a, b) => new Date(a).getTime() - new Date(b).getTime()
-	);
-
-	const prevCandidates = uniqueSorted.filter(
-		(dateKey) => new Date(dateKey).getTime() < new Date(current).getTime()
-	);
-
-	return prevCandidates.length > 0 ? prevCandidates[prevCandidates.length - 1] : '';
-};
-
 export default function AddExercisePopup({
 	userExercises,
 	BASE_URL,
@@ -75,8 +54,6 @@ export default function AddExercisePopup({
 	modalError,
 	setModalError,
 	setUserExercises,
-	setPreviousDateKey,
-	setPreviousExercisesByLibraryId,
 }) {
 	const [newExerciseName, setNewExerciseName] = useState('');
 	const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(DEFAULT_MUSCLE_GROUP);
@@ -254,29 +231,6 @@ export default function AddExercisePopup({
 	};
 
 	useEffect(() => {
-		const loadExercises = async () => {
-			try {
-				const token = await getToken();
-				const res = await axios.get(
-					`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises`,
-					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				);
-
-				const exercisesArray = res.data.exercises || [];
-				setExercises(exercisesArray.map(normalizeExercisePayload));
-			} catch (err) {
-				console.error('Error loading exercises:', err);
-			}
-		};
-
-		loadExercises();
-	}, [trainingId, date, BASE_URL, setExercises]);
-
-	useEffect(() => {
 		const loadUserLibrary = async () => {
 			try {
 				const token = getToken();
@@ -298,76 +252,6 @@ export default function AddExercisePopup({
 
 		loadUserLibrary();
 	}, [BASE_URL, setUserExercises]);
-
-	useEffect(() => {
-		let isActive = true;
-
-		const loadPreviousDateExercises = async () => {
-			try {
-				const token = getToken();
-				if (!token) {
-					if (!isActive) return;
-					setPreviousDateKey('');
-					setPreviousExercisesByLibraryId({});
-					return;
-				}
-
-				const headers = {
-					Authorization: `Bearer ${token}`,
-				};
-
-				const datesResponse = await axios.get(
-					`${BASE_URL}/api/trainings/${trainingId}/dates`,
-					{ headers }
-				);
-				const dates = Array.isArray(datesResponse.data) ? datesResponse.data : [];
-				const previousDate = getPreviousDateKey(
-					dates.map((item) => normalizeDateKey(item?.date)),
-					date
-				);
-
-				if (!previousDate) {
-					if (!isActive) return;
-					setPreviousDateKey('');
-					setPreviousExercisesByLibraryId({});
-					return;
-				}
-
-				const exercisesResponse = await axios.get(
-					`${BASE_URL}/api/trainings/${trainingId}/dates/${previousDate}/exercises`,
-					{ headers }
-				);
-				const previousExercises = Array.isArray(exercisesResponse.data?.exercises)
-					? exercisesResponse.data.exercises
-					: [];
-
-				const groupedByLibraryId = previousExercises.reduce((acc, exercise) => {
-					const libraryId = String(exercise.exerciseUserLibraryId || '');
-					if (!libraryId) return acc;
-					acc[libraryId] = {
-						weights: Array.isArray(exercise.weights) ? exercise.weights : [],
-						comment: typeof exercise.comment === 'string' ? exercise.comment : '',
-					};
-					return acc;
-				}, {});
-
-				if (!isActive) return;
-				setPreviousDateKey(previousDate);
-				setPreviousExercisesByLibraryId(groupedByLibraryId);
-			} catch (err) {
-				console.error('Error loading previous date exercises:', err);
-				if (!isActive) return;
-				setPreviousDateKey('');
-				setPreviousExercisesByLibraryId({});
-			}
-		};
-
-		loadPreviousDateExercises();
-
-		return () => {
-			isActive = false;
-		};
-	}, [trainingId, date, BASE_URL, setPreviousDateKey, setPreviousExercisesByLibraryId]);
 
 	const filteredExistingExercises = filterExercisesByName(userExercises, newExerciseName);
 	const exactMatch = findExactExerciseMatch(userExercises, newExerciseName);

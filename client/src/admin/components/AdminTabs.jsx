@@ -15,7 +15,7 @@ const tabDescriptions = {
 
 export default function AdminTabs({ activeTab, onChange, tabs = defaultTabs }) {
 	return (
-		<nav className="admin-tabs admin-nav-row" aria-label="Admin sections">
+		<nav className="admin-tabs" aria-label="Admin sections">
 			{tabs.map((tab) => (
 				<button
 					key={tab.id}

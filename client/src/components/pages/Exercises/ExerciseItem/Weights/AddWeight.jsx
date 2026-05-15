@@ -3,6 +3,7 @@ import { getToken } from '../../../../utils/getToken';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import { colors } from '../../../../../styles/commonStyle';
+import InlineSpinner from '../../../../widgets/InlineSpinner';
 
 export default function AddWeight({ setExercises, itemID, trainingId, date, BASE_URL }) {
 	const [showInput, setShowInput] = useState(false);
@@ -117,12 +118,21 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 						onClick={handleAddWeight}
 						style={{
 							...exercisesStyles.addWeightBtn,
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							gap: '8px',
 							padding: '8px 16px',
 							margin: 0,
 						}}
 						disabled={!weightInput.trim() || isSubmitting}
 					>
-						{isSubmitting ? '...' : 'OK'}
+						{isSubmitting ? (
+							<>
+								<InlineSpinner size={14} thickness={2} color={colors.white} />
+								<span>Saving</span>
+							</>
+						) : 'OK'}
 					</button>
 					<button
 						onClick={handleCancel}
