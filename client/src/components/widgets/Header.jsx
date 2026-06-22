@@ -2,6 +2,7 @@ import React, { useEffect, useContext, useState, } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Menu from './Menu';
+import PWAInstallButton from './PWAInstallButton';
 import { headerStyle } from './headerStyle';
 
 export default function Header() {
@@ -23,6 +24,8 @@ export default function Header() {
 
 	return (
 		<header style={headerStyle.header}>
+
+
 			{/* Кнопка "Назад" */}
 			{showBackButton && (
 				<button
@@ -48,6 +51,11 @@ export default function Header() {
 					<p style={headerStyle.userWeight}>Weight - {theUser.weight ? `${theUser.weight}kg` : '—'}</p>
 				</Link>
 			</div>}
+
+			{/* Install Button */}
+			<div style={{ marginRight: 'auto', paddingLeft: '10px' }}>
+				<PWAInstallButton />
+			</div>
 		</header>
 	);
 }

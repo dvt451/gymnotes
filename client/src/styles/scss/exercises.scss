@@ -1,0 +1,13 @@
+@use "./variables" as *;
+@use "./mixins" as *;
+//========================================================================================================================================================
+.exercise-page {
+	padding: toRem(20);
+	padding-bottom: toRem(100);
+	&__title-header {
+		font-size: toRem(14);
+	}
+	&__date {
+		color: var(--green);
+	}
+}

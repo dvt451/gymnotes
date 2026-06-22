@@ -7,7 +7,7 @@ import axios from 'axios';
 import { createExercisesStyles } from './ExersicesStyles';
 import Header from '../../widgets/Header';
 import { GlobalContext } from '../../../context/GlobalContext';
-
+import '../../../styles/scss/exercises.scss';
 import ButtonType from '../../widgets/ButtonType';
 import ExercisesList from './ExercisesList';
 import AddExercisePopup from './AddExercisePopup';
@@ -84,7 +84,6 @@ export default function Exercises() {
 	const loadExercises = useCallback(async () => {
 		setIsExercisesLoading(true);
 		setExercisesError('');
-
 		try {
 			const token = await getToken();
 			const res = await axios.get(
@@ -204,13 +203,15 @@ export default function Exercises() {
 	return (
 		<>
 			<Header />
-			<div style={styles.container}>
-				<div style={styles.header}>
-					<h1 style={styles.title}>
+			<div className='exercise-page'>
+				<div className='exercise-page__title-header'>
+					<h1 className='exercise-page__title'>
 						{trainingText ? `${trainingText} — ` : ''}
 						{trainingTitle}
 					</h1>
-					<p style={styles.date}>{date === today ? 'Today' : date}</p>
+					<p className='exercise-page__date'>{date === today ? (<span>
+						Today <span className='seperator-dot'></span>
+						{date}</span>) : date}</p>
 				</div>
 
 				{isPageLoading ? (
@@ -226,7 +227,7 @@ export default function Exercises() {
 							<SectionSkeleton
 								showHeader={true}
 								headerWidth='28%'
-								headerAsideWidth='0%'
+								headerAsideWidth='0%' Q
 								cards={3}
 								cardHeight={110}
 								cardGap={15}
