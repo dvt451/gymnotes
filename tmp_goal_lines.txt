@@ -1,0 +1,270 @@
+1: import React, { useContext, useEffect, useMemo, useState } from 'react';
+2: import Header from '../../widgets/Header';
+3: import Footer from '../../widgets/Footer';
+4: import Gradient from '../../widgets/Gradient';
+5: import { AuthContext } from '../../../context/AuthContext';
+6: import { GlobalContext } from '../../../context/GlobalContext';
+7: import { createGoalsStyles } from './GoalsStyles';
+8: import { createCommonStyle } from '../../../styles/commonStyle';
+9: import Select from '../../widgets/Select.jsx';
+10: import { createPopupStyle } from '../../widgets/popupStyle';
+11: 
+12: const initialFormState = {
+13: 	exerciseUserLibraryId: '',
+14: 	targetWeight: '',
+15: 	targetSets: '1',
+16: };
+17: 
+18: export default function Goals() {
+19: 	const { BASE_URL, getToken } = useContext(AuthContext);
+20: 	const { mainColor } = useContext(GlobalContext);
+21: 	const goalsStyles = useMemo(() => createGoalsStyles(mainColor), [mainColor]);
+22: 	const commonStyle = createCommonStyle(mainColor);
+23: 	const [goals, setGoals] = useState([]);
+24: 	const [libraryExercises, setLibraryExercises] = useState([]);
+25: 	const [isLoading, setIsLoading] = useState(true);
+26: 	const [libraryLoading, setLibraryLoading] = useState(true);
+27: 	const [error, setError] = useState('');
+28: 	const [libraryError, setLibraryError] = useState('');
+29: 	const [formState, setFormState] = useState(initialFormState);
+30: 	const [isSubmitting, setIsSubmitting] = useState(false);
+31: 	const popupStyle = createPopupStyle();
+32: 
+33: 	const loadGoals = async () => {
+34: 		setIsLoading(true);
+35: 		setError('');
+36: 
+37: 		try {
+38: 			const token = getToken?.();
+39: 			const response = await fetch(`${BASE_URL}/api/goals`, {
+40: 				headers: {
+41: 					Authorization: `Bearer ${token}`,
+42: 				},
+43: 			});
+44: 
+45: 			if (!response.ok) {
+46: 				throw new Error('Failed to load goals');
+47: 			}
+48: 
+49: 			const data = await response.json();
+50: 			setGoals(data.goals || []);
+51: 		} catch (err) {
+52: 			setError(err.message || 'Failed to load goals');
+53: 		} finally {
+54: 			setIsLoading(false);
+55: 		}
+56: 	};
+57: 
+58: 	const loadExerciseLibrary = async () => {
+59: 		setLibraryLoading(true);
+60: 		setLibraryError('');
+61: 
+62: 		try {
+63: 			const token = getToken?.();
+64: 			const response = await fetch(`${BASE_URL}/api/exercise-library`, {
+65: 				headers: {
+66: 					Authorization: `Bearer ${token}`,
+67: 				},
+68: 			});
+69: 
+70: 			if (!response.ok) {
+71: 				const data = await response.json();
+72: 				throw new Error(data.message || 'Failed to load exercise library');
+73: 			}
+74: 
+75: 			const data = await response.json();
+76: 			setLibraryExercises(Array.isArray(data.userExercises) ? data.userExercises : []);
+77: 		} catch (err) {
+78: 			setLibraryError(err.message || 'Failed to load exercise library');
+79: 		} finally {
+80: 			setLibraryLoading(false);
+81: 		}
+82: 	};
+83: 
+84: 	useEffect(() => {
+85: 		loadGoals();
+86: 		loadExerciseLibrary();
+87: 	}, [BASE_URL, getToken]);
+88: 
+89: 	const handleInputChange = (event) => {
+90: 		const { name, value } = event.target;
+91: 		setFormState((prev) => ({ ...prev, [name]: value }));
+92: 	};
+93: 
+94: 	const handleSelectChange = (value) => {
+95: 		setFormState((prev) => ({ ...prev, exerciseUserLibraryId: value }));
+96: 	};
+97: 
+98: 	const handleSubmit = async (event) => {
+99: 		event.preventDefault();
+100: 		if (!formState.exerciseUserLibraryId) {
+101: 			setError('Please choose an exercise from your library.');
+102: 			return;
+103: 		}
+104: 
+105: 		if (!formState.targetWeight.trim()) {
+106: 			setError('Target weight is required.');
+107: 			return;
+108: 		}
+109: 
+110: 		const selectedExercise = libraryExercises.find(
+111: 			(item) => String(item._id) === String(formState.exerciseUserLibraryId)
+112: 		);
+113: 
+114: 		if (!selectedExercise) {
+115: 			setError('Please choose a valid exercise from your library.');
+116: 			return;
+117: 		}
+118: 
+119: 		const payload = {
+120: 			exerciseUserLibraryId: formState.exerciseUserLibraryId,
+121: 			exerciseName: selectedExercise.name,
+122: 			targetWeight: Number(formState.targetWeight),
+123: 			targetSets: Number(formState.targetSets) || 1,
+124: 			targetReps: 0,
+125: 		};
+126: 
+127: 		setIsSubmitting(true);
+128: 		setError('');
+129: 
+130: 		try {
+131: 			const token = getToken?.();
+132: 			const response = await fetch(`${BASE_URL}/api/goals`, {
+133: 				method: 'POST',
+134: 				headers: {
+135: 					'Content-Type': 'application/json',
+136: 					Authorization: `Bearer ${token}`,
+137: 				},
+138: 				body: JSON.stringify(payload),
+139: 			});
+140: 
+141: 			if (!response.ok) {
+142: 				const data = await response.json();
+143: 				throw new Error(data.message || 'Failed to create goal');
+144: 			}
+145: 
+146: 			const data = await response.json();
+147: 			setGoals((prev) => [data.goal, ...prev]);
+148: 			setFormState(initialFormState);
+149: 		} catch (err) {
+150: 			setError(err.message || 'Failed to create goal');
+151: 		} finally {
+152: 			setIsSubmitting(false);
+153: 		}
+154: 	};
+155: 
+156: 	const handleDelete = async (goalId) => {
+157: 		try {
+158: 			const token = getToken?.();
+159: 			const response = await fetch(`${BASE_URL}/api/goals/${goalId}`, {
+160: 				method: 'DELETE',
+161: 				headers: {
+162: 					Authorization: `Bearer ${token}`,
+163: 				},
+164: 			});
+165: 
+166: 			if (!response.ok) {
+167: 				const data = await response.json();
+168: 				throw new Error(data.message || 'Failed to delete goal');
+169: 			}
+170: 
+171: 			setGoals((prev) => prev.filter((goal) => goal._id !== goalId));
+172: 		} catch (err) {
+173: 			setError(err.message || 'Failed to delete goal');
+174: 		}
+175: 	};
+176: 
+177: 	const goalCount = goals.length;
+178: 
+179: 	return (
+180: 		<>
+181: 			<Gradient />
+182: 			<div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
+183: 				<Header />
+184: 				<main style={goalsStyles.page}>
+185: 					<section style={goalsStyles.section}>
+186: 						<div style={{ ...commonStyle.titleHeader, ...goalsStyles.titleHeader }}>
+187: 							<div>
+188: 								<h2 style={goalsStyles.title}>Goals</h2>
+189: 								<p style={goalsStyles.description}>
+190: 									Create workout goals, track progress and mark achievements when your entries match the target.
+191: 								</p>
+192: 							</div>
+193: 							<button
+194: 								type="button"
+195: 								style={goalsStyles.addButton}
+196: 								onClick={() => document.getElementById('goal-form')?.scrollIntoView({ behavior: 'smooth' })}
+197: 							>
+198: 								Add Goal
+199: 							</button>
+200: 						</div>
+201: 
+202: 						<div style={goalsStyles.card} id="goal-form">,							<h3 style={goalsStyles.goalTitle}>New goal</h3>,							<form onSubmit={handleSubmit} style={{ display: "grid", gap: "14px" }}>,								<div style={goalsStyles.formRow}>,									<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>,										<label style={goalsStyles.metaLabel}>Exercise</label>,										<Select,											options={libraryExercises.map((exercise) => ({ value: exercise._id, label: exercise.name }))},											value={formState.exerciseUserLibraryId},											onChange={handleSelectChange},											style={popupStyle.popupInput},											disabled={libraryLoading},											placeholder="Choose exercise from library",										/>,										{libraryError && <p style={{ color: "tomato", margin: 0 }}>{libraryError}</p>},										{!libraryLoading && libraryExercises.length === 0 && (, <p style={{ color: "rgba(255,255,255,0.75)", margin: 0 }}>,												Add exercises in the library before creating a goal.,											</p>,										)},									</div>,								</div>,								<div style={goalsStyles.formRow}>,									<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>,										<label style={goalsStyles.metaLabel}>Target weight</label>,										<input,											name="targetWeight",											type="number",											value={formState.targetWeight},											onChange={handleInputChange},											min="0",											step="0.5",											placeholder="kg",											style={popupStyle.popupInput},										/>,									</div>,									<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>,										<label style={goalsStyles.metaLabel}>Approach</label>,										<input,											name="targetSets",											type="number",											value={formState.targetSets},											onChange={handleInputChange},											min="1",											step="1",											style={popupStyle.popupInput},										/>,								</div>,							</div>,							{error && <p style={{ color: "tomato" }}>{error}</p>},							<button type="submit" style={{ ...goalsStyles.addButton, width: "fit-content" }} disabled={isSubmitting}>,								{isSubmitting ? "Saving..." : "Create goal"},							</button>,						</form>,					</div>,					{isLoading ? (, <div style={goalsStyles.statusCard}>,							<p style={goalsStyles.statusText}>Loading goals...</p>,						</div>,					) : goalCount === 0 ? (, <div style={goalsStyles.statusCard}>,							<p style={goalsStyles.statusText}>No goals yet. Add your first target to start tracking achievements.</p>,						</div>,					) : (, <div style={goalsStyles.goalGrid}>
+203: 							<div style={goalsStyles.goalGrid}>
+204: 								{goals.map((goal) => (
+205: 									<div key={goal._id} style={goalsStyles.goalCard}>
+206: 										<div style={goalsStyles.goalHeader}>
+207: 											<div>
+208: 												<h3 style={goalsStyles.goalTitle}>{goal.exerciseName}</h3>
+209: 												<p style={goalsStyles.metaLabel}>{goal.notes || 'Track matching training entries against this goal.'}</p>
+210: 											</div>
+211: 											<span
+212: 												style={{
+213: 													...goalsStyles.statusBadge,
+214: 													backgroundColor: goal.progress.isAchieved ? '#92E33C33' : '#FFCC0033',
+215: 													color: goal.progress.isAchieved ? '#92E33C' : '#FFCC00',
+216: 												}}
+217: 											>
+218: 												{goal.progress.isAchieved ? 'Achieved' : 'In progress'}
+219: 											</span>
+220: 										</div>
+221: 										<div style={goalsStyles.goalMeta}>
+222: 											<div style={goalsStyles.metaItem}>
+223: 												<span style={goalsStyles.metaLabel}>Target</span>
+224: 												<strong style={goalsStyles.metaValue}>{`${goal.targetWeight} kg × ${goal.targetSets} sets${goal.targetReps > 0 ? ` × ${goal.targetReps} reps` : ''}`}</strong>
+225: 											</div>
+226: 											<div style={goalsStyles.metaItem}>
+227: 												<span style={goalsStyles.metaLabel}>Progress</span>
+228: 												<strong style={goalsStyles.metaValue}>{`${goal.progress.matchedSets}/${goal.progress.targetSets} sets`}</strong>
+229: 											</div>
+230: 										</div>
+231: 										<div style={goalsStyles.progressBar}>
+232: 											<div
+233: 												style={{
+234: 													...goalsStyles.progressFill,
+235: 													width: `${goal.progress.progressPercent}%`,
+236: 												}}
+237: 											/>
+238: 										</div>
+239: 										<div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap' }}>
+240: 											<div style={{ ...goalsStyles.metaItem, width: '100%' }}>
+241: 												<span style={goalsStyles.metaLabel}>Best matching weight</span>
+242: 												<strong style={goalsStyles.metaValue}>{goal.progress.highestWeight ? `${goal.progress.highestWeight} kg` : 'Not met yet'}</strong>
+243: 											</div>
+244: 										</div>
+245: 										{goal.progress.achievedAt && (
+246: 											<p style={{ opacity: 0.75, margin: 0 }}>
+247: 												Achieved on {new Date(goal.progress.achievedAt).toLocaleDateString()}
+248: 											</p>
+249: 										)}
+250: 										<div style={goalsStyles.actionRow}>
+251: 											<button
+252: 												type="button"
+253: 												style={goalsStyles.deleteButton}
+254: 												onClick={() => handleDelete(goal._id)}
+255: 											>
+256: 												Delete goal
+257: 											</button>
+258: 										</div>
+259: 									</div>
+260: 								))}
+261: 							</div>
+262: 			)}
+263: 						</section >
+264: 				</main >
+265: 				<Footer />
+266: 			</div >
+267: 		</>
+268: 	);
+269: }
+270: 

@@ -8,6 +8,7 @@ export const headerStyle = {
 		padding: toRem(18),
 		position: 'relative',
 		display: 'flex',
+		flexDirection: 'column',
 		gap: toRem(30),
 		zIndex: 10,
 	},

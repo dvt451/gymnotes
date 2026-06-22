@@ -39,6 +39,7 @@ import repRoutes from './routes/reps.js';
 import nutritionRoutes from './routes/nutritions.js';
 import exerciseLibraryRoutes from './routes/exerciseLibrary.js';
 import progressRoutes from './routes/progress.js';
+import goalsRoutes from './routes/goals.js';
 import adminRoutes from './routes/admin.js';
 import { createCorsOptions } from './utils/cors.js';
 
@@ -58,6 +59,7 @@ app.use('/api/trainings', trainingRoutes); // Основные операции 
 app.use('/api/nutritions', nutritionRoutes);
 app.use('/api/exercise-library', exerciseLibraryRoutes);
 app.use('/api/progress', progressRoutes);
+app.use('/api/goals', goalsRoutes);
 
 // Роутеры для работы с датами, упражнениями, весами и повторениями
 // Эти роутеры должны быть ПОДКЛЮЧЕНЫ ТОЛЬКО ОДИН РАЗ и в правильном порядке

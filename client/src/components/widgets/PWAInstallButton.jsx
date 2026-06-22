@@ -9,8 +9,8 @@ const InstallButtonWrapper = styled.div`
 
 const StyledButton = styled.button`
 	padding: 8px 16px;
-	background-color: #1a1a1a;
-	color: white;
+	background-color: #fff;
+	color: #1a1a1a;
 	border: none;
 	border-radius: 6px;
 	font-size: 14px;
@@ -18,9 +18,10 @@ const StyledButton = styled.button`
 	cursor: pointer;
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: 8px;
 	transition: all 0.3s ease;
-
+	width: 100%;
 	&:hover {
 		background-color: #2d2d2d;
 		transform: translateY(-1px);

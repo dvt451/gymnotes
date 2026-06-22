@@ -10,11 +10,14 @@ export default function Select({
 	styles: customStyles = {},
 	disabled = false,
 	placeholder = 'Select',
+	searchable = false,
 }) {
 	const { mainColor } = useContext(GlobalContext);
 	const defaultStyles = createSelectStyle(mainColor);
 	const selectRef = useRef(null);
+	const searchInputRef = useRef(null);
 	const [isOpen, setIsOpen] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
 
 	const styles = useMemo(() => {
 		const mergedStyles = Object.fromEntries(
@@ -36,16 +39,46 @@ export default function Select({
 		};
 	}, [customStyles, defaultStyles, style]);
 
-	const selectedValue = useMemo(() => {
-		if (value !== undefined && value !== null && options.includes(value)) {
-			return value;
+	const normalizedOptions = useMemo(() => {
+		return (options || []).map((option) => {
+			if (option && typeof option === 'object' && 'value' in option) {
+				return {
+					value: option.value,
+					label: option.label ?? String(option.value),
+				};
+			}
+
+			return {
+				value: option,
+				label: String(option),
+			};
+		});
+	}, [options]);
+
+	const filteredOptions = useMemo(() => {
+		if (!searchable || !searchQuery.trim()) {
+			return normalizedOptions;
 		}
 
-		return options[0] ?? '';
-	}, [options, value]);
+		const query = searchQuery.toLowerCase().trim();
+		return normalizedOptions.filter((option) =>
+			option.label.toLowerCase().includes(query)
+		);
+	}, [normalizedOptions, searchQuery, searchable]);
+
+	const selectedOption = useMemo(() => {
+		return normalizedOptions.find((option) => String(option.value) === String(value));
+	}, [normalizedOptions, value]);
 
 	useEffect(() => {
-		if (!isOpen) return undefined;
+		if (!isOpen) {
+			setSearchQuery('');
+			return undefined;
+		}
+
+		if (searchable && searchInputRef.current) {
+			setTimeout(() => searchInputRef.current?.focus(), 0);
+		}
 
 		const handlePointerDownOutside = (event) => {
 			if (!selectRef.current?.contains(event.target)) {
@@ -57,7 +90,7 @@ export default function Select({
 		return () => {
 			document.removeEventListener('pointerdown', handlePointerDownOutside);
 		};
-	}, [isOpen]);
+	}, [isOpen, searchable]);
 
 	const toggleOpen = () => {
 		if (disabled) return;
@@ -66,7 +99,7 @@ export default function Select({
 
 	const handleSelect = (option) => {
 		if (disabled) return;
-		onChange?.(option);
+		onChange?.(option?.value ?? option);
 		setIsOpen(false);
 	};
 
@@ -90,7 +123,7 @@ export default function Select({
 				disabled={disabled}
 			>
 				<div style={styles.selectedContent}>
-					<span style={{ ...styles.selectedText, ...(!isOpen ? styles.selectedTextOpen : {}) }}>{selectedValue || placeholder}</span>
+					<span style={{ ...styles.selectedText, ...(!isOpen ? styles.selectedTextOpen : {}) }}>{selectedOption?.label || placeholder}</span>
 				</div>
 				<span style={{ ...styles.icon, ...(isOpen ? styles.iconOpen : {}) }}>
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 15" fill="none">
@@ -108,26 +141,61 @@ export default function Select({
 					...(isOpen ? styles.optionListOpen : {}),
 				}}
 			>
-				{options.map((option, index) => {
-					const isActive = option === selectedValue;
-					const isLast = index === options.length - 1;
+				{searchable && (
+					<input
+						ref={searchInputRef}
+						type="text"
+						placeholder="Search..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						style={{
+							width: '100%',
+							padding: '8px 12px',
+							border: 'none',
+							borderBottom: `1px solid rgba(255,255,255,0.1)`,
+							backgroundColor: 'rgba(255,255,255,0.05)',
+							color: 'white',
+							fontSize: '14px',
+							boxSizing: 'border-box',
+							outline: 'none',
+						}}
+						onPointerDown={(e) => e.stopPropagation()}
+					/>
+				)}
 
-					return (
-						<button
-							key={option}
-							type="button"
-							style={{
-								...styles.option,
-								...(index === 0 ? styles.optionFirst : {}),
-								...(!isLast ? styles.optionNotLast : {}),
-								...(isActive ? styles.optionActive : {}),
-							}}
-							onClick={() => handleSelect(option)}
-						>
-							{option}
-						</button>
-					);
-				})}
+				{filteredOptions.length === 0 ? (
+					<div
+						style={{
+							padding: '12px',
+							textAlign: 'center',
+							color: 'rgba(255,255,255,0.5)',
+							fontSize: '14px',
+						}}
+					>
+						{searchable && searchQuery ? 'No results found' : 'No options available'}
+					</div>
+				) : (
+					filteredOptions.map((option, index) => {
+						const isActive = String(option.value) === String(selectedOption?.value);
+						const isLast = index === filteredOptions.length - 1;
+
+						return (
+							<button
+								key={String(option.value)}
+								type="button"
+								style={{
+									...styles.option,
+									...(index === 0 ? styles.optionFirst : {}),
+									...(!isLast ? styles.optionNotLast : {}),
+									...(isActive ? styles.optionActive : {}),
+								}}
+								onClick={() => handleSelect(option)}
+							>
+								{option.label}
+							</button>
+						);
+					})
+				)}
 			</div>
 		</div>
 	);

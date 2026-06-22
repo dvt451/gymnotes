@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaChartLine, FaRegUser } from "react-icons/fa";
+import { FaChartLine, FaRegUser, FaBullseye } from "react-icons/fa";
 import { createFooterStyle } from './footerStyle.js'
 import { MdHomeFilled } from "react-icons/md";
 import { GlobalContext } from '../../context/GlobalContext.jsx';
@@ -65,6 +65,23 @@ export default function Footer() {
 						<span style={{
 							...footerStyle.footerLink,
 							...(location === '/exercise-library' && footerStyle.footerLinkActive)
+						}}></span>
+					</Link>
+					<Link
+						to="/goals"
+						style={{
+							...footerStyle.footerLink,
+							...(location === '/goals' && footerStyle.footerLinkActive)
+						}}
+					>
+						<FaBullseye style={{
+							...footerStyle.footerLinkIcon,
+							...(location === '/goals' && footerStyle.footerLinkActive)
+						}} />
+						<span style={footerStyle.footerLinkText}>Goals</span>
+						<span style={{
+							...footerStyle.footerLink,
+							...(location === '/goals' && footerStyle.footerLinkActive)
 						}}></span>
 					</Link>
 					<Link

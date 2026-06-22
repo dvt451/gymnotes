@@ -14,6 +14,7 @@ import Exercises from './components/pages/Exercises/Exercises';
 import Profile from './components/pages/profile/Profile';
 import { GlobalProvider } from './context/GlobalContext';
 import ExerciseLibrary from './components/pages/exerciseLibrary/ExerciseLibrary';
+import Goals from './components/pages/Goals/Goals';
 import Progress from './components/pages/Progress/Progress';
 import AppLoadingScreen from './components/widgets/Loading/AppLoadingScreen';
 import { AuthContext } from './context/AuthContext';
@@ -37,6 +38,7 @@ function AppRoutes() {
 			<Route element={<Exercises />} path='/exercises/:trainingId/:date' />
 			<Route element={<ExerciseLibrary />} path='/exercise-library' />
 			<Route element={<Progress />} path='/progress' />
+			<Route element={<Goals />} path='/goals' />
 		</Routes>
 	);
 }

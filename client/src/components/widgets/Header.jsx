@@ -4,6 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import Menu from './Menu';
 import PWAInstallButton from './PWAInstallButton';
 import { headerStyle } from './headerStyle';
+import { toRem } from '../../styles/commonStyle';
 
 export default function Header() {
 	const { user = {} } = useContext(AuthContext);
@@ -24,37 +25,38 @@ export default function Header() {
 
 	return (
 		<header style={headerStyle.header}>
-
-
-			{/* Кнопка "Назад" */}
-			{showBackButton && (
-				<button
-					onClick={handleGoBack}
-					style={headerStyle.backButton}
-					aria-label="Назад"
-				>
-					<i style={headerStyle.icon}>←</i>
-				</button>
-			)}
-
-			{/* Аватар */}
-			{<div style={headerStyle.user}>
-				<Link to="/home" style={headerStyle.avatar}>
-					<img
-						style={headerStyle.avatarImage}
-						src={'/user.png'}
-						alt="User avatar"
-					/>
-				</Link>
-				<Link to="/profile" style={headerStyle.userInfo}>
-					<h1 style={headerStyle.userName}>{theUser.name || 'Гость'}</h1>
-					<p style={headerStyle.userWeight}>Weight - {theUser.weight ? `${theUser.weight}kg` : '—'}</p>
-				</Link>
-			</div>}
-
 			{/* Install Button */}
-			<div style={{ marginRight: 'auto', paddingLeft: '10px' }}>
-				<PWAInstallButton />
+			<PWAInstallButton />
+			<div style={{
+				display: 'flex',
+				gap: toRem(30),
+				alignItems: 'center',
+			}}>
+				{/* Кнопка "Назад" */}
+				{showBackButton && (
+					<button
+						onClick={handleGoBack}
+						style={headerStyle.backButton}
+						aria-label="Назад"
+					>
+						<i style={headerStyle.icon}>←</i>
+					</button>
+				)}
+
+				{/* Аватар */}
+				{<div style={headerStyle.user}>
+					<Link to="/home" style={headerStyle.avatar}>
+						<img
+							style={headerStyle.avatarImage}
+							src={'/user.png'}
+							alt="User avatar"
+						/>
+					</Link>
+					<Link to="/profile" style={headerStyle.userInfo}>
+						<h1 style={headerStyle.userName}>{theUser.name || 'Гость'}</h1>
+						<p style={headerStyle.userWeight}>Weight - {theUser.weight ? `${theUser.weight}kg` : '—'}</p>
+					</Link>
+				</div>}
 			</div>
 		</header>
 	);
