@@ -267,26 +267,29 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 						{isLoading ? (
 							<div style={templatesStyles.loading}>Loading templates...</div>
 						) : (
-							<div style={templatesStyles.templateList}>
+							<div style={templatesStyles.templateBody}>
+								<div style={templatesStyles.templateList}>
+
+									{templates.map((item) => (
+										<div key={item._id}>
+											<button
+												style={{
+													...templatesStyles.templateItem,
+													...(editState && templatesStyles.templateItemEditing)
+												}}
+												onClick={() => editState ? openEditModal(item) : applyTemplate(item)}
+											>
+												{item.name}
+											</button>
+										</div>
+									))}
+								</div>
 								<button
 									style={templatesStyles.templateAddButton}
 									onClick={openCreateModal}
 								>
-									+ Add
+									+
 								</button>
-								{templates.map((item) => (
-									<div key={item._id}>
-										<button
-											style={{
-												...templatesStyles.templateItem,
-												...(editState && templatesStyles.templateItemEditing)
-											}}
-											onClick={() => editState ? openEditModal(item) : applyTemplate(item)}
-										>
-											{item.name}
-										</button>
-									</div>
-								))}
 							</div>
 						)}
 					</div>

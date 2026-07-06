@@ -91,7 +91,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 		<div>
 			{!showInput ? (
 				<button onClick={handleAddClick} style={exercisesStyles.addWeightBtn}>
-					+ weight
+					+ Add weight
 				</button>
 			) : (
 				<div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '10px' }}>

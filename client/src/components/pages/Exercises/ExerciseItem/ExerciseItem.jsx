@@ -123,7 +123,9 @@ export default function ExerciseItem({
 				style={{ ...styles.exerciseBlock, width: '100%', ...(!isExpanded && { cursor: 'pointer' }) }}
 				onClick={toggleExpand}
 			>
+
 				<div style={styles.exerciseHeader}>
+					<span style={styles.exerciseNumber}>{index + 1}</span>
 					<div
 						style={{
 							...styles.exerciseTitle,
@@ -157,8 +159,6 @@ export default function ExerciseItem({
 						/>
 					)}
 				</div>
-
-
 				<PreviousData
 					item={item}
 					setExercises={setExercises}
@@ -172,6 +172,16 @@ export default function ExerciseItem({
 					previousDate={previousDate}
 					isPreviousHistoryLoading={isPreviousHistoryLoading}
 				/>
+
+				<Weights
+					editState={editState}
+					item={item}
+					setExercises={setExercises}
+					date={date}
+					trainingId={trainingId}
+					BASE_URL={BASE_URL}
+					isExpanded={isExpanded && !isReordering}
+				/>
 				<ExerciseCurrentCommentSection
 					item={item}
 					setExercises={setExercises}
@@ -184,16 +194,6 @@ export default function ExerciseItem({
 					setExpandedExerciseId={setExpandedExerciseId}
 					isCommentEditingId={isCommentEditingId}
 				/>
-				<Weights
-					editState={editState}
-					item={item}
-					setExercises={setExercises}
-					date={date}
-					trainingId={trainingId}
-					BASE_URL={BASE_URL}
-					isExpanded={isExpanded && !isReordering}
-				/>
-
 				<Popup isOpen={showRenamePopup} onClose={closeRenamePopup}>
 					<h2 style={popupStyle.title}>Rename Exercise</h2>
 					<div style={popupStyle.popupBodyContent}>

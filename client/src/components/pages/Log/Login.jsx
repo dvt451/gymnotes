@@ -4,6 +4,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
 import LoadingButton from '../../widgets/LoadingButton';
 import styles from './Login.module.css';
+import { colors } from '../../../styles/commonStyle';
 
 export default function Login() {
 	const { login, BASE_URL } = useContext(AuthContext);
@@ -137,7 +138,8 @@ export default function Login() {
 					className={styles.loginButton}
 					isLoading={isSubmitting}
 					loadingLabel="Signing in..."
-					spinnerColor="#0C0E14"
+					spinnerColor={colors.blueDark}
+
 				>
 					Sign in
 				</LoadingButton>

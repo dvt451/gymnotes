@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 import LoadingButton from '../../widgets/LoadingButton';
 import styles from './Login.module.css';
+import { colors } from '../../../styles/commonStyle';
 
 export default function ForgotPassword() {
 	const { BASE_URL } = useContext(AuthContext);
@@ -71,7 +72,7 @@ export default function ForgotPassword() {
 					className={styles.loginButton}
 					isLoading={isSubmitting}
 					loadingLabel="Sending..."
-					spinnerColor="#0C0E14"
+					spinnerColor={colors.blueDark}
 				>
 					Send reset link
 				</LoadingButton>

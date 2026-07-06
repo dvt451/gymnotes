@@ -159,7 +159,21 @@ export default function ExerciseCurrentCommentSection({
 					</>
 				) : (
 					<>
-						<button
+						{canEditComment && (
+							<button
+								type="button"
+								onClick={handleStartEditing}
+								style={{
+									...styles.exerciseCommentEditButton,
+								}}
+								aria-label="Edit comment"
+								title="Edit comment"
+							>
+								<FaPen />
+								<span>Add Note</span>
+							</button>
+						)}
+						{normalizedCurrentComment && <button
 							type="button"
 							onClick={canEditComment ? handleStartEditing : undefined}
 							style={{
@@ -175,23 +189,9 @@ export default function ExerciseCurrentCommentSection({
 										: styles.exerciseCommentPlaceholder
 								}
 							>
-								{normalizedCurrentComment || 'No comments'}
+								{normalizedCurrentComment}
 							</span>
-						</button>
-						{canEditComment && (
-							<button
-								type="button"
-								onClick={handleStartEditing}
-								style={{
-									...styles.exerciseCommentIconButton,
-									...styles.exerciseCommentEditButton,
-								}}
-								aria-label="Edit comment"
-								title="Edit comment"
-							>
-								<FaPen />
-							</button>
-						)}
+						</button>}
 					</>
 				)}
 			</div>

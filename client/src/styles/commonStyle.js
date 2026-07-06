@@ -1,7 +1,7 @@
 // styles/commonStyle.js
 
 export const colors = {
-	blueDark: '#0C0E14',
+	blueDark: '#06090D',
 	blueLight: '#00C8FF',
 	labelBG: '#181E23',
 	green: '#92E33C', // Значение по умолчанию

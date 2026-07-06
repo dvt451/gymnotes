@@ -4,6 +4,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import GoogleAuthButton from './GoogleAuthButton';
 import LoadingButton from '../../widgets/LoadingButton';
 import styles from './Register.module.css';
+import { colors } from '../../../styles/commonStyle';
 
 export default function Register() {
 	const [formData, setFormData] = useState({
@@ -127,7 +128,8 @@ export default function Register() {
 					className={styles.button}
 					isLoading={isSubmitting}
 					loadingLabel="Creating account..."
-					spinnerColor="#0C0E14"
+					spinnerColor={colors.blueDark}
+
 				>
 					Create account
 				</LoadingButton>

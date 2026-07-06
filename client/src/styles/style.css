@@ -15,6 +15,12 @@ body {
 	height: 100%;
 }
 
+.add-set-btn {
+	border-style: dashed;
+	border-width: 1px;
+	border-color: #92e33c;
+}
+
 body {
 	color: #fff;
 	line-height: 1.5;
@@ -23,7 +29,7 @@ body {
 	font-size: 1rem;
 	font-weight: 400;
 
-	background-color: #0C0E14;
+	background-color: #06090D;
 	/* Оптимизация рендеринга */
 	text-rendering: optimizeLegibility;
 	-ms-text-size-adjust: 100%;
@@ -185,7 +191,7 @@ main {
 	padding: 1.5rem;
 	background:
 		radial-gradient(circle at top, rgba(146, 227, 60, 0.16), transparent 38%),
-		#0C0E14;
+		#06090D;
 }
 
 .app-loading-shell {

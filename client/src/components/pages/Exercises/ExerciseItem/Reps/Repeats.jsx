@@ -1,6 +1,6 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { createExercisesStyles } from '../../ExersicesStyles';
-import { colors } from '../../../../../styles/commonStyle';
+import { colors, toRem } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import InlineSpinner from '../../../../widgets/InlineSpinner';
@@ -287,20 +287,28 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 		<>
 			<div style={{
 				display: 'flex',
-				width: '100%',
 				alignItems: 'center',
-				// justifyContent: weight.sets.length > 0 ? 'space-between' : 'flex-end',
-				justifyContent: 'space-between',
-
+				gap: '10px',
 			}}>
 				{/* Список существующих подходов */}
 				<div style={styles.repsContainer}>
-					{weight.sets.length > 0 && <div>-</div>}
-					<div style={styles.repsContainerRow}>
+					<div style={{
+						...styles.repsContainerRow,
+						gridTemplateColumns: editState && isExpanded ? `repeat(3, 1fr)` : `repeat(4, 1fr)`
+
+					}}>
 						{weight.sets.map((setValue, index) => (
 							<div
 								key={index}
-								style={{ display: 'inline-block', margin: '0 2px' }}
+								style={{
+									display: 'inline-block', margin: '0 2px',
+									background: editState && isExpanded && colors.orange,
+									border: toRem(1) + ' solid ' + colors.popupBorderColor,
+									padding: toRem(5) + ' ' + toRem(18),
+									borderRadius: '0.4em',
+									cursor: editState && isExpanded ? 'pointer' : 'default',
+									margin: '0',
+								}}
 								ref={el => editInputRefs.current[index] = el}
 							>
 								{editingSetIndex === index ? (
@@ -328,127 +336,85 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 									<button
 										onClick={() => startEditing(setValue, index)}
 										style={{
-											background: 'none',
-											border: 'none',
-											cursor: editState && isExpanded ? 'pointer' : 'default',
-											padding: '2px',
-											margin: '0',
+
 										}}
 										title={editState && isExpanded ? "Нажмите для редактирования\nВведите 0 для удаления" : ""}
 									>
 										<span style={{
 											...styles.setText,
 											...(editState && isExpanded && {
-												backgroundColor: colors.orange,
-												padding: '0 4px',
 												borderRadius: '4px',
 												color: colors.black,
 											})
 										}}>
-											{getRepsValue(setValue)}x
+											{getRepsValue(setValue)}
 										</span>
 									</button>
+
 								)}
 							</div>
 						))}
-
-					</div>
-					{!editState && isExpanded && showAddInput && (<div ref={addInputRef} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-						<input
-							type="text"
-							inputMode="decimal"
-							pattern="[0-9]*\.?[0-9]*"
-							value={repsInput}
-							onChange={(e) => setRepsInput(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter') {
-									e.preventDefault();
-									if (showAddInput && !addIsSubmitting && repsInput.trim()) {
+						{/* Кнопка добавления или инпут */}
+						{!editState && isExpanded && (
+							<>
+								{!showAddInput && (
+									<button
+										className="add-set-btn"
+										onClick={handleAddRepClick}
+										style={styles.addSetBtn}
+										type="button"
+									>+</button>
+								)}
+							</>
+						)}
+						{!editState && isExpanded && showAddInput && (<div ref={addInputRef} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+							<input
+								type="text"
+								inputMode="decimal"
+								pattern="[0-9]*\.?[0-9]*"
+								value={repsInput}
+								onChange={(e) => setRepsInput(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										e.preventDefault();
+										if (showAddInput && !addIsSubmitting && repsInput.trim()) {
+											handleAddSubmit();
+										}
+									}
+									if (e.key === 'Escape') {
+										e.preventDefault();
+										handleCancelAdd();
+									}
+								}}
+								onBlur={() => {
+									// Закрываем инпут при потере фокуса (когда нажали Done на мобильной клавиатуре)
+									if (showAddInput && !addIsSubmitting) {
+										setRepsInput('');
 										handleAddSubmit();
 									}
-								}
-								if (e.key === 'Escape') {
-									e.preventDefault();
-									handleCancelAdd();
-								}
-							}}
-							onBlur={() => {
-								// Закрываем инпут при потере фокуса (когда нажали Done на мобильной клавиатуре)
-								if (showAddInput && !addIsSubmitting) {
-									setRepsInput('');
-									handleAddSubmit();
-								}
-							}}
-							placeholder="Повторения"
-							style={{
-								padding: '6px 10px',
-								borderRadius: '8px',
-								border: `1px solid ${mainColor}`,
-								fontSize: '14px',
-								width: '70px',
-								textAlign: 'center',
-								color: colors.blueDark,
-							}}
-							autoFocus
-							min="1"
-							disabled={addIsSubmitting}
-							enterKeyHint="done"
-						/>
-						<button
-							onClick={handleAddSubmit}
-							style={{
-								...styles.addSetBtn,
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								gap: '8px',
-								padding: '6px 12px',
-								margin: 0,
-								backgroundColor: mainColor,
-								color: 'white',
-							}}
-							disabled={!repsInput.trim() || addIsSubmitting}
-						>
-							{addIsSubmitting ? (
-								<>
-									<InlineSpinner size={14} thickness={2} color={colors.white} />
-									<span>Saving</span>
-								</>
-							) : 'OK'}
-						</button>
-						<button
-							onClick={handleCancelAdd}
-							style={{
-								padding: '6px 10px',
-								backgroundColor: '#ccc',
-								border: 'none',
-								borderRadius: '8px',
-								cursor: 'pointer',
-								fontSize: '14px',
-							}}
-							disabled={addIsSubmitting}
-						>
-							✕
-						</button>
+								}}
+								style={{
+									backgroundColor: 'transparent',
+									border: toRem(1) + ' dashed ' + colors.popupBorderColor,
+									padding: '6px 10px',
+									borderRadius: '8px',
+									fontSize: '16px',
+									width: '100%',
+									textAlign: 'center',
+									color: colors.white,
+								}}
+								autoFocus
+								min="1"
+								disabled={addIsSubmitting}
+								enterKeyHint="done"
+							/>
+						</div>
+						)}
 					</div>
-					)}
 				</div>
 
-				{/* Кнопка добавления или инпут */}
-				{!editState && isExpanded && (
-					<>
-						{!showAddInput && (
-							<button
-								onClick={handleAddRepClick}
-								style={styles.addSetBtn}
-								type="button"
-							>
-								+ approach
-							</button>
-						)}
-					</>
-				)}
-			</div>
+
+			</div >
 		</>
 	);
 }

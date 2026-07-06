@@ -13,9 +13,9 @@ export default function ExercisePrevCommentSection({
 	return (
 		normalizedPreviousComment && (
 			<div style={styles.exercisePreviousCommentRow}>
-				{/* {previousDate && (
+				{previousDate && (
 					<span style={styles.prevMetaText}>Previous:</span>
-				)} */}
+				)}
 				<span style={styles.exercisePreviousCommentText}>{normalizedPreviousComment}</span>
 			</div>
 		)

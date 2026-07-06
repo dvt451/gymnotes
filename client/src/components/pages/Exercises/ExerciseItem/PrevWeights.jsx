@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 import { GlobalContext } from '../../../../context/GlobalContext';
 import { createExercisesStyles } from '../ExersicesStyles';
+import { toRem } from '../../../../styles/commonStyle';
+import { PiChartLineUp } from 'react-icons/pi';
 
 const normalizeSets = (sets = []) =>
 	sets.map((setValue, index) => {
@@ -37,11 +39,10 @@ export default function PrevWeights({
 				const normalizedSets = normalizeSets(weight.sets || []);
 
 				return (
-					<div key={weight._id || `${weight.weight}`} style={styles.weightBlock}>
-						<div style={styles.weightButton}>
-							<span style={styles.PrevWeightText}>{weight.weight}kg</span>
+					<div key={weight._id || `${weight.weight}`} style={styles.PrevWeightBlock}>
+						<div style={styles.prevWeightHeader}>
+							<PiChartLineUp style={{ marginRight: toRem(2) }} /> Last: <span style={styles.PrevWeightText}>{weight.weight}kg</span>
 						</div>
-
 						<div
 							style={{
 								display: 'flex',
@@ -50,28 +51,37 @@ export default function PrevWeights({
 								justifyContent: normalizedSets.length > 0 ? 'space-between' : 'flex-end',
 							}}
 						>
-							<div style={styles.repsContainer}>
-								{normalizedSets.length > 0 && <div>-</div>}
-								<div style={styles.repsContainerRow}>
-									{normalizedSets.map((set) => (
-										<div
-											key={set._id}
-											style={{
-												background: 'none',
-												border: 'none',
-												padding: '2px',
-												margin: '0 2px',
-											}}
-										>
-											<span style={styles.PrevSetText}>{set.reps}x</span>
-										</div>
-									))}
+							<div style={{
+								...styles.repsContainer, ...{
+									gap: toRem(5),
+								}
+							}}>
+								{normalizedSets.length > 0 && <div>x</div>}
+								<div style={{ ...styles.repsContainerRow, ...{ paddingLeft: toRem(2), gap: toRem(2) } }} >
+									{
+										normalizedSets.map((set, index) => (
+											<div
+												key={set._id}
+												style={{
+													background: 'none',
+													paddingRight: toRem(0),
+													border: 'none',
+												}}
+											>
+												<span style={styles.PrevSetText}>{set.reps}
+													{index !== normalizedSets.length - 1 && (
+														<span style={styles.comma}>, </span>
+													)}
+												</span>
+											</div>
+										))
+									}
 								</div>
 							</div>
 						</div>
 					</div>
 				);
 			})}
-		</div>
+		</div >
 	);
 }

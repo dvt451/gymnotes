@@ -3,7 +3,7 @@ import { createExercisesStyles } from '../../ExersicesStyles';
 import AddWeight from './AddWeight';
 import DeleteWeights from './DeleteWeights';
 import Repeats from '../Reps/Repeats';
-import { colors } from '../../../../../styles/commonStyle';
+import { colors, toRem } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 
@@ -122,7 +122,7 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 	};
 
 	return (
-		<div style={styles.settingsRow}>
+		<div style={{ ...styles.settingsRow, ...styles.weightsContainer }}>
 			{(!item.weights || item.weights.length === 0) && (
 				<p style={styles.noWeights}>Нет весов</p>
 			)}
@@ -185,7 +185,9 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 									transition: 'all 0.2s ease',
 								})
 							}}>
-								{w.weight}kg
+								{w.weight} <span style={{
+									fontSize: toRem(16),
+								}}>kg</span>
 							</span>
 						</button>
 					)}

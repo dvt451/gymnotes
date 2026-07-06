@@ -4,11 +4,9 @@ import { colors, toRem } from '../../../../styles/commonStyle';
 export const createTemplatesStyles = (mainColor) => ({
 	// Основной контейнер
 	container: {
+		marginTop: toRem(10),
 		marginBottom: toRem(30),
-		backgroundColor: 'rgba(24, 30, 35, 0.5)',
 		borderRadius: toRem(12),
-		padding: toRem(20),
-		border: `1px solid ${colors.labelBG}`,
 	},
 
 	// Хедер шаблонов
@@ -16,18 +14,18 @@ export const createTemplatesStyles = (mainColor) => ({
 		display: 'flex',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginBottom: toRem(15),
+		marginBottom: toRem(5),
 	},
 
 	// Заголовок шаблонов
 	title: {
-		fontSize: toRem(20),
+		fontSize: toRem(18),
 		fontWeight: '600',
 		color: colors.white,
 		backgroundColor: 'transparent',
 		border: 'none',
 		cursor: 'pointer',
-		padding: `${toRem(8)} ${toRem(12)}`,
+		padding: toRem(8) + ' ' + toRem(12) + ' ' + toRem(8) + ' ' + toRem(0),
 		borderRadius: toRem(8),
 		transition: 'all 0.3s ease',
 		display: 'flex',
@@ -40,19 +38,18 @@ export const createTemplatesStyles = (mainColor) => ({
 	editButton: {
 		backgroundColor: 'transparent',
 		border: 'none',
-		color: colors.white,
+		color: colors.green,
 		fontSize: toRem(14),
 		cursor: 'pointer',
 		padding: `${toRem(6)} ${toRem(12)}`,
 		borderRadius: toRem(6),
-		opacity: 0.7,
 		transition: 'all 0.3s ease',
 		display: 'flex',
 		alignItems: 'center',
 		gap: toRem(5),
 	},
 	editButtonEditing: {
-		backgroundColor: colors.orange,
+		backgroundColor: colors.green,
 		color: colors.black,
 		opacity: 1,
 		fontWeight: 'bold',
@@ -60,8 +57,11 @@ export const createTemplatesStyles = (mainColor) => ({
 
 	// Блок со списком шаблонов
 	templateListBlock: {
-		marginTop: toRem(15),
 		animation: 'fadeIn 0.3s ease',
+	},
+	templateBody: {
+		display: 'flex',
+		gap: toRem(10),
 	},
 
 	// Список шаблонов
@@ -76,12 +76,12 @@ export const createTemplatesStyles = (mainColor) => ({
 
 	// Элемент шаблона
 	templateItem: {
-		backgroundColor: colors.blueLight,
-		border: 'none',
+		backgroundColor: '#0E1317',
+		border: '1px solid' + colors.gray,
 		color: colors.white,
-		padding: `${toRem(12)} ${toRem(16)}`,
-		borderRadius: toRem(30),
-		fontSize: toRem(16),
+		padding: `${toRem(10)} ${toRem(14)}`,
+		borderRadius: toRem(15),
+		fontSize: toRem(14),
 		textAlign: 'left',
 		cursor: 'pointer',
 		transition: 'all 0.3s ease',
@@ -99,18 +99,17 @@ export const createTemplatesStyles = (mainColor) => ({
 
 	// Кнопка добавления шаблона
 	templateAddButton: {
-		backgroundColor: mainColor || colors.green,
+		backgroundColor: '#0E1317',
 		border: 'none',
-		color: colors.black,
-		padding: `${toRem(12)} ${toRem(16)}`,
-		borderRadius: '50%',
+		color: colors.white,
+		border: toRem(1) + ' solid' + colors.gray,
+		padding: `${toRem(10)} ${toRem(16)}`,
+		borderRadius: toRem(15),
 		fontSize: toRem(16),
 		fontWeight: 'bold',
 		cursor: 'pointer',
 		marginTop: toRem(5),
 		transition: 'all 0.3s ease',
-		width: toRem(80),
-		height: toRem(80),
 		whiteSpace: 'nowrap',
 	},
 

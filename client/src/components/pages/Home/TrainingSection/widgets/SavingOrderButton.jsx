@@ -1,8 +1,9 @@
 import React, { useContext } from 'react'
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import { createHomeStyle } from '../../homeStyles';
-import { createCommonStyle } from '../../../../../styles/commonStyle';
+import { colors, createCommonStyle } from '../../../../../styles/commonStyle';
 import LoadingButton from '../../../../widgets/LoadingButton';
+
 
 export default function SavingOrderButton({ editState, state, handleSaveReorder }) {
 	const { mainColor } = useContext(GlobalContext);
@@ -16,7 +17,7 @@ export default function SavingOrderButton({ editState, state, handleSaveReorder 
 				disabled={state.isLoading}
 				isLoading={state.isLoading}
 				loadingLabel="Saving order..."
-				spinnerColor="#0C0E14"
+				spinnerColor={colors.blueDark}
 				style={{
 					...commonStyle.button,
 					...homeStyle.trainingCardAddButton,

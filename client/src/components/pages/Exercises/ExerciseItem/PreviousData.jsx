@@ -21,6 +21,10 @@ export default function PreviousData({
 
 	return (
 		<>
+			<PrevWeights
+				weights={prevWeights}
+				previousDate={previousDate}
+			/>
 			<ExercisePrevCommentSection
 				item={item}
 				setExercises={setExercises}
@@ -29,11 +33,6 @@ export default function PreviousData({
 				BASE_URL={BASE_URL}
 				isReordering={isReordering}
 				prevComment={prevComment}
-				previousDate={previousDate}
-			/>
-
-			<PrevWeights
-				weights={prevWeights}
 				previousDate={previousDate}
 			/>
 		</>

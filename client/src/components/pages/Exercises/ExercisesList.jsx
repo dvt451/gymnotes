@@ -82,7 +82,7 @@ export default function ExercisesList({
 	return (
 		<>
 			<div style={commonStyle.titleHeader}>
-				<h2 style={commonStyle.title}>Exercises</h2>
+				<h2 style={{ ...commonStyle.title, ...styles.title }}>Exercises</h2>
 				{editState && exercises.length > 1 && (
 					<button
 						type="button"
