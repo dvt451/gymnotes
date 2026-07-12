@@ -130,9 +130,7 @@ export const createGoalsStyles = (mainColor) => ({
 	newGoalAddButton: {
 		padding: `${toRem(20)} ${toRem(18)}`,
 		borderRadius: toRem(12),
-		border: toRem(1) + ' solid ' + (mainColor || colors.green),
 		cursor: 'pointer',
-		backgroundColor: mainColor || colors.green,
 		fontWeight: 700,
 	},
 	goalGrid: {
@@ -205,19 +203,19 @@ export const createGoalsStyles = (mainColor) => ({
 		transition: 'width 0.3s ease',
 	},
 	actionRow: {
-		display: 'flex',
-		justifyContent: 'space-between',
-		gap: toRem(10),
-		flexWrap: 'wrap',
+		textAlign: 'right',
 	},
 	deleteButton: {
-		padding: `${toRem(10)} ${toRem(14)}`,
+		width: toRem(36),
+		height: toRem(36),
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderRadius: toRem(10),
 		border: 'none',
 		cursor: 'pointer',
 		backgroundColor: colors.red,
 		color: colors.white,
-		fontWeight: 700,
 	},
 	formRow: {
 		display: 'grid',

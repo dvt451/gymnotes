@@ -8,6 +8,12 @@ const goalSchema = new mongoose.Schema(
 			required: true,
 			index: true,
 		},
+		goalType: {
+			type: String,
+			enum: ['exercise', 'body', 'skill'],
+			default: 'exercise',
+			index: true,
+		},
 		exerciseUserLibraryId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'ExerciseUserLibrary',
@@ -15,13 +21,32 @@ const goalSchema = new mongoose.Schema(
 		},
 		exerciseName: {
 			type: String,
-			required: [true, 'Exercise name is required'],
 			trim: true,
+			default: '',
+		},
+		bodyPart: {
+			type: String,
+			trim: true,
+			default: '',
+		},
+		measurementUnit: {
+			type: String,
+			enum: ['kg', 'cm', ''],
+			default: '',
 		},
 		targetWeight: {
 			type: Number,
-			required: [true, 'Target weight is required'],
+			default: null,
 			min: [0, 'Target weight must be a positive number'],
+		},
+		targetValue: {
+			type: Number,
+			default: null,
+			min: [0, 'Target value must be a positive number'],
+		},
+		currentValue: {
+			type: Number,
+			default: null,
 		},
 		targetSets: {
 			type: Number,
@@ -32,6 +57,10 @@ const goalSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 			min: [0, 'Target reps must be 0 or more'],
+		},
+		isCompleted: {
+			type: Boolean,
+			default: false,
 		},
 		notes: {
 			type: String,

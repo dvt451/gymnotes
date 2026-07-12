@@ -1,27 +1,32 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import Header from '../../widgets/Header';
 import Footer from '../../widgets/Footer';
-import Gradient from '../../widgets/Gradient';
 import { AuthContext } from '../../../context/AuthContext';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { createGoalsStyles } from './GoalsStyles';
-import { createCommonStyle, toRem } from '../../../styles/commonStyle';
+import { toRem } from '../../../styles/commonStyle';
 import GoalForm from './GoalForm';
 import GoalsList from './GoalsList';
 import GoalProgress from './GoalProgress';
 import Popup from '../../widgets/Popup';
+import EditButton from '../Exercises/EditButton';
 
 const initialFormState = {
+	goalType: 'exercise',
 	exerciseUserLibraryId: '',
 	targetWeight: '',
-	targetSets: '1',
+	targetReps: '1',
+	bodyPart: '',
+	measurementUnit: 'kg',
+	targetValue: '',
+	skillName: '',
+	notes: '',
 };
 
 export default function Goals() {
 	const { BASE_URL, getToken } = useContext(AuthContext);
 	const { mainColor } = useContext(GlobalContext);
 	const goalsStyles = useMemo(() => createGoalsStyles(mainColor), [mainColor]);
-	const commonStyle = createCommonStyle(mainColor);
 	const [goals, setGoals] = useState([]);
 	const [libraryExercises, setLibraryExercises] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -31,6 +36,7 @@ export default function Goals() {
 	const [formState, setFormState] = useState(initialFormState);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [newGoalPopUpState, setNewGoalPopUpState] = useState(false);
+	const [editState, setEditState] = useState(false);
 	const loadGoals = async () => {
 		setIsLoading(true);
 		setError('');
@@ -98,33 +104,68 @@ export default function Goals() {
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
+		const goalType = formState.goalType || 'exercise';
 
-		if (!formState.exerciseUserLibraryId) {
-			setError('Please choose an exercise from your library.');
-			return;
+		if (goalType === 'exercise') {
+			if (!formState.exerciseUserLibraryId) {
+				setError('Please choose an exercise from your library.');
+				return;
+			}
+			if (!String(formState.targetWeight).trim()) {
+				setError('Target weight is required.');
+				return;
+			}
+			if (!String(formState.targetReps).trim()) {
+				setError('Target reps are required.');
+				return;
+			}
+			const selectedExercise = libraryExercises.find(
+				(item) => String(item._id) === String(formState.exerciseUserLibraryId)
+			);
+			if (!selectedExercise) {
+				setError('Please choose a valid exercise from your library.');
+				return;
+			}
 		}
 
-		if (!String(formState.targetWeight).trim()) {
-			setError('Target weight is required.');
-			return;
+		if (goalType === 'body') {
+			if (!String(formState.bodyPart).trim()) {
+				setError('Body part is required.');
+				return;
+			}
+			if (!String(formState.targetValue).trim()) {
+				setError('Target value is required.');
+				return;
+			}
 		}
 
-		const selectedExercise = libraryExercises.find(
-			(item) => String(item._id) === String(formState.exerciseUserLibraryId)
-		);
-
-		if (!selectedExercise) {
-			setError('Please choose a valid exercise from your library.');
-			return;
+		if (goalType === 'skill') {
+			if (!String(formState.skillName).trim()) {
+				setError('Skill or trick name is required.');
+				return;
+			}
 		}
 
 		const payload = {
-			exerciseUserLibraryId: formState.exerciseUserLibraryId,
-			exerciseName: selectedExercise.name,
-			targetWeight: Number(formState.targetWeight),
-			targetSets: Number(formState.targetSets) || 1,
-			targetReps: 0,
+			goalType,
+			notes: formState.notes,
 		};
+
+		if (goalType === 'exercise') {
+			payload.exerciseUserLibraryId = formState.exerciseUserLibraryId;
+			payload.exerciseName = libraryExercises.find(
+				(item) => String(item._id) === String(formState.exerciseUserLibraryId)
+			)?.name || formState.exerciseUserLibraryId;
+			payload.targetWeight = Number(formState.targetWeight);
+			payload.targetReps = Number(formState.targetReps) || 1;
+			payload.targetSets = 1;
+		} else if (goalType === 'body') {
+			payload.bodyPart = formState.bodyPart;
+			payload.measurementUnit = formState.measurementUnit;
+			payload.targetValue = Number(formState.targetValue);
+		} else {
+			payload.skillName = formState.skillName;
+		}
 
 		setIsSubmitting(true);
 		setError('');
@@ -148,6 +189,7 @@ export default function Goals() {
 			const data = await response.json();
 			setGoals((prev) => [data.goal, ...prev]);
 			setFormState(initialFormState);
+			setNewGoalPopUpState(false);
 		} catch (err) {
 			setError(err.message || 'Failed to create goal');
 		} finally {
@@ -176,6 +218,32 @@ export default function Goals() {
 		}
 	};
 
+	const handleUpdateGoal = async (goalId, updatePayload) => {
+		try {
+			const token = getToken?.();
+			const response = await fetch(`${BASE_URL}/api/goals/${goalId}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify(updatePayload),
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to update goal');
+			}
+
+			const data = await response.json();
+			setGoals((prev) => prev.map((goal) => (goal._id === goalId ? data.goal : goal)));
+			return data.goal;
+		} catch (err) {
+			setError(err.message || 'Failed to update goal');
+			throw err;
+		}
+	};
+
 	return (
 		<>
 			{/* <Gradient /> */}
@@ -198,6 +266,8 @@ export default function Goals() {
 							goals={goals}
 							isLoading={isLoading}
 							onDelete={handleDelete}
+							onUpdateGoal={handleUpdateGoal}
+							editState={editState}
 						/>
 						<button
 							type="button"
@@ -206,6 +276,10 @@ export default function Goals() {
 						>
 							+	Add New Goal
 						</button>
+						<EditButton
+							editState={editState}
+							setEditState={setEditState}
+						/>
 					</section>
 					<Popup isOpen={newGoalPopUpState} onClose={() => setNewGoalPopUpState(false)}>
 						{/* Goal Form */}
