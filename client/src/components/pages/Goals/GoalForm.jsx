@@ -59,8 +59,8 @@ export default function GoalForm({
             },
         })
     }
-{/* />
-						<select
+ />
+	{/*					<select
 							name="goalType"
 							value={goalType}
 							onChange={onInputChange}
