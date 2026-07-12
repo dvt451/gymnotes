@@ -43,11 +43,23 @@ export default function GoalForm({
 				<div style={goalsStyles.formRow}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 						<label style={goalsStyles.metaLabel}>Goal type</label>
-						{/* <Select
-							options={['exercise', 'body', 'skill']}
-							value={goalType}
-							onChange={onInputChange}
-						/> */}
+<Select
+    value={goalType}
+    style={popupStyle.popupInput}
+    options={[
+        { value: 'exercise', label: 'Exercise' },
+        { value: 'body', label: 'Body' },
+        { value: 'skill', label: 'Tricks & Skills' },
+    ]}
+    onChange={(value) =>
+        onInputChange({
+            target: {
+                name: 'goalType',
+                value,
+            },
+        })
+    }
+{/* />
 						<select
 							name="goalType"
 							value={goalType}
@@ -57,7 +69,7 @@ export default function GoalForm({
 							<option value="exercise">Exercise</option>
 							<option value="body">Body</option>
 							<option value="skill">Tricks & Skills</option>
-						</select>
+						</select> */}
 					</div>
 				</div>
 
@@ -164,17 +176,16 @@ export default function GoalForm({
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 								<label style={goalsStyles.metaLabel}>Measurement</label>
 								<Select
-    value={goalType}
+    value={formState.measurementUnit}
     style={popupStyle.popupInput}
     options={[
-        { value: 'exercise', label: 'Exercise' },
-        { value: 'body', label: 'Body' },
-        { value: 'skill', label: 'Tricks & Skills' },
+        { value: 'kg', label: 'kg' },
+        { value: 'cm', label: 'cm' },
     ]}
     onChange={(value) =>
         onInputChange({
             target: {
-                name: 'goalType',
+                name: 'measurementUnit',
                 value,
             },
         })
