@@ -163,15 +163,23 @@ export default function GoalForm({
 							</div>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 								<label style={goalsStyles.metaLabel}>Measurement</label>
-								<select
-									name="measurementUnit"
-									value={formState.measurementUnit}
-									onChange={onInputChange}
-									style={popupStyle.popupInput}
-								>
-									<option value="kg">kg</option>
-									<option value="cm">cm</option>
-								</select>
+								<Select
+    value={goalType}
+    style={popupStyle.popupInput}
+    options={[
+        { value: 'exercise', label: 'Exercise' },
+        { value: 'body', label: 'Body' },
+        { value: 'skill', label: 'Tricks & Skills' },
+    ]}
+    onChange={(value) =>
+        onInputChange({
+            target: {
+                name: 'goalType',
+                value,
+            },
+        })
+    }
+/>
 							</div>
 						</div>
 						<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
