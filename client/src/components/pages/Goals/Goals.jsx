@@ -5,9 +5,11 @@ import Gradient from '../../widgets/Gradient';
 import { AuthContext } from '../../../context/AuthContext';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { createGoalsStyles } from './GoalsStyles';
-import { createCommonStyle } from '../../../styles/commonStyle';
+import { createCommonStyle, toRem } from '../../../styles/commonStyle';
 import GoalForm from './GoalForm';
 import GoalsList from './GoalsList';
+import GoalProgress from './GoalProgress';
+import Popup from '../../widgets/Popup';
 
 const initialFormState = {
 	exerciseUserLibraryId: '',
@@ -28,7 +30,7 @@ export default function Goals() {
 	const [libraryError, setLibraryError] = useState('');
 	const [formState, setFormState] = useState(initialFormState);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-
+	const [newGoalPopUpState, setNewGoalPopUpState] = useState(false);
 	const loadGoals = async () => {
 		setIsLoading(true);
 		setError('');
@@ -176,30 +178,36 @@ export default function Goals() {
 
 	return (
 		<>
-			<Gradient />
+			{/* <Gradient /> */}
 			<div style={{ position: 'relative', zIndex: 1, flex: 1 }}>
 				<Header />
 				<main style={goalsStyles.page}>
 					<section style={goalsStyles.section}>
 						{/* Page Header */}
-						<div style={{ ...commonStyle.titleHeader, ...goalsStyles.titleHeader }}>
-							<div>
-								<h2 style={goalsStyles.title}>Goals</h2>
-								<p style={goalsStyles.description}>
-									Create workout goals, track progress and mark achievements when your entries match the target.
-								</p>
-							</div>
-							<button
-								type="button"
-								style={goalsStyles.addButton}
-								onClick={() =>
-									document.getElementById('goal-form')?.scrollIntoView({ behavior: 'smooth' })
-								}
-							>
-								Add Goal
-							</button>
-						</div>
+						<div style={{ ...goalsStyles.pageHeader }}>
+							<h2>Achivments</h2>
 
+						</div>
+						{/* Goal Progress */}
+						<GoalProgress goals={goals} />
+
+						<h3 style={{ ...goalsStyles.goalProgressTitle, marginTop: toRem(15) }}>My Goals</h3>
+
+						{/* Goals List */}
+						<GoalsList
+							goals={goals}
+							isLoading={isLoading}
+							onDelete={handleDelete}
+						/>
+						<button
+							type="button"
+							style={goalsStyles.addButton}
+							onClick={() => setNewGoalPopUpState(true)}
+						>
+							+	Add New Goal
+						</button>
+					</section>
+					<Popup isOpen={newGoalPopUpState} onClose={() => setNewGoalPopUpState(false)}>
 						{/* Goal Form */}
 						<GoalForm
 							formState={formState}
@@ -212,14 +220,7 @@ export default function Goals() {
 							onSelectChange={handleSelectChange}
 							onSubmit={handleSubmit}
 						/>
-
-						{/* Goals List */}
-						<GoalsList
-							goals={goals}
-							isLoading={isLoading}
-							onDelete={handleDelete}
-						/>
-					</section>
+					</Popup>
 				</main>
 				<Footer />
 			</div>

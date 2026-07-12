@@ -3,10 +3,7 @@ import { colors, toRem } from '../../../styles/commonStyle';
 export const createGoalsStyles = (mainColor) => ({
 	page: {
 		padding: toRem(18),
-		display: 'flex',
-		flexDirection: 'column',
-		gap: toRem(20),
-		paddingBottom: toRem(123),
+		paddingBottom: toRem(100),
 	},
 	section: {
 		display: 'flex',
@@ -14,21 +11,106 @@ export const createGoalsStyles = (mainColor) => ({
 		gap: toRem(14),
 	},
 	card: {
-		backgroundColor: colors.labelBG,
+		borderRadius: toRem(14),
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(14),
+	},
+	pageHeader: {
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		gap: toRem(12),
+		flexWrap: 'wrap',
+	},
+	goalProgress: {
+	},
+	goalProgressTitle: {
+		fontSize: toRem(20),
+		fontWeight: 700,
+		paddingBottom: toRem(15),
+	},
+	goalProgressCard: {
+		width: '100%',
 		borderRadius: toRem(14),
 		padding: toRem(18),
 		border: `1px solid ${mainColor || colors.green}22`,
 		boxShadow: `0 6px 18px ${colors.black}20`,
 		display: 'flex',
-		flexDirection: 'column',
-		gap: toRem(14),
-	},
-	titleHeader: {
-		display: 'flex',
-		justifyContent: 'space-between',
 		alignItems: 'center',
-		gap: toRem(12),
 		flexWrap: 'wrap',
+		gap: toRem(20),
+	},
+	ellipseProgressWrap: {
+		position: 'relative',
+		width: toRem(180),
+		height: toRem(180),
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	ellipseProgressSvg: {
+		transform: 'rotate(-90deg)',
+		overflow: 'visible',
+	},
+	ellipseProgressTrack: {
+		fill: 'none',
+		stroke: 'rgba(255, 255, 255, 0.08)',
+		strokeWidth: toRem(24),
+	},
+	ellipseProgressFill: {
+		fill: 'none',
+		stroke: mainColor || colors.green,
+		strokeWidth: toRem(24),
+		strokeLinecap: 'round',
+		transition: 'stroke-dashoffset 0.4s ease, stroke 0.3s ease',
+		transformOrigin: 'center',
+	},
+	ellipseProgressCenter: {
+		position: 'absolute',
+		inset: 0,
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: toRem(6),
+		textAlign: 'center',
+		padding: toRem(20),
+	},
+	ellipseProgressValue: {
+		fontSize: toRem(28),
+		fontWeight: 800,
+		lineHeight: 1,
+	},
+	ellipseProgressLabel: {
+		fontSize: toRem(18),
+		opacity: 0.72,
+		textTransform: 'uppercase',
+		letterSpacing: '0.08em',
+	},
+	goalProgressContext: {
+		flex: '1 1 auto',
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(12),
+	},
+	goalProgressrow: {
+		display: 'flex',
+		width: '100%',
+		alignItems: 'center',
+		gap: toRem(10),
+	},
+	goalProgressDott: {
+		width: toRem(10),
+		height: toRem(10),
+		borderRadius: '50%',
+	},
+	goalProgressName: {
+		fontWeight: 500,
+	},
+	goalProgressValue: {
+		flex: '1 1 auto',
+		textAlign: 'right',
 	},
 	title: {
 		fontSize: toRem(22),
@@ -39,12 +121,18 @@ export const createGoalsStyles = (mainColor) => ({
 		lineHeight: 1.5,
 	},
 	addButton: {
-		padding: `${toRem(12)} ${toRem(18)}`,
+		padding: `${toRem(20)} ${toRem(18)}`,
 		borderRadius: toRem(12),
-		border: 'none',
+		border: toRem(1) + ' solid ' + (mainColor || colors.green),
+		cursor: 'pointer',
+		color: mainColor,
+	},
+	newGoalAddButton: {
+		padding: `${toRem(20)} ${toRem(18)}`,
+		borderRadius: toRem(12),
+		border: toRem(1) + ' solid ' + (mainColor || colors.green),
 		cursor: 'pointer',
 		backgroundColor: mainColor || colors.green,
-		color: colors.white,
 		fontWeight: 700,
 	},
 	goalGrid: {
@@ -68,15 +156,18 @@ export const createGoalsStyles = (mainColor) => ({
 		gap: toRem(12),
 	},
 	goalTitle: {
-		fontSize: toRem(18),
+		color: colors.white,
+		fontSize: toRem(24),
 		fontWeight: 700,
 	},
 	statusBadge: {
-		padding: `${toRem(6)} ${toRem(10)}`,
+		padding: `${toRem(6)} ${toRem(12)}`,
 		borderRadius: toRem(999),
 		fontSize: toRem(12),
-		fontWeight: 700,
-		textTransform: 'uppercase',
+		fontWeight: 500,
+		borderWidth: toRem(1),
+		borderStyle: 'solid',
+		whiteSpace: 'nowrap',
 	},
 	goalMeta: {
 		display: 'grid',
@@ -91,6 +182,7 @@ export const createGoalsStyles = (mainColor) => ({
 	metaLabel: {
 		fontSize: toRem(12),
 		opacity: 0.7,
+		color: colors.white,
 	},
 	metaValue: {
 		fontSize: toRem(16),
@@ -103,10 +195,13 @@ export const createGoalsStyles = (mainColor) => ({
 		backgroundColor: 'rgba(255,255,255,0.08)',
 		overflow: 'hidden',
 	},
+	progressPercent: {
+		fontWeight: 700,
+		fontSize: toRem(16),
+	},
 	progressFill: {
 		height: '100%',
 		borderRadius: toRem(999),
-		backgroundColor: mainColor || colors.green,
 		transition: 'width 0.3s ease',
 	},
 	actionRow: {

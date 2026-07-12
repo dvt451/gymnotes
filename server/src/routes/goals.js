@@ -15,10 +15,18 @@ const parsePositiveNumber = (value) => {
 	const numberValue = Number(value);
 	return Number.isFinite(numberValue) && numberValue >= 0 ? numberValue : null;
 };
+const parseNumber = (value, fallback = 0) => {
+	const numberValue = Number(value);
+	return Number.isFinite(numberValue) ? numberValue : fallback;
+};
 
 const buildGoalProgress = (goal, entries = []) => {
-	const targetSets = Number.isFinite(goal.targetSets) && goal.targetSets > 0 ? goal.targetSets : 1;
-	const targetReps = Number.isFinite(goal.targetReps) && goal.targetReps > 0 ? goal.targetReps : 0;
+	const targetWeight = parseNumber(goal.targetWeight, 1);
+	const targetSets = parseNumber(goal.targetSets, 1);
+	const targetReps = parseNumber(goal.targetReps, 0);
+	const normalizedTargetWeight = targetWeight > 0 ? targetWeight : 1;
+	const normalizedTargetSets = targetSets > 0 ? targetSets : 1;
+	const normalizedTargetReps = targetReps > 0 ? targetReps : 0;
 
 	const matchingEntries = entries.filter((entry) => {
 		if (!entry || !Array.isArray(entry.weights)) return false;
@@ -36,59 +44,61 @@ const buildGoalProgress = (goal, entries = []) => {
 	});
 
 	let highestWeight = 0;
-	let matchedSets = 0;
+	let highestRepAtHighestWeight = 0;
 	let achievedAt = null;
-	const matchedSetsByDate = [];
 
 	for (const entry of matchingEntries) {
 		const date = entry.trainingDateId?.date || entry.trainingDateId;
-		let entryMatchCount = 0;
 
 		for (const weightRecord of entry.weights) {
 			if (!Number.isFinite(weightRecord?.weight)) continue;
 			const weightValue = Number(weightRecord.weight);
-			if (weightValue < goal.targetWeight) continue;
+			const repsValuesAtWeight = Array.isArray(weightRecord.sets)
+				? weightRecord.sets
+					.map((rep) => Number(rep))
+					.filter((repsValue) => Number.isFinite(repsValue) && repsValue >= 0)
+				: [];
+			const highestRepForWeight = repsValuesAtWeight.length > 0 ? Math.max(...repsValuesAtWeight) : 0;
 
-			highestWeight = Math.max(highestWeight, weightValue);
+			if (weightValue > highestWeight) {
+				highestWeight = weightValue;
+				highestRepAtHighestWeight = highestRepForWeight;
+			} else if (weightValue === highestWeight) {
+				highestRepAtHighestWeight = Math.max(highestRepAtHighestWeight, highestRepForWeight);
+			}
 
-			if (!Array.isArray(weightRecord.sets)) continue;
-			const matchingSetCount = weightRecord.sets.filter((rep) => {
-				const repsValue = Number(rep);
-				if (!Number.isFinite(repsValue) || repsValue < 0) return false;
-				return targetReps > 0 ? repsValue >= targetReps : true;
-			}).length;
-
-			entryMatchCount += matchingSetCount;
-		}
-
-		if (entryMatchCount > 0) {
-			matchedSetsByDate.push({ date: new Date(date || Date.now()), count: entryMatchCount });
-		}
-	}
-
-	matchedSetsByDate.sort((left, right) => left.date - right.date);
-
-	let cumulativeSets = 0;
-	for (const item of matchedSetsByDate) {
-		cumulativeSets += item.count;
-		if (!achievedAt && cumulativeSets >= targetSets) {
-			achievedAt = item.date;
-			break;
+			if (!achievedAt && weightValue >= normalizedTargetWeight && normalizedTargetReps > 0 && highestRepForWeight >= normalizedTargetReps) {
+				achievedAt = new Date(date || Date.now());
+			}
 		}
 	}
 
-	matchedSets = cumulativeSets;
-	const progressPercent = Math.min(100, Math.round((matchedSets / targetSets) * 100));
-	const isAchieved = matchedSets >= targetSets;
+	const currentWeight = highestWeight;
+	const weightAchieved = currentWeight >= normalizedTargetWeight;
+	const matchedReps = highestRepAtHighestWeight;
+	const weightProgressPercent = Math.min(100, Math.round((currentWeight / normalizedTargetWeight) * 100));
+	const repsProgressPercent = currentWeight < normalizedTargetWeight
+		? 0
+		: currentWeight > normalizedTargetWeight
+			? 100
+			: normalizedTargetReps > 0
+				? Math.min(100, Math.round((matchedReps / normalizedTargetReps) * 100))
+				: 0;
+	const hasReachedTargetReps = normalizedTargetReps > 0 ? matchedReps >= normalizedTargetReps : true;
+	const isAchieved = weightAchieved && hasReachedTargetReps;
+	const finalAchievedAt = isAchieved && !achievedAt ? goal.updatedAt || new Date() : achievedAt;
 
 	return {
-		targetSets,
-		targetReps,
-		matchedSets,
+		targetSets: normalizedTargetSets,
+		targetReps: normalizedTargetReps,
+		matchedReps,
 		highestWeight,
-		progressPercent,
+		weightProgressPercent,
+		repsProgressPercent,
+		progressPercent: weightProgressPercent,
+		weightAchieved,
 		isAchieved,
-		achievedAt,
+		achievedAt: finalAchievedAt,
 	};
 };
 

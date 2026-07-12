@@ -100,7 +100,7 @@ export default function GoalForm({
 					</div>
 				</div>
 
-				{/* Target Weight and Approach */}
+				{/* Target Weight and Rep */}
 				<div style={goalsStyles.formRow}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 						<label style={goalsStyles.metaLabel}>Target weight</label>
@@ -117,7 +117,7 @@ export default function GoalForm({
 					</div>
 
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-						<label style={goalsStyles.metaLabel}>Approach</label>
+						<label style={goalsStyles.metaLabel}>Rep</label>
 						<input
 							name="targetSets"
 							type="number"
@@ -136,7 +136,7 @@ export default function GoalForm({
 				{/* Submit Button */}
 				<button
 					type="submit"
-					style={{ ...goalsStyles.addButton, width: 'fit-content' }}
+					style={{ ...goalsStyles.newGoalAddButton, width: '100%', padding: '12px 0' }}
 					disabled={isSubmitting}
 				>
 					{isSubmitting ? 'Saving...' : 'Create goal'}

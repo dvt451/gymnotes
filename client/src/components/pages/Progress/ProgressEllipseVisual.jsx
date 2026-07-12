@@ -8,12 +8,13 @@ import {
 export default function ProgressEllipseVisual({
 	progressPercent,
 	progressStyles,
-	label = 'Progress',
+	label = false,
 	size = 220,
 	stroke = 24,
 	valueFontSize = 32,
 	labelFontSize = 24,
 	showPercentSign = true,
+	centerContent,
 }) {
 	const visualProgress = getProgressVisualValue(progressPercent);
 	const radius = (size - stroke) / 2;
@@ -57,26 +58,30 @@ export default function ProgressEllipseVisual({
 				/>
 			</svg>
 			<div style={progressStyles.ellipseProgressCenter}>
-				<strong
-					style={{
-						...progressStyles.ellipseProgressValue,
-						fontSize: valueFontSize,
-					}}
-				>
-					{showPercentSign ? formatPercent(progressPercent) : formatPercent(progressPercent)}
-				</strong>
-				{
-					label &&
-					<span
-						style={{
-							...progressStyles.ellipseProgressLabel,
-							fontSize: labelFontSize,
-						}}
-					>
-						{label}
-					</span>
-				}
-
+				{centerContent ? (
+					centerContent
+				) : (
+					<>
+						<strong
+							style={{
+								...progressStyles.ellipseProgressValue,
+								fontSize: valueFontSize,
+							}}
+						>
+							{showPercentSign ? formatPercent(progressPercent) : formatPercent(progressPercent)}
+						</strong>
+						{label && (
+							<span
+								style={{
+									...progressStyles.ellipseProgressLabel,
+									fontSize: labelFontSize,
+								}}
+							>
+								{label}
+							</span>
+						)}
+					</>
+				)}
 			</div>
 		</div>
 	);
