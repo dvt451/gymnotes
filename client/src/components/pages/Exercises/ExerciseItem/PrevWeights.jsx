@@ -137,7 +137,7 @@ export default function PrevWeights({
 										borderRadius: '50%',
 										width: toRem(40),
 										height: toRem(40),
-									    flex: '2.5rem + 0 0',
+									    flex: '2.5rem 0 0',
 										backgroundColor: colors.blueLight + 30,
 									}}><BiMessageDetail style={{ fontSize: toRem(20) }} />
 									</span>
