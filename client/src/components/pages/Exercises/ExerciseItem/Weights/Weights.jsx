@@ -12,6 +12,9 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 	const [editingWeightValue, setEditingWeightValue] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext);
+	const [showAddInput, setShowAddInput] = useState(false);
+	const [editingSetIndex, setEditingSetIndex] = useState(null);
+	const [repsInput, setRepsInput] = useState('');
 
 	const styles = createExercisesStyles(mainColor);
 
@@ -121,6 +124,16 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 		}
 	};
 
+	// Обработчики для добавления нового подхода
+	const handleAddRepClick = () => {
+		// Закрываем редактирование если открыто
+		if (editingSetIndex !== null) {
+			cancelEditing();
+		}
+		setShowAddInput(true);
+		setRepsInput('');
+	};
+
 	return (
 		<div style={{ ...styles.settingsRow, ...styles.weightsContainer }}>
 			{(!item.weights || item.weights.length === 0) && (
@@ -129,91 +142,121 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 
 			{item.weights && item.weights.map((w) => (
 				<div key={w._id} style={styles.weightBlock}>
-					{editingWeightId === w._id ? (
-						<div ref={editInputRef}>
-							<input
-								type="text"
-								inputMode="decimal"
-								pattern="[0-9]*\.?[0-9]*"
-								value={editingWeightValue}
-								onChange={(e) => setEditingWeightValue(e.target.value)}
-								onKeyDown={(e) => handleKeyPress(e, w)}
-								onBlur={() => {
-									if (editingWeightId === w._id && !isSubmitting) {
-										if (editingWeightValue.trim() && parseFloat(editingWeightValue.replace(',', '.')) !== w.weight) {
-											handleSaveWeight(w);
-										} else {
-											cancelEditing();
+					<div
+						style={{
+							display: 'flex',
+							gap: toRem(10),
+							alignItems: 'center',
+						}}
+					>
+						{editingWeightId === w._id ? (
+							<div ref={editInputRef}>
+								<input
+									type="text"
+									inputMode="decimal"
+									pattern="[0-9]*\.?[0-9]*"
+									value={editingWeightValue}
+									onChange={(e) => setEditingWeightValue(e.target.value)}
+									onKeyDown={(e) => handleKeyPress(e, w)}
+									onBlur={() => {
+										if (editingWeightId === w._id && !isSubmitting) {
+											if (editingWeightValue.trim() && parseFloat(editingWeightValue.replace(',', '.')) !== w.weight) {
+												handleSaveWeight(w);
+											} else {
+												cancelEditing();
+											}
 										}
-									}
-								}}
+									}}
+									style={{
+										width: '70px',
+										padding: '6px 8px',
+										borderRadius: '8px',
+										border: `1px solid ${mainColor}`,
+										textAlign: 'center',
+										fontSize: '14px',
+										backgroundColor: 'white',
+										color: colors.blueDark
+									}}
+									autoFocus
+									disabled={isSubmitting}
+									placeholder="Вес в кг"
+									enterKeyHint="done"
+								/>
+							</div>
+						) : (
+							<button
 								style={{
-									width: '70px',
-									padding: '6px 8px',
-									borderRadius: '8px',
-									border: `1px solid ${mainColor}`,
-									textAlign: 'center',
-									fontSize: '14px',
-									backgroundColor: 'white',
-									color: colors.blueDark
+									...styles.weightButton,
+									...(editState && isExpanded && {
+										cursor: 'pointer',
+										position: 'relative',
+									})
 								}}
-								autoFocus
-								disabled={isSubmitting}
-								placeholder="Вес в кг"
-								enterKeyHint="done"
-							/>
-						</div>
-					) : (
-						<button
-							style={{
-								...styles.weightButton,
-								...(editState && isExpanded && {
-									cursor: 'pointer',
-									position: 'relative',
-								})
-							}}
-							onClick={() => editState && isExpanded ? startEditing(w) : null}
-							title={editState && isExpanded ? "Нажмите для редактирования веса" : ""}
-						>
-							<span style={{
-								...styles.weightText,
-								...(editState && isExpanded && {
-									backgroundColor: colors.blueLight,
-									padding: '0 4px',
-									borderRadius: '4px',
-									color: colors.black,
-									transition: 'all 0.2s ease',
-								})
-							}}>
-								{w.weight} <span style={{
-									fontSize: toRem(16),
-								}}>kg</span>
-							</span>
-						</button>
-					)}
+								onClick={() => editState && isExpanded ? startEditing(w) : null}
+								title={editState && isExpanded ? "Нажмите для редактирования веса" : ""}
+							>
+								<span style={{
+									...styles.weightText,
+									...(editState && isExpanded && {
+										backgroundColor: colors.blueLight,
+										padding: '0 4px',
+										borderRadius: '4px',
+										color: colors.black,
+										transition: 'all 0.2s ease',
+									})
+								}}>
+									{w.weight} <span style={{
+										fontSize: toRem(16),
+									}}>kg</span>
+								</span>
+							</button>
+						)}
 
-					<Repeats
-						editState={editState}
-						BASE_URL={BASE_URL}
-						trainingId={trainingId}
-						date={date}
-						item={item}
-						w={w}
-						isExpanded={isExpanded}
-						setExercises={setExercises}
-					/>
-
-					{editState && isExpanded && (
-						<DeleteWeights
+						<Repeats
+							editState={editState}
 							BASE_URL={BASE_URL}
 							trainingId={trainingId}
 							date={date}
-							exerciseId={item._id}
-							weightId={w._id}
+							item={item}
+							w={w}
+							isExpanded={isExpanded}
 							setExercises={setExercises}
+							showAddInput={showAddInput}
+							setShowAddInput={setShowAddInput}
+							editingSetIndex={editingSetIndex}
+							setEditingSetIndex={setEditingSetIndex}
+							repsInput={repsInput}
+							setRepsInput={setRepsInput}
 						/>
+
+						{editState && isExpanded && (
+							<DeleteWeights
+								BASE_URL={BASE_URL}
+								trainingId={trainingId}
+								date={date}
+								exerciseId={item._id}
+								weightId={w._id}
+								setExercises={setExercises}
+							/>
+						)}
+					</div>
+					{/* Кнопка добавления или инпут */}
+					{!editState && isExpanded && (
+						<>
+							{!showAddInput && (
+								<button
+									onClick={handleAddRepClick}
+									style={{
+										...styles.addSetBtn,
+										color: mainColor,
+									}}
+									type="button"
+								>+ Add reps</button>
+							)}
+						</>
 					)}
 				</div>
+
 			))}
 
 			{!editState && isExpanded && (

@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
+import InlineSpinner from '../../widgets/InlineSpinner';
 import { GlobalContext } from '../../../context/GlobalContext';
 import { createExercisesStyles } from './ExersicesStyles';
 import { colors, createCommonStyle } from '../../../styles/commonStyle';
@@ -15,6 +16,7 @@ export default function ExercisesList({
 	previousExercisesByLibraryId,
 	previousDateKey,
 	editState,
+	isApplyingTemplate = false,
 }) {
 	const { mainColor } = useContext(GlobalContext);
 	const styles = createExercisesStyles(mainColor);
@@ -124,39 +126,40 @@ export default function ExercisesList({
 			)}
 			<div style={styles.list}>
 				{Array.isArray(exercises) ? (
-					exercises.map((item, index) => (
-						<ExerciseItem
-							key={item._id?.toString() || `index-${index}`}
-							item={item}
-							exercises={exercises}
-							setExercises={setExercises}
-							date={date}
-							trainingId={trainingId}
-							BASE_URL={BASE_URL}
-							expandedExerciseId={expandedExerciseId}
-							setExpandedExerciseId={setExpandedExerciseId}
-							setIsCommentEditingId={setIsCommentEditingId}
-							isCommentEditingId={isCommentEditingId}
-							editState={editState}
-							isReordering={isReordering}
-							index={index}
-							exercisesCount={exercises.length}
-							moveExerciseInList={moveExerciseInList}
-							isSavingOrder={isSavingOrder}
-							isPreviousHistoryLoading={isPreviousHistoryLoading}
-							prevWeights={
-								previousExercisesByLibraryId[
+					<>
+						{exercises.map((item, index) => (
+							<ExerciseItem
+								key={item._id?.toString() || `index-${index}`}
+								item={item}
+								exercises={exercises}
+								setExercises={setExercises}
+								date={date}
+								trainingId={trainingId}
+								BASE_URL={BASE_URL}
+								expandedExerciseId={expandedExerciseId}
+								setExpandedExerciseId={setExpandedExerciseId}
+								setIsCommentEditingId={setIsCommentEditingId}
+								isCommentEditingId={isCommentEditingId}
+								editState={editState}
+								isReordering={isReordering}
+								index={index}
+								exercisesCount={exercises.length}
+								moveExerciseInList={moveExerciseInList}
+								isSavingOrder={isSavingOrder}
+								isPreviousHistoryLoading={isPreviousHistoryLoading}
+								prevHistoryEntries={
+									previousExercisesByLibraryId[
 									String(item.exerciseUserLibraryId || '')
-								]?.weights || []
-							}
-							prevComment={
-								previousExercisesByLibraryId[
-									String(item.exerciseUserLibraryId || '')
-								]?.comment || ''
-							}
-							previousDate={previousDateKey}
-						/>
-					))
+									] || []
+								}
+							/>
+						))}
+						{isApplyingTemplate && (
+							<div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 8px' }}>
+								<InlineSpinner size={24} thickness={3} color={mainColor || '#92E33C'} />
+							</div>
+						)}
+					</>
 				) : (
 					<p style={styles.error}>Unable to display exercises.</p>
 				)}

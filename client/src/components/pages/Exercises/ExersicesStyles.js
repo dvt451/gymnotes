@@ -388,7 +388,6 @@ export const createExercisesStyles = (mainColor) => ({
 	exercisePreviousCommentText: {
 		fontSize: toRem(14),
 		lineHeight: 1.4,
-		color: colors.blueLight,
 		whiteSpace: 'pre-wrap',
 		wordBreak: 'break-word',
 	},
@@ -408,8 +407,9 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 	settingsRow: {
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'column-reverse',
 		rowGap: toRem(6),
+		marginTop: toRem(10)
 	},
 
 	PrevWeightBlock: {
@@ -419,8 +419,8 @@ export const createExercisesStyles = (mainColor) => ({
 		paddingRight: toRem(15),
 		paddingBottom: toRem(10),
 		color: "#727578",
-		color: colors.blueLight,
 		fontSize: toRem(14),
+		gap: toRem(8),
 	},
 	weightsContainer: {
 		padding: toRem(0) + ' ' + toRem(15) + ' ' + toRem(10),
@@ -428,7 +428,7 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 	weightBlock: {
 		display: 'flex',
-		alignItems: 'center',
+		flexDirection: 'column',
 		padding: toRem(10) + ' ' + toRem(15),
 		gap: toRem(10),
 		// backgroundColor: '#21242b',
@@ -463,6 +463,7 @@ export const createExercisesStyles = (mainColor) => ({
 	prevWeightHeader: {
 		display: 'flex',
 		alignItems: 'center',
+		whiteSpace: 'nowrap',
 		gap: toRem(5),
 	},
 	PrevWeightText: {
@@ -506,11 +507,11 @@ export const createExercisesStyles = (mainColor) => ({
 		flexWrap: 'wrap',
 	},
 	addSetBtn: {
-		fontSize: toRem(18),
+		fontSize: toRem(16),
+		backgroundColor: '#21242b',
 		cursor: 'pointer',
 		transition: 'all 0.3s ease',
 		whiteSpace: 'nowrap',
-		background: 'none',
 		border: toRem(1) + ' dashed ' + colors.popupBorderColor,
 		padding: toRem(5) + ' ' + toRem(18),
 		borderRadius: '0.4em',
@@ -525,7 +526,8 @@ export const createExercisesStyles = (mainColor) => ({
 		backgroundColor: '#21242b',
 		borderRadius: toRem(8),
 		width: '100%',
-		color: colors.green,
+		fontSize: toRem(16),
+		color: colors.orange,
 	},
 	// ========== СТИЛИ ДЛЯ КОМПОНЕНТА ADDWEIGHT ==========
 	addWeightContainer: {

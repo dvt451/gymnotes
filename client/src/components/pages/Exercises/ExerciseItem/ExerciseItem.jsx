@@ -31,6 +31,7 @@ export default function ExerciseItem({
 	moveExerciseInList = () => { },
 	isSavingOrder = false,
 	isPreviousHistoryLoading = false,
+	prevHistoryEntries = [],
 	prevWeights = [],
 	prevComment = '',
 	previousDate = '',
@@ -167,6 +168,7 @@ export default function ExerciseItem({
 					BASE_URL={BASE_URL}
 					isExpanded={isExpanded}
 					isReordering={isReordering}
+					prevHistoryEntries={prevHistoryEntries}
 					prevWeights={prevWeights}
 					prevComment={prevComment}
 					previousDate={previousDate}

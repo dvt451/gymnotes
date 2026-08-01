@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Header from '../../widgets/Header';
 import Footer from '../../widgets/Footer';
 import { AuthContext } from '../../../context/AuthContext';
@@ -10,6 +10,7 @@ import MuscleGroupStatisticsSection from './MuscleGroupStatisticsSection';
 import ExerciseStatisticsSection from './ExerciseStatisticsSection';
 import Gradient from '../../widgets/Gradient';
 import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
+import DatePickerModal from '../DateList/DatePickerModal';
 
 
 export default function Progress() {
@@ -18,20 +19,42 @@ export default function Progress() {
 	const [progress, setProgress] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState('');
+	const [datePickerVisible, setDatePickerVisible] = useState(false);
+	const [datePickerMode, setDatePickerMode] = useState('start');
+	const [selectedStartDate, setSelectedStartDate] = useState('');
+	const [selectedEndDate, setSelectedEndDate] = useState('');
+	const [appliedStartDate, setAppliedStartDate] = useState('');
+	const [appliedEndDate, setAppliedEndDate] = useState('');
+	const [pickerError, setPickerError] = useState('');
+	const requestRef = useRef(0);
 
 	const commonStyle = createCommonStyle(mainColor);
 	const progressStyles = useMemo(() => createProgressStyles(mainColor), [mainColor]);
 
-	useEffect(() => {
-		let isMounted = true;
+	const formatDateValue = (value) => {
+		if (!value) return '';
+		const date = value instanceof Date ? value : new Date(value);
+		const year = date.getFullYear();
+		const month = `${date.getMonth() + 1}`.padStart(2, '0');
+		const day = `${date.getDate()}`.padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	};
 
-		const loadProgress = async () => {
+	const loadProgress = useCallback((startDate = appliedStartDate, endDate = appliedEndDate) => {
+		const requestId = ++requestRef.current;
+		let isCancelled = false;
+
+		const runLoad = async () => {
 			setIsLoading(true);
 			setError('');
 
 			try {
 				const token = getToken?.();
-				const response = await fetch(`${BASE_URL}/api/progress`, {
+				const params = new URLSearchParams();
+				if (startDate) params.set('startDate', startDate);
+				if (endDate) params.set('endDate', endDate);
+
+				const response = await fetch(`${BASE_URL}/api/progress${params.toString() ? `?${params.toString()}` : ''}`, {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
@@ -42,26 +65,77 @@ export default function Progress() {
 				}
 
 				const data = await response.json();
-				if (isMounted) {
+				if (!isCancelled && requestRef.current === requestId) {
 					setProgress(data);
 				}
 			} catch (err) {
-				if (isMounted) {
+				if (!isCancelled && requestRef.current === requestId) {
 					setError(err.message || 'Failed to load progress statistics');
 				}
 			} finally {
-				if (isMounted) {
+				if (!isCancelled && requestRef.current === requestId) {
 					setIsLoading(false);
 				}
 			}
 		};
 
-		loadProgress();
+		runLoad();
 
 		return () => {
-			isMounted = false;
+			isCancelled = true;
 		};
-	}, [BASE_URL, getToken]);
+	}, [BASE_URL, getToken, appliedStartDate, appliedEndDate]);
+
+	useEffect(() => {
+		return loadProgress();
+	}, [loadProgress]);
+
+	const openDatePicker = (mode) => {
+		setDatePickerMode(mode);
+		setPickerError('');
+		setDatePickerVisible(true);
+	};
+
+	const handleDateSelect = (date) => {
+		const normalizedDate = formatDateValue(date);
+		if (datePickerMode === 'start') {
+			if (selectedEndDate && normalizedDate && normalizedDate > selectedEndDate) {
+				setPickerError('Start date cannot be after end date');
+				return;
+			}
+			setSelectedStartDate(normalizedDate);
+		} else {
+			if (selectedStartDate && normalizedDate && normalizedDate < selectedStartDate) {
+				setPickerError('End date cannot be before start date');
+				return;
+			}
+			setSelectedEndDate(normalizedDate);
+		}
+	};
+
+	const handlePickerAdd = () => {
+		setDatePickerVisible(false);
+		setPickerError('');
+	};
+
+	const handleApplyRange = () => {
+		if (selectedStartDate && selectedEndDate && selectedStartDate > selectedEndDate) {
+			setPickerError('Start date cannot be after end date');
+			return;
+		}
+		setAppliedStartDate(selectedStartDate);
+		setAppliedEndDate(selectedEndDate);
+		loadProgress(selectedStartDate, selectedEndDate);
+	};
+
+	const handleResetRange = () => {
+		setSelectedStartDate('');
+		setSelectedEndDate('');
+		setAppliedStartDate('');
+		setAppliedEndDate('');
+		setPickerError('');
+		loadProgress('', '');
+	};
 
 	const period = progress?.period;
 	const overall = progress?.overall;
@@ -75,6 +149,48 @@ export default function Progress() {
 				<Header />
 				<main style={progressStyles.main}>
 					<section style={progressStyles.section}>
+						<div style={{ ...progressStyles.card, marginBottom: '18px' }}>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+									<h2 style={{ ...commonStyle.title, margin: 0 }}>Analysis range</h2>
+									<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+										<button
+											type="button"
+											style={{ ...commonStyle.button, padding: '8px 12px', borderRadius: '999px' }}
+											onClick={() => openDatePicker('start')}
+										>
+											From: {selectedStartDate || appliedStartDate || 'All time'}
+										</button>
+										<button
+											type="button"
+											style={{ ...commonStyle.button, padding: '8px 12px', borderRadius: '999px' }}
+											onClick={() => openDatePicker('end')}
+										>
+											To: {selectedEndDate || appliedEndDate || 'All time'}
+										</button>
+									</div>
+								</div>
+								<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+									<button
+										type="button"
+										style={{ ...commonStyle.popupCreateButton, padding: '8px 14px' }}
+										onClick={handleApplyRange}
+									>
+										Apply
+									</button>
+									<button
+										type="button"
+										style={{ ...commonStyle.popupCancelButton, padding: '8px 14px' }}
+										onClick={handleResetRange}
+									>
+										Reset
+									</button>
+								</div>
+								{pickerError && (
+									<div style={{ color: '#d32f2f', fontSize: '14px' }}>{pickerError}</div>
+								)}
+							</div>
+						</div>
 						{isLoading ? (
 							<>
 								<div style={progressStyles.card}>
@@ -177,6 +293,23 @@ export default function Progress() {
 								/>
 							</>
 						)}
+						<DatePickerModal
+							visible={datePickerVisible}
+							selectedDate={
+								datePickerMode === 'start'
+									? (selectedStartDate ? new Date(`${selectedStartDate}T00:00:00`) : null)
+									: (selectedEndDate ? new Date(`${selectedEndDate}T00:00:00`) : null)
+							}
+							onSelect={handleDateSelect}
+							onClose={() => {
+								setDatePickerVisible(false);
+								setPickerError('');
+							}}
+							onAdd={handlePickerAdd}
+							error={pickerError}
+							title={datePickerMode === 'start' ? 'Select start date' : 'Select end date'}
+							buttonText="Select"
+						/>
 					</section>
 				</main >
 				<Footer />

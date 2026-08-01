@@ -5,15 +5,11 @@ import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
 import InlineSpinner from '../../../../widgets/InlineSpinner';
 
-export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, date, item: exercise, w: weight, setExercises }) {
-	const [editingSetIndex, setEditingSetIndex] = useState(null);
+export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, date, item: exercise, w: weight, setExercises, showAddInput, setShowAddInput, editingSetIndex, setEditingSetIndex, repsInput, setRepsInput }) {
 	const [editingRepsValue, setEditingRepsValue] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// Состояния для добавления нового подхода
-	const [repsInput, setRepsInput] = useState('');
 	const [addIsSubmitting, setAddIsSubmitting] = useState(false);
-	const [showAddInput, setShowAddInput] = useState(false);
 
 	// Refs для отслеживания кликов вне элементов
 	const addInputRef = useRef(null);
@@ -206,15 +202,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 		}
 	};
 
-	// Обработчики для добавления нового подхода
-	const handleAddRepClick = () => {
-		// Закрываем редактирование если открыто
-		if (editingSetIndex !== null) {
-			cancelEditing();
-		}
-		setShowAddInput(true);
-		setRepsInput('');
-	};
+
 
 	const handleCancelAdd = () => {
 		setShowAddInput(false);
@@ -289,9 +277,12 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 				display: 'flex',
 				alignItems: 'center',
 				gap: '10px',
+				width: '100%',
 			}}>
 				{/* Список существующих подходов */}
-				<div style={styles.repsContainer}>
+				<div style={{
+					...styles.repsContainer,
+				}}>
 					<div style={{
 						...styles.repsContainerRow,
 						gridTemplateColumns: editState && isExpanded ? `repeat(3, 1fr)` : `repeat(4, 1fr)`
@@ -335,9 +326,6 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 								) : (
 									<button
 										onClick={() => startEditing(setValue, index)}
-										style={{
-
-										}}
 										title={editState && isExpanded ? "Нажмите для редактирования\nВведите 0 для удаления" : ""}
 									>
 										<span style={{
@@ -354,19 +342,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 								)}
 							</div>
 						))}
-						{/* Кнопка добавления или инпут */}
-						{!editState && isExpanded && (
-							<>
-								{!showAddInput && (
-									<button
-										className="add-set-btn"
-										onClick={handleAddRepClick}
-										style={styles.addSetBtn}
-										type="button"
-									>+</button>
-								)}
-							</>
-						)}
+
 						{!editState && isExpanded && showAddInput && (<div ref={addInputRef} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 							<input
 								type="text"
@@ -412,8 +388,6 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 						)}
 					</div>
 				</div>
-
-
 			</div >
 		</>
 	);

@@ -13,7 +13,7 @@ import CreateTemplatePopup from './CreateTemplatePopup';
 import EditTemplatePopup from './EditTemplatePopup/EditTemplatePopup';
 import { FaPen } from 'react-icons/fa';
 
-export default function Templates({ setExercises, trainingId, date, existingExercises = [] }) {
+export default function Templates({ setExercises, trainingId, date, existingExercises = [], setIsApplyingTemplate }) {
 	const { BASE_URL } = useContext(AuthContext);
 	const { mainColor } = useContext(GlobalContext);
 	const [templates, setTemplates] = useState([]);
@@ -168,6 +168,8 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 			return;
 		}
 
+		setIsApplyingTemplate?.(true);
+
 		try {
 			const exercisesToAdd = template.exercises.filter(
 				(exercise) => !isDuplicateInDayList(existingExercises, exercise)
@@ -214,6 +216,8 @@ export default function Templates({ setExercises, trainingId, date, existingExer
 		} catch (err) {
 			console.error('Error applying template:', err);
 			showNotificationMessage(`Error: ${err.message}`, 'error');
+		} finally {
+			setIsApplyingTemplate?.(false);
 		}
 	};
 
