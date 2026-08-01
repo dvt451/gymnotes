@@ -56,7 +56,7 @@ export default function PrevWeights({
 	}
 
 	return (
-		<div style={styles.settingsRow}>
+		<div style={{ ...styles.settingsRow, flexDirection: 'column-reverse' }}>
 			{visibleEntries.map((entry, entryIndex) => {
 				const entryDate = entry?.date || previousDate;
 				const entryWeights = Array.isArray(entry?.weights) ? entry.weights : [];
@@ -117,7 +117,19 @@ export default function PrevWeights({
 
 							{normalizedComment && (
 
-								<div style={{ display: 'flex', alignItems: 'center', gap: toRem(10), paddingLeft: 0, paddingBottom: 0, color: colors.blueLight, }}>
+								<div style={{
+									width: '100%',
+									display: 'flex',
+									alignItems: 'center',
+									gap: toRem(10),
+									padding: `${toRem(10)} ${toRem(15)}`,
+									color: colors.blueLight,
+									backgroundColor: 'rgb(0 200 255 / 1%)',
+									borderRadius: toRem(6),
+									borderLeft: `3px solid ${colors.blueLight}`,
+									marginLeft: toRem(10),
+
+								}}>
 									<span style={{
 										display: 'flex',
 										alignItems: 'center',
@@ -126,7 +138,12 @@ export default function PrevWeights({
 										width: toRem(40),
 										height: toRem(40),
 										backgroundColor: colors.blueLight + 30,
-									}}><BiMessageDetail style={{ fontSize: toRem(20) }} /></span><span style={styles.exercisePreviousCommentText}>{normalizedComment}</span>
+									}}><BiMessageDetail style={{ fontSize: toRem(20) }} />
+									</span>
+									<div>
+										<p style={{ ...styles.exerciseCommentTitle, color: colors.blueLight }}>Previous note</p>
+										<span style={styles.exercisePreviousCommentText}>{normalizedComment}</span>
+									</div>
 								</div>
 							)}
 						</div>

@@ -16,7 +16,9 @@ import {
 import { createPopupStyle } from '../../../widgets/popupStyle';
 import ButtonType from '../../../widgets/ButtonType';
 import MuscleGroupSelect from '../../../widgets/MuscleGroupSelect';
-import { FaTrash } from 'react-icons/fa';
+import { FaArrowDown, FaArrowUp, FaPen, FaTrash } from 'react-icons/fa';
+import EditExerciseListMove from './EditTemplatePopup/EditExerciseListMove';
+import EditExerciseTrash from './EditTemplatePopup/EditExerciseTrash';
 
 export default function CreateTemplatePopup({
 	modalVisible,
@@ -53,6 +55,7 @@ export default function CreateTemplatePopup({
 		borderRadius: '8px',
 		fontSize: '14px',
 	};
+	const [reordrer, setReordrer] = useState(false)
 
 	const normalizedInput = normalizeExerciseName(newExerciseName);
 	const shouldCreateExercise = Boolean(normalizedInput) && !exactMatch;
@@ -63,7 +66,6 @@ export default function CreateTemplatePopup({
 		setModalError('');
 		setNewExerciseName('');
 	};
-
 	const saveNewTemplate = async () => {
 		if (!newTemplateName.trim()) {
 			alert('Enter template name');
@@ -264,56 +266,78 @@ export default function CreateTemplatePopup({
 					</div>
 				</div>
 				<div style={popupStyle.popupLibraryBlock}>
-					<h3 style={popupStyle.title}>List</h3>
+					<div style={templatesStyles.header}>
+						<h3 style={popupStyle.title}>List</h3>
+						<button
+							style={{
+								...templatesStyles.editButton,
+								...(reordrer && templatesStyles.editButtonEditing)
+							}}
+							onClick={() => setReordrer(!reordrer)}
+						>
+							{reordrer ? 'Reorder...' : 'Reorder'}
+							<FaPen style={{ marginLeft: '5px' }} />
+						</button>
+					</div>
 					<div style={popupStyle.libraryList}>
 						{newTemplateExercises.map((ex, i) => (
 							<div
 								key={`${ex}_${i}`}
-								style={{
-									...popupStyle.ListItems,
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'space-between',
-								}}
 							>
-								<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-									<button
-										type="button"
-										style={{
-											...popupStyle.removeExerciseButton,
-											padding: '4px 8px',
-										}}
-										onClick={() => moveExerciseInNewTemplate(i, -1)}
-										disabled={i === 0}
-									>
-										Up
-									</button>
-									<button
-										type="button"
-										style={{
-											...popupStyle.removeExerciseButton,
-											padding: '4px 8px',
-										}}
-										onClick={() => moveExerciseInNewTemplate(i, 1)}
-										disabled={i === newTemplateExercises.length - 1}
-									>
-										Down
-									</button>
-									<span style={popupStyle.ListItem}>{ex}</span>
-								</div>
-								<button
-									style={popupStyle.removeExerciseButton}
-									onClick={() =>
-										setNewTemplateExercises((prev) => prev.filter((e) => e !== ex))
-									}
+								<div
+									style={{ ...popupStyle.ListItems, alignItems: 'normal' }}
 								>
-									<FaTrash />
-								</button>
+									<span style={popupStyle.ListItem}>{ex}</span>
+
+									{
+										reordrer ?
+											<div style={{
+												display: 'flex',
+											}}>
+												< button
+													type="button"
+
+													style={{
+														...popupStyle.removeExerciseButton,
+														backgroundColor: colors.green,
+														height: '100%',
+													}}
+													onClick={() => moveExerciseInNewTemplate(i, -1)}
+													disabled={i === 0}
+												>
+													<FaArrowUp />
+												</button>
+												<button
+													type="button"
+													style={{
+														...popupStyle.removeExerciseButton,
+														backgroundColor: colors.blueLight,
+														height: '100%',
+													}}
+													onClick={() => moveExerciseInNewTemplate(i, 1)}
+													disabled={i === newTemplateExercises.length - 1}
+												>
+													<FaArrowDown />
+												</button>
+											</div>
+											:
+											<button
+												style={popupStyle.removeExerciseButton}
+												onClick={() =>
+													setNewTemplateExercises((prev) => prev.filter((e) => e !== ex))
+												}
+											>
+												<FaTrash />
+											</button>
+									}
+
+								</div>
+
 							</div>
 						))}
 					</div>
 				</div>
-			</div>
+			</div >
 			<div style={templatesStyles.modalButtonsHorizontal}>
 				<button
 					style={{ ...templatesStyles.cancelButton, ...commonStyle.popupCancelButton }}
@@ -328,6 +352,6 @@ export default function CreateTemplatePopup({
 					Save
 				</button>
 			</div>
-		</Popup>
+		</Popup >
 	);
 }

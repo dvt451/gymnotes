@@ -302,17 +302,25 @@ export const createExercisesStyles = (mainColor) => ({
 	exerciseCommentRow: {
 		display: 'flex',
 		flexDirection: 'column',
-		alignItems: 'center',
 		gap: toRem(8),
+		backgroundColor: 'rgb(76 175 80 / 2%)',
+		padding: `${toRem(10)} ${toRem(15)}`,
+		borderRadius: toRem(6),
+		borderLeft: `3px solid ${colors.green}`,
 	},
-
+	exerciseCommentTitle: {
+		marginBottom: toRem(4),
+		fontSize: toRem(14),
+		fontWeight: '600',
+		color: colors.green,
+	},
 	exerciseCommentDisplayButton: {
 		background: 'transparent',
 		border: 'none',
 		padding: 0,
 		margin: 0,
 		display: 'flex',
-		alignItems: 'center',
+		gap: toRem(10),
 		flex: 1,
 		textAlign: 'left',
 		cursor: 'pointer',
@@ -390,6 +398,7 @@ export const createExercisesStyles = (mainColor) => ({
 		lineHeight: 1.4,
 		whiteSpace: 'pre-wrap',
 		wordBreak: 'break-word',
+		color: colors.white,
 	},
 
 	exerciseCommentError: {

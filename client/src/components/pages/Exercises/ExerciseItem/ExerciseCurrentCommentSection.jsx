@@ -4,6 +4,8 @@ import { GlobalContext } from '../../../../context/GlobalContext';
 import { createExercisesStyles } from '../ExersicesStyles';
 import { getToken } from '../../../utils/getToken';
 import InlineSpinner from '../../../widgets/InlineSpinner';
+import { BiMessageAdd } from "react-icons/bi";
+import { colors, toRem } from '../../../../styles/commonStyle';
 
 export default function ExerciseCurrentCommentSection({
 	item,
@@ -159,7 +161,7 @@ export default function ExerciseCurrentCommentSection({
 					</>
 				) : (
 					<>
-						{canEditComment && (
+						{canEditComment && !normalizedCurrentComment && (
 							<button
 								type="button"
 								onClick={handleStartEditing}
@@ -179,18 +181,35 @@ export default function ExerciseCurrentCommentSection({
 							style={{
 								...styles.exerciseCommentDisplayButton,
 								cursor: canEditComment ? 'pointer' : 'default',
+
 							}}
 							title={canEditComment ? 'Edit comment' : undefined}
 						>
 							<span
-								style={
-									normalizedCurrentComment
-										? styles.exerciseCommentText
-										: styles.exerciseCommentPlaceholder
-								}
-							>
-								{normalizedCurrentComment}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									borderRadius: '50%',
+									width: toRem(40),
+									height: toRem(40),
+									backgroundColor: colors.green + 30,
+									color: colors.green,
+								}}
+							><BiMessageAdd style={{ fontSize: toRem(20), marginTop: toRem(3) }} />
 							</span>
+							<div>
+								<p style={styles.exerciseCommentTitle}>Current note</p>
+								<p
+									style={
+										normalizedCurrentComment
+											? styles.exerciseCommentText
+											: styles.exerciseCommentPlaceholder
+									}
+								>
+									{normalizedCurrentComment}
+								</p>
+							</div>
 						</button>}
 					</>
 				)}
