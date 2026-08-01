@@ -6,15 +6,17 @@ import Repeats from '../Reps/Repeats';
 import { colors, toRem } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
+import { getToken as getAuthToken } from '../../../../utils/getToken';
 
 export default function Weights({ item, editState, setExercises, date, trainingId, isExpanded, BASE_URL }) {
 	const [editingWeightId, setEditingWeightId] = useState(null);
 	const [editingWeightValue, setEditingWeightValue] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { mainColor } = useContext(GlobalContext);
-	const [showAddInput, setShowAddInput] = useState(false);
 	const [editingSetIndex, setEditingSetIndex] = useState(null);
-	const [repsInput, setRepsInput] = useState('');
+	const [showAddInputForWeight, setShowAddInputForWeight] = useState(null);
+	const [repsInputForWeight, setRepsInputForWeight] = useState('');
+	const [isAddingRep, setIsAddingRep] = useState(false);
 
 	const styles = createExercisesStyles(mainColor);
 
@@ -124,14 +126,76 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 		}
 	};
 
-	// Обработчики для добавления нового подхода
-	const handleAddRepClick = () => {
-		// Закрываем редактирование если открыто
-		if (editingSetIndex !== null) {
-			cancelEditing();
+	const openAddRepInput = (weightId) => {
+		setShowAddInputForWeight(weightId);
+		setRepsInputForWeight('');
+	};
+
+	const cancelAddRepInput = () => {
+		setShowAddInputForWeight(null);
+		setRepsInputForWeight('');
+	};
+
+	const handleAddRepSubmit = async (weightId) => {
+		const trimmedInput = repsInputForWeight.trim();
+		if (!trimmedInput) return;
+
+		const reps = parseInt(trimmedInput, 10);
+		if (Number.isNaN(reps) || reps <= 0) {
+			alert('Введите корректное число повторений.');
+			return;
 		}
-		setShowAddInput(true);
-		setRepsInput('');
+
+		setIsAddingRep(true);
+
+		try {
+			const token = await getAuthToken();
+			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${item._id}/weights/${weightId}/sets`;
+
+			const res = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ reps }),
+			});
+
+			if (!res.ok) {
+				const data = await res.json();
+				throw new Error(data.message || 'Не удалось добавить подход');
+			}
+
+			const newSet = await res.json();
+			const repsValue = Number.isFinite(Number(newSet?.reps)) ? Number(newSet.reps) : reps;
+
+			setExercises(prevExercises =>
+				prevExercises.map(ex => {
+					if (ex._id === item._id) {
+						return {
+							...ex,
+							weights: ex.weights.map(w => {
+								if (w._id === weightId) {
+									return {
+										...w,
+										sets: [...(w.sets || []), repsValue],
+									};
+								}
+								return w;
+							}),
+						};
+					}
+					return ex;
+				})
+			);
+
+			cancelAddRepInput();
+		} catch (err) {
+			console.error('Ошибка при добавлении подхода:', err);
+			alert(`Ошибка: ${err.message}`);
+		} finally {
+			setIsAddingRep(false);
+		}
 	};
 
 	return (
@@ -221,12 +285,15 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 							w={w}
 							isExpanded={isExpanded}
 							setExercises={setExercises}
-							showAddInput={showAddInput}
-							setShowAddInput={setShowAddInput}
 							editingSetIndex={editingSetIndex}
 							setEditingSetIndex={setEditingSetIndex}
-							repsInput={repsInput}
-							setRepsInput={setRepsInput}
+							showAddInput={showAddInputForWeight === w._id}
+							setShowAddInput={(value) => setShowAddInputForWeight(value ? w._id : null)}
+							repsInput={repsInputForWeight}
+							setRepsInput={setRepsInputForWeight}
+							handleAddRepSubmit={() => handleAddRepSubmit(w._id)}
+							handleCancelAdd={cancelAddRepInput}
+							isAddingRep={isAddingRep}
 						/>
 
 						{editState && isExpanded && (
@@ -240,24 +307,25 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 							/>
 						)}
 					</div>
-					{/* Кнопка добавления или инпут */}
+
 					{!editState && isExpanded && (
-						<>
-							{!showAddInput && (
-								<button
-									onClick={handleAddRepClick}
-									style={{
-										...styles.addSetBtn,
-										color: mainColor,
-									}}
-									type="button"
-								>+ Add reps</button>
-							)}
-						</>
+						<div style={{ marginTop: toRem(8) }}>
+							<button
+								type="button"
+								onClick={() => openAddRepInput(w._id)}
+								style={{
+									...styles.addSetBtn,
+									color: mainColor,
+									width: '100%',
+								}}
+							>
+								+ Add reps
+							</button>
+						</div>
 					)}
 				</div>
-
 			))}
+
 
 			{!editState && isExpanded && (
 				<AddWeight

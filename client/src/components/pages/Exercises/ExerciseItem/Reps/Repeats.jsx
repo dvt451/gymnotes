@@ -3,13 +3,28 @@ import { createExercisesStyles } from '../../ExersicesStyles';
 import { colors, toRem } from '../../../../../styles/commonStyle';
 import { getToken } from '../../../../utils/getToken';
 import { GlobalContext } from '../../../../../context/GlobalContext';
-import InlineSpinner from '../../../../widgets/InlineSpinner';
 
-export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, date, item: exercise, w: weight, setExercises, showAddInput, setShowAddInput, editingSetIndex, setEditingSetIndex, repsInput, setRepsInput }) {
+export default function Repeats({
+	BASE_URL,
+	editState,
+	isExpanded,
+	trainingId,
+	date,
+	item: exercise,
+	w: weight,
+	setExercises,
+	editingSetIndex,
+	setEditingSetIndex,
+	showAddInput = false,
+	setShowAddInput = () => { },
+	repsInput = '',
+	setRepsInput = () => { },
+	handleAddRepSubmit = async () => { },
+	handleCancelAdd = () => { },
+	isAddingRep = false,
+}) {
 	const [editingRepsValue, setEditingRepsValue] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
-
-	const [addIsSubmitting, setAddIsSubmitting] = useState(false);
 
 	// Refs для отслеживания кликов вне элементов
 	const addInputRef = useRef(null);
@@ -30,7 +45,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
-	}, [showAddInput]);
+	}, [showAddInput, handleCancelAdd]);
 
 	// Закрываем редактирование при клике вне его области
 	useEffect(() => {
@@ -204,71 +219,9 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 
 
 
-	const handleCancelAdd = () => {
-		setShowAddInput(false);
-		setRepsInput('');
-	};
-
 	const handleAddSubmit = async () => {
 		if (!repsInput.trim()) return;
-
-		const reps = parseInt(repsInput, 10);
-		if (isNaN(reps) || reps <= 0) {
-			alert('Введите корректное число повторений.');
-			return;
-		}
-
-		setAddIsSubmitting(true);
-
-		try {
-			const token = await getToken();
-			const url = `${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/${exercise._id}/weights/${weight._id}/sets`;
-
-			const res = await fetch(url, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify({ reps }),
-			});
-
-			if (!res.ok) {
-				const data = await res.json();
-				throw new Error(data.message || 'Не удалось добавить подход');
-			}
-
-			const newSet = await res.json();
-			const repsValue = Number.isFinite(Number(newSet?.reps)) ? Number(newSet.reps) : reps;
-
-			setExercises(prevExercises =>
-				prevExercises.map(ex => {
-					if (ex._id === exercise._id) {
-						return {
-							...ex,
-							weights: ex.weights.map(w => {
-								if (w._id === weight._id) {
-									return {
-										...w,
-										sets: [...w.sets, repsValue],
-									};
-								}
-								return w;
-							}),
-						};
-					}
-					return ex;
-				})
-			);
-
-			setShowAddInput(false);
-			setRepsInput('');
-		} catch (err) {
-			console.error('Ошибка при добавлении подхода:', err);
-			alert(`Ошибка: ${err.message}`);
-		} finally {
-			setAddIsSubmitting(false);
-		}
+		await handleAddRepSubmit();
 	};
 
 	return (
@@ -292,7 +245,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 							<div
 								key={index}
 								style={{
-									display: 'inline-block', margin: '0 2px',
+									display: 'inline-block',
 									background: editState && isExpanded && colors.orange,
 									border: toRem(1) + ' solid ' + colors.popupBorderColor,
 									padding: toRem(5) + ' ' + toRem(18),
@@ -353,7 +306,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 								onKeyDown={(e) => {
 									if (e.key === 'Enter') {
 										e.preventDefault();
-										if (showAddInput && !addIsSubmitting && repsInput.trim()) {
+										if (showAddInput && !isAddingRep && repsInput.trim()) {
 											handleAddSubmit();
 										}
 									}
@@ -364,7 +317,7 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 								}}
 								onBlur={() => {
 									// Закрываем инпут при потере фокуса (когда нажали Done на мобильной клавиатуре)
-									if (showAddInput && !addIsSubmitting) {
+									if (showAddInput && !isAddingRep) {
 										setRepsInput('');
 										handleAddSubmit();
 									}
@@ -375,13 +328,13 @@ export default function Repeats({ BASE_URL, editState, isExpanded, trainingId, d
 									padding: '6px 10px',
 									borderRadius: '8px',
 									fontSize: '16px',
-									width: '100%',
+									width: '60px',
 									textAlign: 'center',
 									color: colors.white,
 								}}
 								autoFocus
 								min="1"
-								disabled={addIsSubmitting}
+								disabled={isAddingRep}
 								enterKeyHint="done"
 							/>
 						</div>

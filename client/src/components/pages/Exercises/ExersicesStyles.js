@@ -407,7 +407,7 @@ export const createExercisesStyles = (mainColor) => ({
 	},
 	settingsRow: {
 		display: 'flex',
-		flexDirection: 'column-reverse',
+		flexDirection: 'column',
 		rowGap: toRem(6),
 		marginTop: toRem(10)
 	},
