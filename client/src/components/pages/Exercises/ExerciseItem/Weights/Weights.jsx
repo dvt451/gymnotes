@@ -75,13 +75,13 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 		setExercises(prevExercises => {
 			previousExercises = prevExercises;
 			return prevExercises.map(ex => {
-			if (ex._id !== item._id) return ex;
-			return {
-				...ex,
-				weights: ex.weights.map(w => w._id === weight._id
-					? { ...w, weight: newWeightValue }
-					: w),
-			};
+				if (ex._id !== item._id) return ex;
+				return {
+					...ex,
+					weights: ex.weights.map(w => w._id === weight._id
+						? { ...w, weight: newWeightValue }
+						: w),
+				};
 			});
 		});
 		setEditingWeightId(null);
