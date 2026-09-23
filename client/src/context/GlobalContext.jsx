@@ -7,6 +7,7 @@ export const GlobalProvider = ({ children }) => {
 	const [mainColor, setMainColor] = useState('#92E33C'); // РёР»Рё С†РІРµС‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 	const [adminBarState, setAdminBarState] = useState(false)
 	const [timerDisplayState, setTimerDisplayState] = useState(false)
+	const [showBurgerMenu, setShowBurgerMenu] = useState(false)
 
 	// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ С†РІРµС‚Р°
 	const handleColorChange = (e) => {
@@ -24,7 +25,9 @@ export const GlobalProvider = ({ children }) => {
 			adminBarState,
 			setAdminBarState,
 			timerDisplayState,
-			setTimerDisplayState
+			setTimerDisplayState,
+			showBurgerMenu,
+			setShowBurgerMenu,
 		}}>
 			{children}
 		</GlobalContext.Provider>

@@ -42,12 +42,6 @@ const normalizeExercisePayload = (ex) => ({
 	})),
 });
 
-const normalizeDateKey = (value) => {
-	if (!value) return '';
-	const str = String(value);
-	return str.includes('T') ? str.split('T')[0] : str;
-};
-
 export default function Exercises() {
 	const { trainingId, date } = useParams();
 	const location = useLocation();
@@ -138,82 +132,15 @@ export default function Exercises() {
 				return;
 			}
 
-			const headers = {
-				Authorization: `Bearer ${token}`,
-			};
-
-			const datesResponse = await axios.get(
-				`${BASE_URL}/api/trainings/${trainingId}/dates`,
-				{ headers }
-			);
-			const dates = Array.isArray(datesResponse.data) ? datesResponse.data : [];
-			const normalizedDates = [...new Set(
-				dates.map((item) => normalizeDateKey(item?.date)).filter(Boolean)
-			)].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-			const currentDateKey = normalizeDateKey(date);
-			const previousDates = normalizedDates.filter(
-				(dateKey) => new Date(dateKey).getTime() < new Date(currentDateKey).getTime()
+			const response = await axios.get(
+				`${BASE_URL}/api/trainings/${trainingId}/dates/${date}/exercises/previous-history`,
+				{ headers: { Authorization: `Bearer ${token}` } }
 			);
 
 			if (requestId !== previousHistoryRequestRef.current) return;
 
-			if (previousDates.length === 0) {
-				if (requestId !== previousHistoryRequestRef.current) return;
-				setPreviousDateKey('');
-				setPreviousExercisesByLibraryId({});
-				setHasLoadedPreviousHistory(true);
-				return;
-			}
-
-			const historyByLibraryId = {};
-			const hasMeaningfulHistoryData = (exercise) => {
-				const comment = typeof exercise.comment === 'string' ? exercise.comment.trim() : '';
-				const weights = Array.isArray(exercise.weights) ? exercise.weights : [];
-				const hasWeights = weights.some((weight) => {
-					const numericWeight = Number(weight?.weight);
-					const hasWeightValue = !Number.isNaN(numericWeight) && numericWeight > 0;
-					const hasSets = Array.isArray(weight?.sets) && weight.sets.some((set) => {
-						const reps = Number(set?.reps ?? set);
-						return !Number.isNaN(reps) && reps > 0;
-					});
-					return hasWeightValue || hasSets;
-				});
-
-				return hasWeights || Boolean(comment);
-			};
-
-			for (const historyDate of [...previousDates].reverse()) {
-				const exercisesResponse = await axios.get(
-					`${BASE_URL}/api/trainings/${trainingId}/dates/${historyDate}/exercises`,
-					{ headers }
-				);
-				const historyExercises = Array.isArray(exercisesResponse.data?.exercises)
-					? exercisesResponse.data.exercises
-					: [];
-
-				historyExercises.forEach((exercise) => {
-					const libraryId = String(exercise.exerciseUserLibraryId || '');
-					if (!libraryId) return;
-
-					const existingEntries = historyByLibraryId[libraryId] || [];
-					if (existingEntries.length >= 2) return;
-					if (!hasMeaningfulHistoryData(exercise)) return;
-
-					historyByLibraryId[libraryId] = [
-						...existingEntries,
-						{
-							weights: Array.isArray(exercise.weights) ? exercise.weights : [],
-							comment: typeof exercise.comment === 'string' ? exercise.comment : '',
-							date: historyDate,
-						},
-					];
-				});
-			}
-
-			if (requestId !== previousHistoryRequestRef.current) return;
-
-			setPreviousDateKey(previousDates[previousDates.length - 1] || '');
-			setPreviousExercisesByLibraryId(historyByLibraryId);
+			setPreviousDateKey(response.data?.previousDateKey || '');
+			setPreviousExercisesByLibraryId(response.data?.previousExercisesByLibraryId || {});
 			setHasLoadedPreviousHistory(true);
 		} catch (err) {
 			if (requestId !== previousHistoryRequestRef.current) return;
@@ -306,7 +233,6 @@ export default function Exercises() {
 							previousDateKey={previousDateKey}
 							isApplyingTemplate={isApplyingTemplate}
 						/>
-
 						<ButtonType addStyle={{
 							...styles.addButton,
 						}} functionOnClick={openCreateModal}>
@@ -325,7 +251,6 @@ export default function Exercises() {
 			{!isExercisesLoading && !exercisesError && (
 				<TimerButton />
 			)}
-
 			<AddExercisePopup
 				userExercises={userExercises}
 				BASE_URL={BASE_URL}

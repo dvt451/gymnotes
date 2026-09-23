@@ -20,7 +20,7 @@ export default function AdminHeader({
 		<header className="admin-header">
 			<div className="admin-header-card">
 				<div className="admin-header-identity">
-					<div className="admin-header-avatar" aria-hidden="true">
+					<div className="admin-header-avatar" >
 						{initials}
 					</div>
 					<div className="admin-header-identity-copy">

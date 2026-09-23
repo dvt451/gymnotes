@@ -25,7 +25,7 @@ const toDateStartUtc = (dateLike) => {
 
 const ensureFile = async (userId, fileId) => {
   if (!mongoose.isValidObjectId(fileId)) return null;
-  return TrainingFile.findOne({ _id: fileId, userId });
+  return TrainingFile.findOne({ _id: fileId, userId }).select('_id');
 };
 
 const loadExerciseCountsByDateId = async (userId, fileId, trainingDateIds) => {
@@ -75,7 +75,10 @@ router.get('/', async (req, res) => {
     const dates = await TrainingDate.find({
       userId: req.userId,
       trainingFileId: req.params.fileId,
-    }).sort({ date: 1, createdAt: 1 });
+    })
+      .select('_id userId trainingFileId date createdAt updatedAt')
+      .sort({ date: 1, createdAt: 1 })
+      .lean();
     const exerciseCountsByDateId = await loadExerciseCountsByDateId(
       req.userId,
       req.params.fileId,
@@ -149,32 +152,20 @@ router.post('/', async (req, res) => {
 
     if (exists) return res.status(400).json({ message: 'Дата уже существует' });
 
-    await TrainingDate.create({
+    const createdDate = await TrainingDate.create({
       userId: req.userId,
       trainingFileId: req.params.fileId,
       date: dt,
     });
 
-    const dates = await TrainingDate.find({
-      userId: req.userId,
-      trainingFileId: req.params.fileId,
-    }).sort({ date: 1, createdAt: 1 });
-    const exerciseCountsByDateId = await loadExerciseCountsByDateId(
-      req.userId,
-      req.params.fileId,
-      dates.map((dateItem) => dateItem._id)
-    );
-
     res.status(201).json({
-      dates: dates.map((d) => ({
-        _id: d._id,
-        userId: d.userId,
-        trainingFileId: d.trainingFileId,
-        date: normalizeDateString(d.date),
-        exerciseCount: exerciseCountsByDateId.get(String(d._id)) || 0,
-        createdAt: d.createdAt,
-        updatedAt: d.updatedAt,
-      })),
+      _id: createdDate._id,
+      userId: createdDate.userId,
+      trainingFileId: createdDate.trainingFileId,
+      date: normalizeDateString(createdDate.date),
+      exerciseCount: 0,
+      createdAt: createdDate.createdAt,
+      updatedAt: createdDate.updatedAt,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

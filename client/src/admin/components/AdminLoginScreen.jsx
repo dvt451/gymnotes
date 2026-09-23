@@ -24,7 +24,7 @@ export default function AdminLoginScreen({
 						One place to review users, lock down permissions, restore backups, and trace admin activity with less friction.
 					</p>
 
-					<div className="admin-login-feature-list" aria-hidden="true">
+					<div className="admin-login-feature-list" >
 						<div className="admin-login-feature">
 							<span className="admin-login-feature-label">Accounts</span>
 							<strong>Moderate users and roles</strong>

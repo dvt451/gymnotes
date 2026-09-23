@@ -1,0 +1,60 @@
+import { colors, toRem } from '../../styles/commonStyle';
+
+export const style = {
+	burgerButton: {
+		width: '40px',
+		height: '40px',
+		cursor: 'pointer',
+		display: 'flex',
+		flexDirection: 'column',
+		justifyContent: 'space-around',
+		borderRadius: '4px',
+		zIndex: '1',
+	},
+	burgerButtonLine: {
+		width: '100%',
+		height: '3px',
+		backgroundColor: '#fff',
+		borderRadius: '2px',
+	},
+	burgerMenu: {
+		position: 'fixed',
+		inset: 0,
+		zIndex: 1001,
+		backgroundColor: 'rgba(0, 0, 0, 0.68)',
+		transition: 'transform 0.3s ease-in-out, visibility 0.3s ease-in-out',
+	},
+	navigationPanel: {
+		boxSizing: 'border-box',
+		width: `min(85vw, ${toRem(360)})`,
+		height: '100%',
+		padding: `${toRem(88)} ${toRem(22)} ${toRem(24)}`,
+		display: 'flex',
+		flexDirection: 'column',
+		gap: toRem(10),
+		backgroundColor: colors.blueDark,
+		boxShadow: '0 0 16px rgba(0, 0, 0, 0.35)',
+	},
+	navigationLink: {
+		minHeight: toRem(60),
+		padding: `0 ${toRem(16)}`,
+		borderRadius: toRem(14),
+		display: 'flex',
+		alignItems: 'center',
+		gap: toRem(16),
+		fontSize: toRem(16),
+		fontWeight: 600,
+		textDecoration: 'none',
+		transition: 'background-color 0.2s ease, color 0.2s ease',
+	},
+	navigationIcon: {
+		width: toRem(28),
+		fontSize: toRem(24),
+	},
+	activeDot: {
+		width: toRem(8),
+		height: toRem(8),
+		marginLeft: 'auto',
+		borderRadius: '50%',
+	},
+};

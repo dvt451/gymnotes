@@ -9,7 +9,6 @@ export default function InlineSpinner({
 	return (
 		<span
 			className="ui-spinner"
-			aria-hidden="true"
 			style={{
 				width: `${size}px`,
 				height: `${size}px`,

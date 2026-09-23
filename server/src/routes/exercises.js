@@ -165,7 +165,7 @@ const mapEntriesToExercises = async (entries) => {
 
 const ensureFile = async (userId, fileId) => {
 	if (!mongoose.isValidObjectId(fileId)) return null;
-	return TrainingFile.findOne({ _id: fileId, userId });
+	return TrainingFile.findOne({ _id: fileId, userId }).select('_id');
 };
 
 router.get('/', async (req, res) => {
@@ -180,11 +180,91 @@ router.get('/', async (req, res) => {
 			userId: req.userId,
 			trainingFileId: req.params.fileId,
 			trainingDateId: dateEntry._id,
-		});
+		})
+			.sort({ order: 1, createdAt: 1, _id: 1 })
+			.lean();
 
-		const orderedEntries = await normalizeExerciseEntryOrder(entries);
-		const exercises = await mapEntriesToExercises(orderedEntries);
+		const exercises = await mapEntriesToExercises(entries.sort(compareExerciseEntries));
 		res.json({ exercises });
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
+
+router.get('/previous-history', async (req, res) => {
+	try {
+		const file = await ensureFile(req.userId, req.params.fileId);
+		if (!file) return res.status(404).json({ message: 'Training not found' });
+
+		const currentDate = await findTrainingDate(req.userId, req.params.fileId, req.params.date);
+		if (!currentDate) return res.status(404).json({ message: 'Date not found' });
+
+		const previousDates = await TrainingDate.find({
+			userId: req.userId,
+			trainingFileId: req.params.fileId,
+			date: { $lt: currentDate.date },
+		})
+			.select('_id date')
+			.sort({ date: -1, createdAt: -1 })
+			.lean();
+
+		if (previousDates.length === 0) {
+			return res.json({ previousDateKey: '', previousExercisesByLibraryId: {} });
+		}
+
+		const entries = await ExerciseEntry.find({
+			userId: req.userId,
+			trainingFileId: req.params.fileId,
+			trainingDateId: { $in: previousDates.map(({ _id }) => _id) },
+		})
+			.select('trainingDateId exerciseUserLibraryId weights comment')
+			.lean();
+
+		const entriesByDateId = new Map();
+		for (const entry of entries) {
+			const dateId = String(entry.trainingDateId);
+			const dateEntries = entriesByDateId.get(dateId) || [];
+			dateEntries.push(entry);
+			entriesByDateId.set(dateId, dateEntries);
+		}
+
+		const hasMeaningfulHistoryData = (exercise) => {
+			const comment = typeof exercise.comment === 'string' ? exercise.comment.trim() : '';
+			const weights = Array.isArray(exercise.weights) ? exercise.weights : [];
+			return Boolean(comment) || weights.some((weight) => {
+				const weightValue = Number(weight?.weight);
+				const hasWeightValue = Number.isFinite(weightValue) && weightValue > 0;
+				const hasSets = Array.isArray(weight?.sets) && weight.sets.some((set) => {
+					const reps = Number(set);
+					return Number.isFinite(reps) && reps > 0;
+				});
+				return hasWeightValue || hasSets;
+			});
+		};
+
+		const previousExercisesByLibraryId = {};
+		for (const historyDate of previousDates) {
+			const historyDateKey = normalizeDateString(historyDate.date);
+			for (const exercise of entriesByDateId.get(String(historyDate._id)) || []) {
+				if (!hasMeaningfulHistoryData(exercise)) continue;
+
+				const libraryId = String(exercise.exerciseUserLibraryId);
+				const history = previousExercisesByLibraryId[libraryId] || [];
+				if (history.length >= 2) continue;
+
+				history.push({
+					weights: exercise.weights || [],
+					comment: exercise.comment || '',
+					date: historyDateKey,
+				});
+				previousExercisesByLibraryId[libraryId] = history;
+			}
+		}
+
+		res.json({
+			previousDateKey: normalizeDateString(previousDates[0].date),
+			previousExercisesByLibraryId,
+		});
 	} catch (err) {
 		res.status(500).json({ message: err.message });
 	}

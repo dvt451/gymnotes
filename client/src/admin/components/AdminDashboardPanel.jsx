@@ -132,7 +132,7 @@ export default function AdminDashboardPanel({
 								disabled={!canRestoreBackup || isRestoringBackup || isExportingBackup}
 								onChange={(event) => setSelectedBackupFile(event.target.files?.[0] || null)}
 							/>
-							<span className="admin-file-trigger" aria-hidden="true">
+							<span className="admin-file-trigger">
 								<span className="admin-file-trigger-copy">
 									<strong>{selectedBackupFile ? 'Backup ready' : 'Choose backup file'}</strong>
 									<small>

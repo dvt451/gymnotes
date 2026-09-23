@@ -9,7 +9,6 @@ import {
 	buildCalendarDays,
 	buildWeekDays,
 	MONTH_LABEL,
-	extractDateItems,
 	formatDateKey,
 	parseDateKey
 } from './calendarUtils';
@@ -45,39 +44,13 @@ export default function Calendare() {
 				Authorization: `Bearer ${userToken}`,
 			};
 
-			const trainingsResponse = await fetch(`${BASE_URL}/api/trainings`, { headers });
-			if (!trainingsResponse.ok) {
-				throw new Error('Failed to load trainings');
+			const response = await fetch(`${BASE_URL}/api/trainings/calendar-dates`, { headers });
+			if (!response.ok) {
+				throw new Error('Failed to load calendar dates');
 			}
 
-			const trainings = await trainingsResponse.json();
-
-			if (!Array.isArray(trainings) || trainings.length === 0) {
-				setTrainingDates([]);
-				return;
-			}
-
-			const datePayloads = await Promise.all(
-				trainings.map(async (training) => {
-					const response = await fetch(`${BASE_URL}/api/trainings/${training._id}/dates`, { headers });
-					if (!response.ok) {
-						throw new Error(`Failed to load dates for "${training.name}"`);
-					}
-					return response.json();
-				})
-			);
-
-			const uniqueDates = new Set();
-
-			datePayloads.forEach((payload) => {
-				extractDateItems(payload).forEach((item) => {
-					if (item?.date) {
-						uniqueDates.add(String(item.date).split('T')[0]);
-					}
-				});
-			});
-
-			setTrainingDates(Array.from(uniqueDates).sort());
+			const dates = await response.json();
+			setTrainingDates(Array.isArray(dates) ? dates : []);
 		} catch (fetchError) {
 			console.error('Failed to load calendar dates:', fetchError);
 			setError(fetchError.message || 'Failed to load training dates');

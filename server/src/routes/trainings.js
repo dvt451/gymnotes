@@ -18,6 +18,15 @@ router.get('/', async (req, res) => {
 	}
 });
 
+router.get('/calendar-dates', async (req, res) => {
+	try {
+		const dates = await TrainingDate.distinct('date', { userId: req.userId });
+		res.json(dates.map((date) => date.toISOString().split('T')[0]).sort());
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+	}
+});
+
 router.post('/', async (req, res) => {
 	const { name } = req.body;
 	try {
