@@ -58,14 +58,7 @@ export default defineConfig({
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/api\./,
-						handler: 'NetworkFirst',
-						options: {
-							cacheName: 'api-cache',
-							expiration: {
-								maxEntries: 50,
-								maxAgeSeconds: 5 * 60
-							}
-						}
+						handler: 'NetworkOnly'
 					},
 					{
 						urlPattern: /^https:\/\//,

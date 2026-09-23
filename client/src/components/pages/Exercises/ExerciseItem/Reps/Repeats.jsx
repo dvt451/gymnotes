@@ -102,6 +102,28 @@ export default function Repeats({
 		}
 
 		setIsSubmitting(true);
+		let previousExercises;
+
+		setExercises(prevExercises => {
+			previousExercises = prevExercises;
+			return prevExercises.map(ex => {
+				if (ex._id !== exercise._id) return ex;
+				return {
+					...ex,
+					weights: ex.weights.map(wt => {
+						if (wt._id !== weight._id) return wt;
+						return {
+							...wt,
+							sets: wt.sets.map((s, idx) => idx === index
+								? ((s && typeof s === 'object') ? { ...s, reps } : reps)
+								: s),
+						};
+					}),
+				};
+			});
+		});
+		setEditingSetIndex(null);
+		setEditingRepsValue('');
 
 		try {
 			const token = await getToken();
@@ -121,35 +143,8 @@ export default function Repeats({
 				throw new Error(data.message || `Ошибка ${res.status}: не удалось изменить подход`);
 			}
 
-			setExercises(prevExercises =>
-				prevExercises.map(ex => {
-					if (ex._id === exercise._id) {
-						return {
-							...ex,
-							weights: ex.weights.map(wt => {
-								if (wt._id === weight._id) {
-									return {
-										...wt,
-										sets: wt.sets.map((s, idx) => {
-											if (idx === index) {
-												return (s && typeof s === 'object') ? { ...s, reps } : reps;
-											}
-											return s;
-										}),
-									};
-								}
-								return wt;
-							}),
-						};
-					}
-					return ex;
-				})
-			);
-
-			setEditingSetIndex(null);
-			setEditingRepsValue('');
-
 		} catch (err) {
+			setExercises(previousExercises);
 			console.error('Ошибка при изменении подхода:', err);
 			alert(`Ошибка: ${err.message}`);
 		} finally {

@@ -31,7 +31,6 @@ export const createDateListStyles = (mainColor) => ({
 		display: 'flex',
 		flexDirection: 'column',
 		gap: toRem(15),
-		maxHeight: 'calc(100vh - 250px)',
 		overflowY: 'auto',
 		paddingRight: toRem(10),
 	},

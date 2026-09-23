@@ -227,7 +227,9 @@ export const createExercisesStyles = (mainColor) => ({
 		gap: toRem(10),
 		cursor: 'pointer',
 		zIndex: 100,
-		width: `calc(100% - ${toRem(40)})`,
+		width: toRem(50),
+		height: toRem(50),
+		borderRadius: '50%',
 	},
 
 	// ========== СТИЛИ ДЛЯ КОМПОНЕНТА EXERCISEITEM ==========

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { getToken } from '../../../../utils/getToken';
 import { createExercisesStyles } from '../../ExersicesStyles';
 import { GlobalContext } from '../../../../../context/GlobalContext';
@@ -9,6 +9,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 	const [showInput, setShowInput] = useState(false);
 	const [weightInput, setWeightInput] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const submittingRef = useRef(false);
 	const { mainColor } = useContext(GlobalContext);
 
 	const exercisesStyles = createExercisesStyles(mainColor);
@@ -19,6 +20,7 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 	};
 
 	const handleAddWeight = async () => {
+		if (submittingRef.current) return;
 		if (!weightInput.trim()) return;
 
 		const normalizedInput = weightInput.replace(',', '.');
@@ -29,7 +31,20 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 			return;
 		}
 
+		submittingRef.current = true;
 		setIsSubmitting(true);
+		const temporaryWeightId = `pending-weight-${Date.now()}`;
+		const optimisticWeight = {
+			_id: temporaryWeightId,
+			weight,
+			sets: [],
+		};
+
+		setExercises(prev => prev.map(ex => ex._id === itemID
+			? { ...ex, weights: [...(ex.weights || []), optimisticWeight] }
+			: ex));
+		setShowInput(false);
+		setWeightInput('');
 
 		try {
 			const token = await getToken();
@@ -52,26 +67,24 @@ export default function AddWeight({ setExercises, itemID, trainingId, date, BASE
 			}
 
 			const data = await res.json();
-
-			setExercises(prev =>
-				prev.map(ex => {
-					if (ex._id === itemID) {
-						return {
-							...ex,
-							weights: [...(ex.weights || []), data]
-						};
-					}
-					return ex;
-				})
-			);
-
-			setShowInput(false);
-			setWeightInput('');
+			setExercises(prev => prev.map(ex => {
+				if (ex._id !== itemID) return ex;
+				return {
+					...ex,
+					weights: ex.weights.map(existingWeight =>
+						existingWeight._id === temporaryWeightId ? data : existingWeight
+					),
+				};
+			}));
 
 		} catch (err) {
+			setExercises(prev => prev.map(ex => ex._id === itemID
+				? { ...ex, weights: (ex.weights || []).filter(existingWeight => existingWeight._id !== temporaryWeightId) }
+				: ex));
 			console.error('Ошибка при добавлении веса:', err);
 			alert(`Ошибка при добавлении веса: ${err.message}`);
 		} finally {
+			submittingRef.current = false;
 			setIsSubmitting(false);
 		}
 	};

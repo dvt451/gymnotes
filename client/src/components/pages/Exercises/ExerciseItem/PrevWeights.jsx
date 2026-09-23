@@ -77,42 +77,44 @@ export default function PrevWeights({
 									</div>
 								</div>
 
-								{entryWeights.map((weight, weightIndex) => {
-									const normalizedSets = normalizeSets(weight.sets || []);
+								<div style={{ display: 'flex', flexDirection: 'column', gap: toRem(4) }}>
+									{entryWeights.map((weight, weightIndex) => {
+										const normalizedSets = normalizeSets(weight.sets || []);
 
-									return (
-										<div key={weight._id || `${weight.weight}-${weightIndex}`} style={{ width: '100%' }}>
-											<div style={{ display: 'flex', alignItems: 'center', gap: toRem(6), flexWrap: 'wrap' }}>
-												<span style={{ ...styles.PrevWeightText, color: colors.blueLight }}>
-													{weight.weight}kg
-												</span>
-												<div style={{ ...styles.repsContainer, gap: toRem(5) }}>
-													{normalizedSets.length > 0 && (
-														<span style={{ color: colors.blueLight }}>x</span>
-													)}
-													<div style={{ ...styles.repsContainerRow, paddingLeft: toRem(2), gap: toRem(2) }}>
-														{normalizedSets.map((set, index) => (
-															<div
-																key={set._id}
-																style={{
-																	background: 'none',
-																	paddingRight: toRem(0),
-																	border: 'none',
-																	color: colors.blueLight,
-																}}
-															>
-																<span style={styles.PrevSetText}>
-																	{set.reps}
-																	{index !== normalizedSets.length - 1 && <span style={styles.comma}>, </span>}
-																</span>
-															</div>
-														))}
+										return (
+											<div key={weight._id || `${weight.weight}-${weightIndex}`} >
+												<div style={{ display: 'flex', alignItems: 'center', gap: toRem(6), flexWrap: 'wrap' }}>
+													<span style={{ ...styles.PrevWeightText, color: colors.blueLight }}>
+														{weight.weight}kg
+													</span>
+													<div style={{ ...styles.repsContainer, gap: toRem(5) }}>
+														{normalizedSets.length > 0 && (
+															<span style={{ color: colors.blueLight }}>x</span>
+														)}
+														<div style={{ ...styles.repsContainerRow, paddingLeft: toRem(2), gap: toRem(2) }}>
+															{normalizedSets.map((set, index) => (
+																<div
+																	key={set._id}
+																	style={{
+																		background: 'none',
+																		paddingRight: toRem(0),
+																		border: 'none',
+																		color: colors.blueLight,
+																	}}
+																>
+																	<span style={styles.PrevSetText}>
+																		{set.reps}
+																		{index !== normalizedSets.length - 1 && <span style={styles.comma}>, </span>}
+																	</span>
+																</div>
+															))}
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									);
-								})}
+										);
+									})}
+								</div>
 							</div>
 
 							{normalizedComment && (

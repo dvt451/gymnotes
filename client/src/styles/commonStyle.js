@@ -57,7 +57,7 @@ export const createCommonStyle = (mainColor) => ({
 	exerciseEditButton: {
 		position: 'fixed',
 		right: toRem(20),
-		bottom: toRem(120),
+		bottom: toRem(20),
 		zIndex: 10,
 		borderRadius: '50%',
 		border: '2px solid ' + colors.orange,

@@ -70,6 +70,22 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 		}
 
 		setIsSubmitting(true);
+		let previousExercises;
+
+		setExercises(prevExercises => {
+			previousExercises = prevExercises;
+			return prevExercises.map(ex => {
+			if (ex._id !== item._id) return ex;
+			return {
+				...ex,
+				weights: ex.weights.map(w => w._id === weight._id
+					? { ...w, weight: newWeightValue }
+					: w),
+			};
+			});
+		});
+		setEditingWeightId(null);
+		setEditingWeightValue('');
 
 		try {
 			const token = await getToken();
@@ -84,30 +100,12 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 				body: JSON.stringify({ weight: newWeightValue }),
 			});
 
-			const data = await res.json();
-			if (!res.ok) throw new Error(data.message || 'Не удалось изменить вес');
-
-			// Обновляем состояние с измененным весом
-			setExercises(prevExercises =>
-				prevExercises.map(ex => {
-					if (ex._id === item._id) {
-						return {
-							...ex,
-							weights: ex.weights.map(w => {
-								if (w._id === weight._id) {
-									return { ...w, weight: newWeightValue };
-								}
-								return w;
-							}),
-						};
-					}
-					return ex;
-				})
-			);
-
-			setEditingWeightId(null);
-			setEditingWeightValue('');
+			if (!res.ok) {
+				const data = await res.json();
+				throw new Error(data.message || 'Не удалось изменить вес');
+			}
 		} catch (err) {
+			setExercises(prevExercises => previousExercises || prevExercises);
 			console.error('Ошибка при изменении веса:', err);
 			alert(`Ошибка: ${err.message}`);
 		} finally {
@@ -147,6 +145,23 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 		}
 
 		setIsAddingRep(true);
+		const previousExercises = [];
+		let optimisticExercises;
+
+		setExercises(prevExercises => {
+			previousExercises.push(...prevExercises);
+			optimisticExercises = prevExercises.map(ex => {
+				if (ex._id !== item._id) return ex;
+				return {
+					...ex,
+					weights: ex.weights.map(w => w._id === weightId
+						? { ...w, sets: [...(w.sets || []), reps] }
+						: w),
+				};
+			});
+			return optimisticExercises;
+		});
+		cancelAddRepInput();
 
 		try {
 			const token = await getAuthToken();
@@ -165,32 +180,8 @@ export default function Weights({ item, editState, setExercises, date, trainingI
 				const data = await res.json();
 				throw new Error(data.message || 'Не удалось добавить подход');
 			}
-
-			const newSet = await res.json();
-			const repsValue = Number.isFinite(Number(newSet?.reps)) ? Number(newSet.reps) : reps;
-
-			setExercises(prevExercises =>
-				prevExercises.map(ex => {
-					if (ex._id === item._id) {
-						return {
-							...ex,
-							weights: ex.weights.map(w => {
-								if (w._id === weightId) {
-									return {
-										...w,
-										sets: [...(w.sets || []), repsValue],
-									};
-								}
-								return w;
-							}),
-						};
-					}
-					return ex;
-				})
-			);
-
-			cancelAddRepInput();
 		} catch (err) {
+			setExercises(previousExercises);
 			console.error('Ошибка при добавлении подхода:', err);
 			alert(`Ошибка: ${err.message}`);
 		} finally {

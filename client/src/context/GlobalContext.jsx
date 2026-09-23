@@ -19,6 +19,7 @@ export const GlobalProvider = ({ children }) => {
 	const [showScheduleSection, setShowScheduleSection] = useState(() => readStoredBoolean('showScheduleSection', true));
 	const [showNutritionSection, setShowNutritionSection] = useState(() => readStoredBoolean('showNutritionSection', true));
 	const [adminBarState, setAdminBarState] = useState(false)
+	const [timerDisplayState, setTimerDisplayState] = useState(false)
 
 	// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ С†РІРµС‚Р°
 	const handleColorChange = (e) => {
@@ -46,7 +47,9 @@ export const GlobalProvider = ({ children }) => {
 			showNutritionSection,
 			setShowNutritionSection,
 			adminBarState,
-			setAdminBarState
+			setAdminBarState,
+			timerDisplayState,
+			setTimerDisplayState
 		}}>
 			{children}
 		</GlobalContext.Provider>

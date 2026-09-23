@@ -14,6 +14,7 @@ import AddExercisePopup from './AddExercisePopup';
 import EditButton from './EditButton';
 import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 import InlineSpinner from '../../widgets/InlineSpinner';
+import Timer from './Timer/Timer';
 
 const normalizeExercisePayload = (ex) => ({
 	...ex,
@@ -306,7 +307,6 @@ export default function Exercises() {
 
 						<ButtonType addStyle={styles.addButton} functionOnClick={openCreateModal}>
 							<span>+</span>
-							<span>Add Exercise</span>
 						</ButtonType>
 					</>
 				)}
@@ -317,6 +317,7 @@ export default function Exercises() {
 					setEditState={setEditState}
 				/>
 			)}
+			<Timer />
 			<AddExercisePopup
 				userExercises={userExercises}
 				BASE_URL={BASE_URL}
