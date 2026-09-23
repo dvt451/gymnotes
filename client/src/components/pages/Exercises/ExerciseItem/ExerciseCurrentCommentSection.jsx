@@ -193,6 +193,7 @@ export default function ExerciseCurrentCommentSection({
 									borderRadius: '50%',
 									width: toRem(40),
 									height: toRem(40),
+									flex: '2.5rem 0 0',
 									backgroundColor: colors.green + 30,
 									color: colors.green,
 								}}
