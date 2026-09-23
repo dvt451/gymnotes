@@ -5,7 +5,6 @@ import TimerSettings from './TimerSettings'
 import TimerActions from './TimerActions'
 import { FaPause } from 'react-icons/fa'
 import { GlobalContext } from '../../../../context/GlobalContext'
-import TimerButton from '../TimerButton'
 
 // Custom colors matching the design
 const localColors = {
@@ -182,7 +181,6 @@ export default function Timer() {
 			justifyContent: 'center',
 			transition: 'all 0.3s ease-in-out',
 		}}>
-			<TimerButton />
 			<div style={{
 				width: '100%',
 				background: localColors.darkBg,

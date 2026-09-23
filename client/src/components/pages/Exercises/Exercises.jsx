@@ -16,6 +16,7 @@ import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 import InlineSpinner from '../../widgets/InlineSpinner';
 import Timer from './Timer/Timer';
 import { PiBarbellLight } from "react-icons/pi";
+import TimerButton from './TimerButton';
 
 const normalizeExercisePayload = (ex) => ({
 	...ex,
@@ -321,6 +322,10 @@ export default function Exercises() {
 				/>
 			)}
 			<Timer />
+			{!isExercisesLoading && !exercisesError && (
+				<TimerButton />
+			)}
+
 			<AddExercisePopup
 				userExercises={userExercises}
 				BASE_URL={BASE_URL}
