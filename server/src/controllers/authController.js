@@ -13,6 +13,8 @@ const serializeUser = (user, extra = {}) => ({
   email: user.email,
   avatar: user.avatar || '',
   weight: user.weight,
+	showScheduleSection: user.showScheduleSection !== false,
+	showNutritionSection: user.showNutritionSection !== false,
   role: user.role || 'user',
   accountStatus: user.accountStatus || 'active',
   suspendedAt: user.suspendedAt || null,
@@ -379,7 +381,7 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, weight } = req.body;
+    const { name, weight, showScheduleSection, showNutritionSection } = req.body;
     const user = await User.findById(req.userId);
 
     if (!user) {
@@ -389,8 +391,24 @@ export const updateProfile = async (req, res) => {
       });
     }
 
+    if (showScheduleSection !== undefined && typeof showScheduleSection !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'showScheduleSection must be a boolean',
+      });
+    }
+
+    if (showNutritionSection !== undefined && typeof showNutritionSection !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'showNutritionSection must be a boolean',
+      });
+    }
+
     if (name) user.name = name;
     if (weight !== undefined) user.weight = weight;
+	if (showScheduleSection !== undefined) user.showScheduleSection = showScheduleSection;
+	if (showNutritionSection !== undefined) user.showNutritionSection = showNutritionSection;
 
     await user.save();
 

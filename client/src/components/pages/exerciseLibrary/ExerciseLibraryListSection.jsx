@@ -8,7 +8,7 @@ export default function ExerciseLibraryListSection({
 	deletingExerciseId,
 	error,
 	isLoading,
-	onDeleteExercise,
+	onRequestDeleteExercise,
 	onRenameExercise,
 	renamingExerciseId,
 	styles,
@@ -147,7 +147,7 @@ export default function ExerciseLibraryListSection({
 								name={item.name}
 								muscleGroup={item.muscleGroup}
 								onRename={() => onRenameExercise(item)}
-								onDelete={() => onDeleteExercise(item)}
+								onDelete={() => onRequestDeleteExercise(item)}
 								isRenaming={renamingExerciseId === String(item._id || item.id)}
 								isDeleting={deletingExerciseId === String(item._id || item.id)}
 							/>

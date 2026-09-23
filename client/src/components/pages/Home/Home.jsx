@@ -5,12 +5,16 @@ import TrainingsSection from './TrainingSection/TrainingsSection';
 import Footer from '../../widgets/Footer';
 import Nutritions from './nutritions/Nutritions';
 import { GlobalContext } from '../../../context/GlobalContext';
+import { AuthContext } from '../../../context/AuthContext';
 import Calendare from './CalendareSection/Calendare';
 import Gradient from '../../widgets/Gradient';
 import AppLoadingScreen from '../../widgets/Loading/AppLoadingScreen';
 
 export default function Home() {
-	const { mainColor, showScheduleSection, showNutritionSection } = useContext(GlobalContext);
+	const { mainColor } = useContext(GlobalContext);
+	const { user } = useContext(AuthContext);
+	const showScheduleSection = user?.user?.showScheduleSection !== false;
+	const showNutritionSection = user?.user?.showNutritionSection !== false;
 	return (
 		<>
 			<Gradient />

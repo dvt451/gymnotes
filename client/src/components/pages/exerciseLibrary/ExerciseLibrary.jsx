@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import Footer from '../../widgets/Footer';
 import Header from '../../widgets/Header';
 import { createExercisesStyles } from './ExersicesStyles';
@@ -7,6 +7,7 @@ import { createCommonStyle } from '../../../styles/commonStyle';
 import CreateExerciseButton from './CreateExerciseButton';
 import { AuthContext } from '../../../context/AuthContext';
 import { createPopupStyle } from '../../widgets/popupStyle';
+import Popup from '../../widgets/Popup';
 import ExerciseLibraryListSection from './ExerciseLibraryListSection';
 import ExerciseLibraryMuscleGroupsPanel from './ExerciseLibraryMuscleGroupsPanel';
 import RenameExercisePopup from './RenameExercisePopup';
@@ -21,6 +22,7 @@ export default function ExerciseLibrary() {
 	const styles = createExercisesStyles(mainColor);
 	const commonStyle = createCommonStyle(mainColor);
 	const popupStyle = createPopupStyle(mainColor);
+	const [exercisePendingDeletion, setExercisePendingDeletion] = useState(null);
 	const {
 		allMuscleGroupSections,
 		closeRenameModal,
@@ -57,6 +59,15 @@ export default function ExerciseLibrary() {
 		setRenameValue,
 		userExercises,
 	} = useExerciseLibraryManager(BASE_URL);
+	const pendingDeletionId = String(exercisePendingDeletion?._id || exercisePendingDeletion?.id || '');
+	const isDeletingPendingExercise = deletingExerciseId === pendingDeletionId;
+	const isRenamingPendingExercise = renamingExerciseId === pendingDeletionId;
+
+	const confirmDeleteExercise = async () => {
+		if (!exercisePendingDeletion) return;
+		await handleDeleteExercise(exercisePendingDeletion);
+		setExercisePendingDeletion(null);
+	};
 
 	const libraryLoadingView = (
 		<div style={styles.exerciseListBlock}>
@@ -129,7 +140,7 @@ export default function ExerciseLibrary() {
 								error={error}
 								groupedUserExercises={groupedUserExercises}
 								isLoading={isLoading}
-								onDeleteExercise={handleDeleteExercise}
+								onRequestDeleteExercise={setExercisePendingDeletion}
 								onRenameExercise={openRenameModal}
 								renamingExerciseId={renamingExerciseId}
 								styles={styles}
@@ -172,6 +183,32 @@ export default function ExerciseLibrary() {
 					renameValue={renameMuscleGroupValue}
 					styles={styles}
 				/>
+				<Popup
+					isOpen={Boolean(exercisePendingDeletion)}
+					onClose={() => setExercisePendingDeletion(null)}
+				>
+					<h3 style={popupStyle.title}>Confirm Deletion</h3>
+					<p style={{ color: '#fff' }}>
+						Delete "{exercisePendingDeletion?.name}" from the global library?
+					</p>
+					<div style={popupStyle.popupButtons}>
+						<button
+							type="button"
+							onClick={() => setExercisePendingDeletion(null)}
+							style={popupStyle.popupCancelButton}
+						>
+							Cancel
+						</button>
+						<button
+							type="button"
+							onClick={confirmDeleteExercise}
+							style={popupStyle.popupDeleteButton}
+							disabled={isDeletingPendingExercise || isRenamingPendingExercise}
+						>
+							Delete
+						</button>
+					</div>
+				</Popup>
 				<Footer />
 			</div>
 		</>

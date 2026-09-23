@@ -15,6 +15,7 @@ import EditButton from './EditButton';
 import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 import InlineSpinner from '../../widgets/InlineSpinner';
 import Timer from './Timer/Timer';
+import { PiBarbellLight } from "react-icons/pi";
 
 const normalizeExercisePayload = (ex) => ({
 	...ex,
@@ -305,8 +306,10 @@ export default function Exercises() {
 							isApplyingTemplate={isApplyingTemplate}
 						/>
 
-						<ButtonType addStyle={styles.addButton} functionOnClick={openCreateModal}>
-							<span>+</span>
+						<ButtonType addStyle={{
+							...styles.addButton,
+						}} functionOnClick={openCreateModal}>
+							<div style={{ fontSize: '24px', display: 'flex' }}><PiBarbellLight /></div>
 						</ButtonType>
 					</>
 				)}

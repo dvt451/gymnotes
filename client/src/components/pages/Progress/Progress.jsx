@@ -8,6 +8,7 @@ import { createProgressStyles } from './ProgressStyles';
 import OverallProgressSection from './OverallProgressSection';
 import MuscleGroupStatisticsSection from './MuscleGroupStatisticsSection';
 import ExerciseStatisticsSection from './ExerciseStatisticsSection';
+import ProgressDateRangeSection from './ProgressDateRangeSection';
 import Gradient from '../../widgets/Gradient';
 import SectionSkeleton from '../../widgets/Loading/SectionSkeleton';
 import DatePickerModal from '../DateList/DatePickerModal';
@@ -149,48 +150,18 @@ export default function Progress() {
 				<Header />
 				<main style={progressStyles.main}>
 					<section style={progressStyles.section}>
-						<div style={{ ...progressStyles.card, marginBottom: '18px' }}>
-							<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-									<h2 style={{ ...commonStyle.title, margin: 0 }}>Analysis range</h2>
-									<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-										<button
-											type="button"
-											style={{ ...commonStyle.button, padding: '8px 12px', borderRadius: '999px' }}
-											onClick={() => openDatePicker('start')}
-										>
-											From: {selectedStartDate || appliedStartDate || 'All time'}
-										</button>
-										<button
-											type="button"
-											style={{ ...commonStyle.button, padding: '8px 12px', borderRadius: '999px' }}
-											onClick={() => openDatePicker('end')}
-										>
-											To: {selectedEndDate || appliedEndDate || 'All time'}
-										</button>
-									</div>
-								</div>
-								<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-									<button
-										type="button"
-										style={{ ...commonStyle.popupCreateButton, padding: '8px 14px' }}
-										onClick={handleApplyRange}
-									>
-										Apply
-									</button>
-									<button
-										type="button"
-										style={{ ...commonStyle.popupCancelButton, padding: '8px 14px' }}
-										onClick={handleResetRange}
-									>
-										Reset
-									</button>
-								</div>
-								{pickerError && (
-									<div style={{ color: '#d32f2f', fontSize: '14px' }}>{pickerError}</div>
-								)}
-							</div>
-						</div>
+						<ProgressDateRangeSection
+							appliedEndDate={appliedEndDate}
+							appliedStartDate={appliedStartDate}
+							commonStyle={commonStyle}
+							onApplyRange={handleApplyRange}
+							onOpenDatePicker={openDatePicker}
+							onResetRange={handleResetRange}
+							pickerError={pickerError}
+							progressStyles={progressStyles}
+							selectedEndDate={selectedEndDate}
+							selectedStartDate={selectedStartDate}
+						/>
 						{isLoading ? (
 							<>
 								<div style={progressStyles.card}>

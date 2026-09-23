@@ -105,6 +105,14 @@ const userSchema = new mongoose.Schema(
 			type: Date,
 			default: null,
 		},
+		showScheduleSection: {
+			type: Boolean,
+			default: true,
+		},
+		showNutritionSection: {
+			type: Boolean,
+			default: true,
+		},
 		permissionOverrides: {
 			type: mongoose.Schema.Types.Mixed,
 			default: {},

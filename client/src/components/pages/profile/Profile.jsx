@@ -72,13 +72,14 @@ export default function Profile() {
 	const { mainColor } = useContext(GlobalContext);
 	const theUser = user?.user || {};
 	const isProfileLoading = !user?.user;
+	const scheduleState = theUser.showScheduleSection !== false;
+	const nutritionState = theUser.showNutritionSection !== false;
 	const [newName, setNewName] = useState(theUser?.name || '');
 	const [newWeight, setNewWeight] = useState(theUser?.weight?.toString() || '');
 	const [isNameEditing, setIsNameEditing] = useState(false);
 	const [isWeightEditing, setIsWeightEditing] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [scheduleState, setScheduleState] = useState(true);
-	const [nutritionState, setNutritionState] = useState(true);
+	const [isSectionPreferenceSaving, setIsSectionPreferenceSaving] = useState(false);
 	const [notification, setNotification] = useState({ message: '', type: '' });
 	const commonStyle = createCommonStyle(mainColor);
 	const profileStyles = createProfileStyles(mainColor);
@@ -96,12 +97,47 @@ export default function Profile() {
 		setNotification({ message, type });
 	};
 
+	const updateSectionPreference = async (field, value) => {
+		setIsSectionPreferenceSaving(true);
+
+		try {
+			const token = localStorage.getItem('token');
+			const res = await fetch(`${BASE_URL}/api/auth/profile`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ [field]: value }),
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(`Error ${res.status}: ${text}`);
+			}
+
+			const { user: updatedUser } = await res.json();
+			setUser((currentUser) => ({
+				...currentUser,
+				user: {
+					...currentUser.user,
+					...updatedUser,
+				},
+			}));
+		} catch (err) {
+			console.error(`Error updating ${field}:`, err);
+			showNotification(`Error: ${err.message}`, 'error');
+		} finally {
+			setIsSectionPreferenceSaving(false);
+		}
+	};
+
 	const toggleSchedule = () => {
-		setScheduleState((prev) => !prev);
+		return updateSectionPreference('showScheduleSection', !scheduleState);
 	};
 
 	const toggleNutrition = () => {
-		setNutritionState((prev) => !prev);
+		return updateSectionPreference('showNutritionSection', !nutritionState);
 	};
 
 	const updateName = async () => {
@@ -345,7 +381,9 @@ export default function Profile() {
 										<div style={{ ...profileStyles.infoRow, justifyContent: 'space-between' }}>
 											<span style={profileStyles.infoLabel}>Schedule</span>
 											<button
+												type="button"
 												onClick={toggleSchedule}
+												disabled={isSectionPreferenceSaving}
 												style={{
 													...profileStyles.checkBox,
 													...(scheduleState ? profileStyles.checkBoxChecked : {}),
@@ -362,7 +400,9 @@ export default function Profile() {
 										<div style={{ ...profileStyles.infoRow, justifyContent: 'space-between' }}>
 											<span style={profileStyles.infoLabel}>Nutrition</span>
 											<button
+												type="button"
 												onClick={toggleNutrition}
+												disabled={isSectionPreferenceSaving}
 												style={{
 													...profileStyles.checkBox,
 													...(nutritionState ? profileStyles.checkBoxChecked : {}),
